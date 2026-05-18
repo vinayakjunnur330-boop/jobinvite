@@ -12,15 +12,21 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SuccessStoriesRouteImport } from './routes/success-stories'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ScholarshipsRouteImport } from './routes/scholarships'
+import { Route as SalaryRouteImport } from './routes/salary'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PersonalityRouteImport } from './routes/personality'
 import { Route as MentorsRouteImport } from './routes/mentors'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as InternshipsRouteImport } from './routes/internships'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CompareRouteImport } from './routes/compare'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AssessmentRouteImport } from './routes/assessment'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -40,6 +46,16 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScholarshipsRoute = ScholarshipsRouteImport.update({
+  id: '/scholarships',
+  path: '/scholarships',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalaryRoute = SalaryRouteImport.update({
+  id: '/salary',
+  path: '/salary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoadmapRoute = RoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
@@ -53,6 +69,11 @@ const ResumeRoute = ResumeRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonalityRoute = PersonalityRouteImport.update({
+  id: '/personality',
+  path: '/personality',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MentorsRoute = MentorsRouteImport.update({
@@ -70,6 +91,11 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InternshipsRoute = InternshipsRouteImport.update({
+  id: '/internships',
+  path: '/internships',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -83,6 +109,16 @@ const CoursesRoute = CoursesRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssessmentRoute = AssessmentRouteImport.update({
@@ -105,15 +141,21 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/assessment': typeof AssessmentRoute
+  '/blog': typeof BlogRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/internships': typeof InternshipsRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mentors': typeof MentorsRoute
+  '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
+  '/salary': typeof SalaryRoute
+  '/scholarships': typeof ScholarshipsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
@@ -122,15 +164,21 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/assessment': typeof AssessmentRoute
+  '/blog': typeof BlogRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/internships': typeof InternshipsRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mentors': typeof MentorsRoute
+  '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
+  '/salary': typeof SalaryRoute
+  '/scholarships': typeof ScholarshipsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
@@ -140,15 +188,21 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/assessment': typeof AssessmentRoute
+  '/blog': typeof BlogRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/internships': typeof InternshipsRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mentors': typeof MentorsRoute
+  '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
+  '/salary': typeof SalaryRoute
+  '/scholarships': typeof ScholarshipsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
@@ -159,15 +213,21 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/assessment'
+    | '/blog'
+    | '/compare'
     | '/contact'
     | '/courses'
     | '/dashboard'
+    | '/internships'
     | '/jobs'
     | '/login'
     | '/mentors'
+    | '/personality'
     | '/profile'
     | '/resume'
     | '/roadmap'
+    | '/salary'
+    | '/scholarships'
     | '/sitemap.xml'
     | '/skills'
     | '/success-stories'
@@ -176,15 +236,21 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/assessment'
+    | '/blog'
+    | '/compare'
     | '/contact'
     | '/courses'
     | '/dashboard'
+    | '/internships'
     | '/jobs'
     | '/login'
     | '/mentors'
+    | '/personality'
     | '/profile'
     | '/resume'
     | '/roadmap'
+    | '/salary'
+    | '/scholarships'
     | '/sitemap.xml'
     | '/skills'
     | '/success-stories'
@@ -193,15 +259,21 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/assessment'
+    | '/blog'
+    | '/compare'
     | '/contact'
     | '/courses'
     | '/dashboard'
+    | '/internships'
     | '/jobs'
     | '/login'
     | '/mentors'
+    | '/personality'
     | '/profile'
     | '/resume'
     | '/roadmap'
+    | '/salary'
+    | '/scholarships'
     | '/sitemap.xml'
     | '/skills'
     | '/success-stories'
@@ -211,15 +283,21 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AssessmentRoute: typeof AssessmentRoute
+  BlogRoute: typeof BlogRoute
+  CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
+  InternshipsRoute: typeof InternshipsRoute
   JobsRoute: typeof JobsRoute
   LoginRoute: typeof LoginRoute
   MentorsRoute: typeof MentorsRoute
+  PersonalityRoute: typeof PersonalityRoute
   ProfileRoute: typeof ProfileRoute
   ResumeRoute: typeof ResumeRoute
   RoadmapRoute: typeof RoadmapRoute
+  SalaryRoute: typeof SalaryRoute
+  ScholarshipsRoute: typeof ScholarshipsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SkillsRoute: typeof SkillsRoute
   SuccessStoriesRoute: typeof SuccessStoriesRoute
@@ -248,6 +326,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scholarships': {
+      id: '/scholarships'
+      path: '/scholarships'
+      fullPath: '/scholarships'
+      preLoaderRoute: typeof ScholarshipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salary': {
+      id: '/salary'
+      path: '/salary'
+      fullPath: '/salary'
+      preLoaderRoute: typeof SalaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roadmap': {
       id: '/roadmap'
       path: '/roadmap'
@@ -267,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personality': {
+      id: '/personality'
+      path: '/personality'
+      fullPath: '/personality'
+      preLoaderRoute: typeof PersonalityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mentors': {
@@ -290,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/internships': {
+      id: '/internships'
+      path: '/internships'
+      fullPath: '/internships'
+      preLoaderRoute: typeof InternshipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -309,6 +415,20 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/assessment': {
@@ -339,15 +459,21 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AssessmentRoute: AssessmentRoute,
+  BlogRoute: BlogRoute,
+  CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
+  InternshipsRoute: InternshipsRoute,
   JobsRoute: JobsRoute,
   LoginRoute: LoginRoute,
   MentorsRoute: MentorsRoute,
+  PersonalityRoute: PersonalityRoute,
   ProfileRoute: ProfileRoute,
   ResumeRoute: ResumeRoute,
   RoadmapRoute: RoadmapRoute,
+  SalaryRoute: SalaryRoute,
+  ScholarshipsRoute: ScholarshipsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SkillsRoute: SkillsRoute,
   SuccessStoriesRoute: SuccessStoriesRoute,
