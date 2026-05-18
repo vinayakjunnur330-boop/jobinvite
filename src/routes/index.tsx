@@ -1,198 +1,405 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Brain, Compass, FileText, LineChart, Sparkles, Target, Zap } from "lucide-react";
-import { careers, trends } from "@/lib/careers";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, Sparkles, Brain, Compass, Rocket, TrendingUp, Search, Zap, Star, Shield, Globe } from "lucide-react";
+import heroAi from "@/assets/hero-ai.jpg";
+import studentAi from "@/assets/student-ai.jpg";
+import careersCollage from "@/assets/careers-collage.jpg";
+import medical from "@/assets/medical.jpg";
+import design from "@/assets/design.jpg";
+import aviation from "@/assets/aviation.jpg";
+import sports from "@/assets/sports.jpg";
+import business from "@/assets/business.jpg";
+import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CareerPilot AI — Navigate your career airspace" },
-      { name: "description", content: "AI career counselor: resume analysis, skill gap, salary prediction, personalized roadmaps." },
-      { property: "og:title", content: "CareerPilot AI" },
-      { property: "og:description", content: "AI career counselor for students and professionals." },
+      { title: "CareerPilot AI — Discover your perfect career with AI" },
+      { name: "description", content: "AI-powered career counselor for students, graduates, and professionals across 44+ domains: tech, medical, design, business, aviation, sports, and more." },
+      { property: "og:title", content: "CareerPilot AI — Discover your perfect career" },
+      { property: "og:description", content: "AI guidance across every major career domain. Personalized assessments, salary insights, learning roadmaps." },
     ],
   }),
-  component: HomePage,
+  component: Home,
 });
 
-function HomePage() {
+function useCounter(target: number, duration = 1800) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now();
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setN(Math.floor(eased * target));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return n;
+}
+
+function Counter({ value, suffix }: { value: number; suffix: string }) {
+  const n = useCounter(value);
+  return <span>{n.toLocaleString()}{suffix}</span>;
+}
+
+function Home() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const [mouse, setMouse] = useState({ x: 0.5, y: 0.5 });
+
   return (
-    <div>
+    <div onMouseMove={(e) => setMouse({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight })}>
       {/* HERO */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-20 pb-24">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="animate-entrance">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-              </span>
-              V3.0 COCKPIT NOW LIVE
+      <section ref={heroRef} className="relative min-h-[95vh] overflow-hidden flex items-center">
+        {/* parallax bg image */}
+        <motion.div style={{ y: heroY, scale: heroScale, opacity: heroOpacity }} className="absolute inset-0">
+          <img src={heroAi} alt="" width={1920} height={1280} className="w-full h-full object-cover opacity-50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+        </motion.div>
+
+        {/* animated aurora blobs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-32 -left-32 size-[480px] rounded-full bg-primary/30 blur-[120px] animate-aurora" />
+          <div className="absolute top-1/4 -right-32 size-[520px] rounded-full bg-accent/25 blur-[140px] animate-aurora" style={{ animationDelay: "-6s" }} />
+          <div className="absolute bottom-0 left-1/3 size-[420px] rounded-full bg-primary/20 blur-[120px] animate-aurora" style={{ animationDelay: "-12s" }} />
+        </div>
+
+        {/* mouse glow */}
+        <div
+          className="absolute inset-0 pointer-events-none transition-opacity opacity-60"
+          style={{
+            background: `radial-gradient(600px circle at ${mouse.x * 100}% ${mouse.y * 100}%, color-mix(in oklab, var(--primary) 18%, transparent), transparent 60%)`,
+          }}
+        />
+
+        {/* grid */}
+        <div className="absolute inset-0 grid-bg radial-fade opacity-30 animate-grid pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto px-6 py-24 w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
+            className="max-w-4xl"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-strong text-xs font-mono mb-6 animate-pulse-glow">
+              <span className="size-1.5 rounded-full bg-success animate-pulse" />
+              AI_COUNSELOR · ONLINE · 44 DOMAINS
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6 text-balance">
-              Navigate your <span className="text-gradient-brand">career airspace.</span>
+
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[0.95]">
+              Find the career
+              <br />
+              you were <span className="text-gradient-shimmer">built</span> for.
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-[54ch] mb-10 leading-relaxed">
-              CareerPilot AI analyzes your trajectory, scans for skill gaps, and instruments your path to a $250k+ salary with precision telemetry.
+
+            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
+              CareerPilot is your AI counselor across every domain — tech, medicine, design, finance,
+              aviation, sports, creative, government, and 38 more. One assessment. A lifetime of clarity.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link to="/assessment" className="px-7 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:shadow-[var(--shadow-glow-primary)] transition-all flex items-center justify-center gap-2">
-                Start Flight Assessment <ArrowRight className="size-4" />
-              </Link>
-              <Link to="/resume" className="px-7 py-3.5 bg-white/5 border border-border text-foreground font-bold rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                <FileText className="size-4" /> Upload Resume
-              </Link>
-            </div>
-          </div>
 
-          <div className="relative animate-entrance" style={{ animationDelay: "200ms" }}>
-            <div className="relative glass rounded-2xl p-4 shadow-2xl overflow-hidden">
-              <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
-                <div className="size-3 rounded-full bg-destructive/50" />
-                <div className="size-3 rounded-full bg-yellow-500/50" />
-                <div className="size-3 rounded-full bg-success/60" />
-                <div className="ml-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Telemetry / Career_Path_01</div>
+            {/* search bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.7 }}
+              className="mt-8 max-w-2xl"
+            >
+              <div className="glass-strong rounded-2xl p-2 flex items-center gap-2 hover-lift">
+                <Search className="size-5 ml-3 text-muted-foreground" />
+                <input
+                  placeholder="Search 2,400+ careers — try 'pilot', 'designer', 'AI'..."
+                  className="flex-1 bg-transparent px-2 py-3 text-sm md:text-base outline-none placeholder:text-muted-foreground"
+                />
+                <Link to="/assessment" className="px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground text-sm font-bold flex items-center gap-2 whitespace-nowrap hover:scale-[1.02] transition-transform">
+                  Pilot it <ArrowRight className="size-4" />
+                </Link>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <div className="p-4 bg-white/5 rounded-xl border border-border">
-                    <div className="text-[10px] font-mono text-primary mb-1">SALARY_PREDICTION</div>
-                    <div className="text-2xl font-bold tracking-tight">
-                      $142,500<span className="text-sm text-success font-mono ml-2">+12%</span>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-white/5 rounded-xl border border-border">
-                    <div className="text-[10px] font-mono text-accent mb-1">SKILL_COHERENCE</div>
-                    <div className="h-2 w-full bg-white/5 rounded-full mt-2 overflow-hidden">
-                      <div className="h-full bg-accent w-[78%]" />
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2 font-mono">78% aligned</div>
-                  </div>
-                  <div className="p-4 bg-white/5 rounded-xl border border-border">
-                    <div className="text-[10px] font-mono text-primary mb-1">TOP_MATCH</div>
-                    <div className="text-sm font-bold">AI Engineer · 96%</div>
-                  </div>
-                </div>
-                <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent rounded-xl border border-border p-4 flex flex-col justify-between">
-                  <div className="text-[10px] font-mono text-muted-foreground uppercase">Live_Map.exe</div>
-                  <div className="flex-1 flex items-center justify-center py-6">
-                    <div className="relative">
-                      <div className="size-20 rounded-full border border-primary/40 animate-ping absolute" />
-                      <div className="size-20 rounded-full border-2 border-primary/70 flex items-center justify-center relative">
-                        <Compass className="size-8 text-primary" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground font-mono text-center">PATH OPTIMAL</div>
-                </div>
-              </div>
+            </motion.div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link to="/assessment" className="px-6 py-3 rounded-full bg-foreground text-background text-sm font-bold hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-2">
+                <Brain className="size-4" /> Take AI assessment
+              </Link>
+              <Link to="/resume" className="px-6 py-3 rounded-full glass-strong text-sm font-bold hover:border-primary/50 transition-colors flex items-center gap-2">
+                <Sparkles className="size-4" /> Analyze my resume
+              </Link>
             </div>
-            <div className="absolute -top-10 -right-10 size-40 bg-primary/20 blur-[100px] -z-0" />
-            <div className="absolute -bottom-10 -left-10 size-40 bg-accent/20 blur-[100px] -z-0" />
+
+            {/* stats strip */}
+            <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl">
+              {stats.map((s, i) => (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
+                  className="glass rounded-xl p-4"
+                >
+                  <div className="text-2xl md:text-3xl font-extrabold text-gradient-brand">
+                    <Counter value={s.value} suffix={s.suffix} />
+                  </div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-1">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* scroll cue */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-mono text-muted-foreground tracking-widest animate-float">
+          SCROLL TO EXPLORE ↓
+        </div>
+      </section>
+
+      {/* LOGO MARQUEE */}
+      <section className="border-y border-border py-8 overflow-hidden bg-card/30">
+        <div className="text-center text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6">
+          Trusted by students & professionals from
+        </div>
+        <div className="relative">
+          <div className="flex gap-16 animate-marquee whitespace-nowrap text-2xl font-bold text-muted-foreground/50">
+            {[..."Google · Meta · IIT Bombay · Stanford · AIIMS · NIFT · IIM · Microsoft · NASA · Tesla · Amazon · Pixar · Goldman Sachs · UN".split("·"), ..."Google · Meta · IIT Bombay · Stanford · AIIMS · NIFT · IIM · Microsoft · NASA · Tesla · Amazon · Pixar · Goldman Sachs · UN".split("·")].map((l, i) => (
+              <span key={i} className="tracking-tight">{l.trim()}</span>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* FEATURES BENTO */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Intelligent Pathfinding</h2>
-            <p className="text-muted-foreground">Real-time data for modern industry transitions.</p>
-          </div>
-          <div className="flex gap-2 font-mono text-xs">
-            <span className="px-2 py-1 bg-white/5 border border-border rounded">STATUS: OPTIMAL</span>
-            <span className="px-2 py-1 bg-white/5 border border-border rounded">SCAN: ACTIVE</span>
-          </div>
-        </div>
+      {/* CAREER DOMAINS */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <SectionHeader
+          eyebrow="DOMAINS"
+          title="Every career. Every dream. Mapped."
+          subtitle="From neurosurgery to nano-influencer, we cover 44 domains and thousands of role variations."
+        />
 
-        <div className="grid md:grid-cols-4 gap-4">
-          <FeatureCard className="md:col-span-2" icon={<Brain className="size-5" />} title="AI Career Recommendation" desc="Match against 15+ careers across tech, business, healthcare, and creative industries. Top 5 picks ranked by fit, salary, and demand." tags={["NEURAL", "RANK_v3"]} />
-          <FeatureCard icon={<Target className="size-5" />} title="Skill Gap Analysis" desc="Pinpoint exactly which skills you're missing for your dream role." accentValue="94%" valueLabel="Precision" />
-          <FeatureCard icon={<LineChart className="size-5" />} title="Market Pulse" desc="Cybersecurity demand up 40% in EMEA this quarter." />
-          <FeatureCard icon={<Sparkles className="size-5" />} title="AI Chatbot" desc="Talk to Pilot — your always-on career advisor." />
-          <FeatureCard className="md:col-span-2" icon={<Zap className="size-5" />} title="Personalized Roadmap" desc="A 12-month flight plan with courses, milestones, and certifications mapped to your target role." tags={["12 MONTH", "ADAPTIVE"]} />
+        <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {domains.map((d, i) => (
+            <motion.div
+              key={d}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: (i % 12) * 0.03 }}
+              className="glass rounded-xl px-3 py-3 text-sm font-medium hover-lift cursor-pointer text-center"
+            >
+              {d}
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* TOP CAREERS */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <div className="font-mono text-xs text-primary tracking-widest mb-2">RANKED_BY_FIT</div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Top career matches</h2>
-          </div>
-          <Link to="/dashboard" className="text-sm font-medium text-primary hover:underline hidden sm:flex items-center gap-1">
-            See full dashboard <ArrowRight className="size-3" />
-          </Link>
+      {/* FEATURED CATEGORIES (image cards) */}
+      <section className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="grid md:grid-cols-3 gap-4">
+          <CategoryCard image={medical} title="Medical & Healthcare" count="180+ roles" />
+          <CategoryCard image={design} title="Design & Creative" count="240+ roles" />
+          <CategoryCard image={aviation} title="Aviation & Defense" count="95+ roles" />
+          <CategoryCard image={business} title="Business & Finance" count="320+ roles" />
+          <CategoryCard image={sports} title="Sports & Fitness" count="110+ roles" />
+          <CategoryCard image={careersCollage} title="See all 44 domains" count="2,400+ roles" highlight />
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {careers.slice(0, 6).map((c) => (
-            <div key={c.slug} className="glass p-6 rounded-2xl hover:border-primary/50 transition-colors">
-              <div className="flex items-start justify-between mb-4">
+      </section>
+
+      {/* HOW IT WORKS - 3 step cinematic */}
+      <section className="relative max-w-7xl mx-auto px-6 py-24">
+        <SectionHeader eyebrow="HOW_IT_WORKS" title="From confused to confident in three steps." />
+        <div className="mt-14 grid md:grid-cols-3 gap-6">
+          {[
+            { icon: Brain, title: "Tell AI about you", desc: "Skills, interests, qualifications, personality, goals. 5 minutes, 30+ signals.", step: "01" },
+            { icon: Compass, title: "Get personalized matches", desc: "Top careers ranked by fit, demand, salary, and your future trajectory.", step: "02" },
+            { icon: Rocket, title: "Follow your roadmap", desc: "12-month milestone plan, curated courses, mentor intros, and live tracking.", step: "03" },
+          ].map((s, i) => (
+            <motion.div
+              key={s.step}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.15, duration: 0.7 }}
+              className="glass-strong rounded-2xl p-7 hover-lift relative overflow-hidden group"
+            >
+              <div className="absolute -top-6 -right-4 text-[120px] font-extrabold text-white/[0.03] leading-none">{s.step}</div>
+              <s.icon className="size-9 text-primary mb-4" />
+              <h3 className="text-xl font-bold mb-2">{s.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+              <div className="mt-4 h-px bg-gradient-to-r from-primary/40 to-transparent group-hover:from-accent/60 transition-colors" />
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* AI ASSISTANT SHOWCASE */}
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={studentAi} alt="" width={1280} height={896} loading="lazy" className="w-full h-full object-cover opacity-25" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+            <div className="font-mono text-xs text-primary tracking-widest mb-3">PILOT · AI COUNSELOR</div>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
+              Chat with an AI that
+              <br />
+              <span className="text-gradient-brand">actually knows your field.</span>
+            </h2>
+            <p className="text-muted-foreground mt-4 text-lg">
+              Trained on 2.4M career trajectories. Speaks 12 languages. Answers everything from
+              "Should I do an MBA?" to "How do I switch from law to UX?"
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {["Skill gap analysis", "Salary negotiation", "Career pivot plans", "Portfolio review", "Interview prep"].map((t) => (
+                <span key={t} className="px-3 py-1.5 rounded-full glass text-xs font-mono">{t}</span>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="glass-strong rounded-3xl p-6 shadow-[0_30px_80px_-20px_color-mix(in_oklab,var(--primary)_30%,transparent)]">
+            <ChatPreview />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* TRENDING + FUTURE JOBS */}
+      <section className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-6">
+        <div className="glass-strong rounded-2xl p-8 hover-lift">
+          <div className="font-mono text-xs text-primary tracking-widest mb-3 flex items-center gap-2">
+            <TrendingUp className="size-3" /> TRENDING_NOW
+          </div>
+          <h3 className="text-2xl font-bold mb-6">Hottest industries this quarter</h3>
+          <div className="space-y-3">
+            {trends.slice(0, 6).map((t, i) => (
+              <motion.div key={t.industry} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <span className="text-sm font-medium">{t.industry}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className={`h-full ${t.color === "primary" ? "bg-primary" : "bg-accent"}`} style={{ width: `${parseInt(t.change)}%` }} />
+                  </div>
+                  <span className={`font-mono font-bold text-xs ${t.color === "primary" ? "text-primary" : "text-accent"}`}>{t.change}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass-strong rounded-2xl p-8 hover-lift">
+          <div className="font-mono text-xs text-accent tracking-widest mb-3 flex items-center gap-2">
+            <Zap className="size-3" /> FUTURE_JOBS
+          </div>
+          <h3 className="text-2xl font-bold mb-6">Careers that will define the next decade</h3>
+          <div className="space-y-3">
+            {futureJobs.map((j, i) => (
+              <motion.div key={j.title} initial={{ opacity: 0, x: 10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="text-sm font-bold">{j.title}</div>
+                    <div className="text-[10px] font-mono text-muted-foreground mt-0.5">EMERGES_BY · {j.year}</div>
+                  </div>
+                  <div className="text-xs font-mono text-accent">{j.demand}% demand</div>
+                </div>
+                <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-accent to-primary" style={{ width: `${j.demand}%` }} />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TOP CAREERS BENTO */}
+      <section className="max-w-7xl mx-auto px-6 pb-24">
+        <SectionHeader eyebrow="EXPLORE" title="A few of the 2,400+ paths we map." />
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {careers.slice(0, 9).map((c, i) => (
+            <motion.div
+              key={c.slug}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: (i % 3) * 0.08 }}
+              className="glass rounded-2xl p-6 hover-lift group"
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="font-mono text-[10px] text-muted-foreground tracking-widest">{c.industry.toUpperCase()}</div>
+                <div className="text-xs font-mono font-bold text-primary">{c.match}% MATCH</div>
+              </div>
+              <h3 className="text-lg font-bold mb-2 group-hover:text-gradient-brand transition-all">{c.title}</h3>
+              <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{c.summary}</p>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">{c.salary}</span>
+                <span className="text-success font-mono">{c.growth}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <SectionHeader eyebrow="STORIES" title="People who found their path." />
+        <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {testimonials.map((t, i) => (
+            <motion.div key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="glass-strong rounded-2xl p-6 hover-lift">
+              <div className="flex gap-0.5 mb-3">
+                {[...Array(5)].map((_, i) => <Star key={i} className="size-3.5 fill-primary text-primary" />)}
+              </div>
+              <p className="text-sm leading-relaxed mb-5">"{t.quote}"</p>
+              <div className="flex items-center gap-3 pt-4 border-t border-border">
+                <div className="size-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-primary-foreground">
+                  {t.name[0]}
+                </div>
                 <div>
-                  <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">{c.industry}</div>
-                  <h3 className="text-lg font-bold mt-1">{c.title}</h3>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">{c.match}%</div>
-                  <div className="text-[10px] font-mono text-muted-foreground">MATCH</div>
+                  <div className="text-sm font-bold">{t.name}</div>
+                  <div className="text-[11px] text-muted-foreground">{t.role}</div>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">{c.summary}</p>
-              <div className="grid grid-cols-2 gap-2 text-xs mb-4">
-                <div className="p-2 bg-white/5 rounded border border-border">
-                  <div className="text-[9px] text-muted-foreground font-mono">SALARY</div>
-                  <div className="font-semibold">{c.salary}</div>
-                </div>
-                <div className="p-2 bg-white/5 rounded border border-border">
-                  <div className="text-[9px] text-muted-foreground font-mono">GROWTH</div>
-                  <div className="font-semibold text-success">{c.growth}</div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {c.skills.slice(0, 3).map((s) => (
-                  <span key={s} className="text-[10px] font-mono px-2 py-0.5 bg-white/5 border border-border rounded">{s}</span>
-                ))}
-              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURES STRIP */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { icon: Shield, label: "Private by default", desc: "Your data is encrypted. Never sold." },
+            { icon: Globe, label: "12 languages", desc: "Built for a global workforce." },
+            { icon: Zap, label: "Real-time AI", desc: "Streaming responses, instant insights." },
+            { icon: Star, label: "94% match rate", desc: "Verified across 2.4M trajectories." },
+          ].map((f) => (
+            <div key={f.label} className="glass rounded-2xl p-6 hover-lift">
+              <f.icon className="size-6 text-primary mb-3" />
+              <div className="font-bold text-sm">{f.label}</div>
+              <div className="text-xs text-muted-foreground mt-1">{f.desc}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* MARKET PULSE */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="glass rounded-3xl p-8 md:p-12">
-          <div className="grid md:grid-cols-2 gap-10 items-center">
-            <div>
-              <div className="font-mono text-xs text-accent tracking-widest mb-3">LIVE_SIGNAL</div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Where the market is moving</h2>
-              <p className="text-muted-foreground mb-6">Aggregated from 10M+ job postings, salary reports, and hiring signals across 14 regions.</p>
-              <Link to="/jobs" className="inline-flex items-center gap-2 text-primary font-bold hover:underline">
-                Open job trends <ArrowRight className="size-4" />
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {trends.map((t) => (
-                <div key={t.industry} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-border">
-                  <span className="text-sm font-medium">{t.industry}</span>
-                  <span className={`font-mono font-bold ${t.color === "primary" ? "text-primary" : "text-accent"}`}>{t.change}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="relative overflow-hidden rounded-3xl p-10 md:p-16 text-center border border-border bg-gradient-to-br from-primary/15 via-card to-accent/10">
-          <div className="absolute -top-20 -right-20 size-60 bg-primary/20 blur-[120px]" />
-          <div className="absolute -bottom-20 -left-20 size-60 bg-accent/20 blur-[120px]" />
+      <section className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="relative rounded-3xl overflow-hidden glass-strong p-12 md:p-20 text-center">
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 size-[600px] rounded-full bg-primary/20 blur-[120px] animate-aurora" />
           <div className="relative">
-            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Ready for takeoff?</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto mb-8">Run a 5-minute assessment and unlock your personalized career flight plan.</p>
-            <Link to="/assessment" className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:shadow-[var(--shadow-glow-primary)] transition-all">
-              Begin Assessment <ArrowRight className="size-4" />
+            <div className="font-mono text-xs text-primary tracking-widest mb-4">READY?</div>
+            <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight">
+              Your future self is
+              <br />
+              <span className="text-gradient-shimmer">waiting on the other side.</span>
+            </h2>
+            <p className="text-muted-foreground mt-5 max-w-xl mx-auto">
+              5 minutes. One assessment. A career path that finally makes sense. Free forever.
+            </p>
+            <Link to="/assessment" className="inline-flex items-center gap-2 mt-8 px-8 py-4 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-base font-bold hover:scale-105 transition-transform shadow-[0_0_40px_-8px_var(--primary)]">
+              Begin assessment <ArrowRight className="size-5" />
             </Link>
           </div>
         </div>
@@ -201,18 +408,70 @@ function HomePage() {
   );
 }
 
-function FeatureCard({ icon, title, desc, tags, accentValue, valueLabel, className = "" }: { icon: React.ReactNode; title: string; desc: string; tags?: string[]; accentValue?: string; valueLabel?: string; className?: string }) {
+function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
   return (
-    <div className={`p-8 glass rounded-3xl hover:border-primary/50 transition-colors ${className}`}>
-      <div className="size-11 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-5">{icon}</div>
-      {accentValue && <div className="text-3xl font-bold text-accent mb-2">{accentValue}{valueLabel && <span className="text-xs font-mono text-muted-foreground ml-2">{valueLabel}</span>}</div>}
-      <h3 className="text-lg font-bold mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground mb-4">{desc}</p>
-      {tags && (
-        <div className="flex gap-2">
-          {tags.map((t) => <span key={t} className="text-[10px] font-mono py-1 px-2 bg-white/5 border border-border rounded">{t}</span>)}
+    <div className="max-w-3xl">
+      <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="font-mono text-xs text-primary tracking-widest mb-3">{eyebrow}</motion.div>
+      <motion.h2 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">{title}</motion.h2>
+      {subtitle && <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="mt-4 text-muted-foreground text-lg">{subtitle}</motion.p>}
+    </div>
+  );
+}
+
+function CategoryCard({ image, title, count, highlight }: { image: string; title: string; count: string; highlight?: boolean }) {
+  return (
+    <Link to="/dashboard" className="group relative aspect-[4/3] rounded-2xl overflow-hidden hover-lift block">
+      <img src={image} alt={title} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1200ms] ease-[cubic-bezier(0.32,0.72,0,1)]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      {highlight && <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 mix-blend-overlay" />}
+      <div className="absolute bottom-0 left-0 right-0 p-6">
+        <div className="text-[10px] font-mono uppercase tracking-widest text-primary mb-1">{count}</div>
+        <div className="text-xl font-bold">{title}</div>
+        <div className="mt-2 flex items-center gap-1.5 text-xs font-mono text-muted-foreground group-hover:text-foreground transition-colors">
+          Explore <ArrowRight className="size-3 group-hover:translate-x-1 transition-transform" />
         </div>
-      )}
+      </div>
+    </Link>
+  );
+}
+
+function ChatPreview() {
+  const messages = [
+    { role: "user", text: "I'm a 22yr old commerce grad. Hate accounting. Love design. Help?" },
+    { role: "ai", text: "Got it. Based on your profile, your top 3 pivots: Product Designer (94% fit), UX Researcher (88%), Brand Strategist (82%). Want me to draft a 6-month transition roadmap?" },
+    { role: "user", text: "Yes — and what's the salary jump?" },
+    { role: "ai", text: "Realistic Year-1: ₹8–14L. Year-3 senior: ₹18–32L. I'll prep a portfolio plan + 12 target companies. ✦" },
+  ];
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="flex items-center justify-between pb-3 border-b border-border">
+        <div className="flex items-center gap-2">
+          <div className="size-7 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <Sparkles className="size-3.5 text-primary-foreground" />
+          </div>
+          <span className="font-bold text-sm">Pilot</span>
+          <span className="size-1.5 rounded-full bg-success animate-pulse" />
+        </div>
+        <span className="text-[10px] font-mono text-muted-foreground">LIVE</span>
+      </div>
+      {messages.map((m, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.4 }}
+          className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+        >
+          <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+            m.role === "user"
+              ? "bg-primary text-primary-foreground"
+              : "bg-white/5 border border-border"
+          }`}>
+            {m.text}
+          </div>
+        </motion.div>
+      ))}
     </div>
   );
 }

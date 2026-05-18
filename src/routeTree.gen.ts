@@ -9,11 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SuccessStoriesRouteImport } from './routes/success-stories'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MentorsRouteImport } from './routes/mentors'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -23,6 +25,11 @@ import { Route as AssessmentRouteImport } from './routes/assessment'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SuccessStoriesRoute = SuccessStoriesRouteImport.update({
+  id: '/success-stories',
+  path: '/success-stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
@@ -46,6 +53,11 @@ const ResumeRoute = ResumeRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentorsRoute = MentorsRouteImport.update({
+  id: '/mentors',
+  path: '/mentors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -98,11 +110,13 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
+  '/mentors': typeof MentorsRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
+  '/success-stories': typeof SuccessStoriesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -113,11 +127,13 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
+  '/mentors': typeof MentorsRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
+  '/success-stories': typeof SuccessStoriesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -129,11 +145,13 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
+  '/mentors': typeof MentorsRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
+  '/success-stories': typeof SuccessStoriesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -146,11 +164,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/jobs'
     | '/login'
+    | '/mentors'
     | '/profile'
     | '/resume'
     | '/roadmap'
     | '/sitemap.xml'
     | '/skills'
+    | '/success-stories'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,11 +181,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/jobs'
     | '/login'
+    | '/mentors'
     | '/profile'
     | '/resume'
     | '/roadmap'
     | '/sitemap.xml'
     | '/skills'
+    | '/success-stories'
   id:
     | '__root__'
     | '/'
@@ -176,11 +198,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/jobs'
     | '/login'
+    | '/mentors'
     | '/profile'
     | '/resume'
     | '/roadmap'
     | '/sitemap.xml'
     | '/skills'
+    | '/success-stories'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -192,15 +216,24 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   JobsRoute: typeof JobsRoute
   LoginRoute: typeof LoginRoute
+  MentorsRoute: typeof MentorsRoute
   ProfileRoute: typeof ProfileRoute
   ResumeRoute: typeof ResumeRoute
   RoadmapRoute: typeof RoadmapRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SkillsRoute: typeof SkillsRoute
+  SuccessStoriesRoute: typeof SuccessStoriesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/success-stories': {
+      id: '/success-stories'
+      path: '/success-stories'
+      fullPath: '/success-stories'
+      preLoaderRoute: typeof SuccessStoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skills': {
       id: '/skills'
       path: '/skills'
@@ -234,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentors': {
+      id: '/mentors'
+      path: '/mentors'
+      fullPath: '/mentors'
+      preLoaderRoute: typeof MentorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -304,11 +344,13 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   JobsRoute: JobsRoute,
   LoginRoute: LoginRoute,
+  MentorsRoute: MentorsRoute,
   ProfileRoute: ProfileRoute,
   ResumeRoute: ResumeRoute,
   RoadmapRoute: RoadmapRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SkillsRoute: SkillsRoute,
+  SuccessStoriesRoute: SuccessStoriesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
