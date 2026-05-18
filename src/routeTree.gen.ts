@@ -9,8 +9,80 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SkillsRouteImport } from './routes/skills'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as ResumeRouteImport } from './routes/resume'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CoursesRouteImport } from './routes/courses'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AssessmentRouteImport } from './routes/assessment'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SkillsRoute = SkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResumeRoute = ResumeRouteImport.update({
+  id: '/resume',
+  path: '/resume',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesRoute = CoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssessmentRoute = AssessmentRouteImport.update({
+  id: '/assessment',
+  path: '/assessment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +91,200 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/assessment': typeof AssessmentRoute
+  '/contact': typeof ContactRoute
+  '/courses': typeof CoursesRoute
+  '/dashboard': typeof DashboardRoute
+  '/jobs': typeof JobsRoute
+  '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/resume': typeof ResumeRoute
+  '/roadmap': typeof RoadmapRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/skills': typeof SkillsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/assessment': typeof AssessmentRoute
+  '/contact': typeof ContactRoute
+  '/courses': typeof CoursesRoute
+  '/dashboard': typeof DashboardRoute
+  '/jobs': typeof JobsRoute
+  '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/resume': typeof ResumeRoute
+  '/roadmap': typeof RoadmapRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/skills': typeof SkillsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/assessment': typeof AssessmentRoute
+  '/contact': typeof ContactRoute
+  '/courses': typeof CoursesRoute
+  '/dashboard': typeof DashboardRoute
+  '/jobs': typeof JobsRoute
+  '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/resume': typeof ResumeRoute
+  '/roadmap': typeof RoadmapRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/skills': typeof SkillsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/assessment'
+    | '/contact'
+    | '/courses'
+    | '/dashboard'
+    | '/jobs'
+    | '/login'
+    | '/profile'
+    | '/resume'
+    | '/roadmap'
+    | '/sitemap.xml'
+    | '/skills'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/assessment'
+    | '/contact'
+    | '/courses'
+    | '/dashboard'
+    | '/jobs'
+    | '/login'
+    | '/profile'
+    | '/resume'
+    | '/roadmap'
+    | '/sitemap.xml'
+    | '/skills'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/assessment'
+    | '/contact'
+    | '/courses'
+    | '/dashboard'
+    | '/jobs'
+    | '/login'
+    | '/profile'
+    | '/resume'
+    | '/roadmap'
+    | '/sitemap.xml'
+    | '/skills'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AssessmentRoute: typeof AssessmentRoute
+  ContactRoute: typeof ContactRoute
+  CoursesRoute: typeof CoursesRoute
+  DashboardRoute: typeof DashboardRoute
+  JobsRoute: typeof JobsRoute
+  LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
+  ResumeRoute: typeof ResumeRoute
+  RoadmapRoute: typeof RoadmapRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SkillsRoute: typeof SkillsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/skills': {
+      id: '/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof SkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resume': {
+      id: '/resume'
+      path: '/resume'
+      fullPath: '/resume'
+      preLoaderRoute: typeof ResumeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses': {
+      id: '/courses'
+      path: '/courses'
+      fullPath: '/courses'
+      preLoaderRoute: typeof CoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assessment': {
+      id: '/assessment'
+      path: '/assessment'
+      fullPath: '/assessment'
+      preLoaderRoute: typeof AssessmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +297,18 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AssessmentRoute: AssessmentRoute,
+  ContactRoute: ContactRoute,
+  CoursesRoute: CoursesRoute,
+  DashboardRoute: DashboardRoute,
+  JobsRoute: JobsRoute,
+  LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
+  ResumeRoute: ResumeRoute,
+  RoadmapRoute: RoadmapRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SkillsRoute: SkillsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
