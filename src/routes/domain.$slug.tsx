@@ -18,7 +18,7 @@ export const Route = createFileRoute("/domain/$slug")({
       ],
     };
   },
-  loader: ({ params }) => {
+  loader: ({ params }): import("@/lib/domains").DomainData => {
     const d = getDomainData(params.slug);
     if (!d) throw notFound();
     return d;
