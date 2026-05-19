@@ -11,6 +11,7 @@ import aviation from "@/assets/aviation.jpg";
 import sports from "@/assets/sports.jpg";
 import business from "@/assets/business.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
+import { slugifyDomain } from "@/lib/domains";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -190,9 +191,14 @@ function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: (i % 12) * 0.03 }}
-              className="glass rounded-xl px-3 py-3 text-sm font-medium hover-lift cursor-pointer text-center"
             >
-              {d}
+              <Link
+                to="/domain/$slug"
+                params={{ slug: slugifyDomain(d) }}
+                className="block glass rounded-xl px-3 py-3 text-sm font-medium hover-lift text-center hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                {d}
+              </Link>
             </motion.div>
           ))}
         </div>
