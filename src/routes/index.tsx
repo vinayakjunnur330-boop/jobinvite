@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Sparkles, Brain, Compass, Rocket, TrendingUp, Search, Zap, Star, Shield, Globe } from "lucide-react";
+import { ArrowRight, Sparkles, Brain, Compass, Rocket, TrendingUp, Zap } from "lucide-react";
 import heroAi from "@/assets/hero-ai.jpg";
 import studentAi from "@/assets/student-ai.jpg";
 import careersCollage from "@/assets/careers-collage.jpg";
@@ -10,8 +10,10 @@ import design from "@/assets/design.jpg";
 import aviation from "@/assets/aviation.jpg";
 import sports from "@/assets/sports.jpg";
 import business from "@/assets/business.jpg";
-import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
+import { careers, domains, futureJobs, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
+import { SmartSearch } from "@/components/SmartSearch";
+import { CareerScenes } from "@/components/CareerScenes";
 
 export const Route = createFileRoute("/")({
   head: () => ({
