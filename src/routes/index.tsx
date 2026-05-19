@@ -154,19 +154,8 @@ function Home() {
         </div>
       </section>
 
-      {/* LOGO MARQUEE */}
-      <section className="border-y border-border py-8 overflow-hidden bg-card/30">
-        <div className="text-center text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6">
-          Trusted by students & professionals from
-        </div>
-        <div className="relative">
-          <div className="flex gap-16 animate-marquee whitespace-nowrap text-2xl font-bold text-muted-foreground/50">
-            {[..."Google · Meta · IIT Bombay · Stanford · AIIMS · NIFT · IIM · Microsoft · NASA · Tesla · Amazon · Pixar · Goldman Sachs · UN".split("·"), ..."Google · Meta · IIT Bombay · Stanford · AIIMS · NIFT · IIM · Microsoft · NASA · Tesla · Amazon · Pixar · Goldman Sachs · UN".split("·")].map((l, i) => (
-              <span key={i} className="tracking-tight">{l.trim()}</span>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* CAREER SCENES (replaces logo marquee) */}
+      <CareerScenes />
 
       {/* CAREER DOMAINS */}
       <section className="max-w-7xl mx-auto px-6 py-24">
