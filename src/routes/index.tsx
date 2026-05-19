@@ -116,16 +116,7 @@ function Home() {
               transition={{ delay: 0.4, duration: 0.7 }}
               className="mt-8 max-w-2xl"
             >
-              <div className="glass-strong rounded-2xl p-2 flex items-center gap-2 hover-lift">
-                <Search className="size-5 ml-3 text-muted-foreground" />
-                <input
-                  placeholder="Search 2,400+ careers — try 'pilot', 'designer', 'AI'..."
-                  className="flex-1 bg-transparent px-2 py-3 text-sm md:text-base outline-none placeholder:text-muted-foreground"
-                />
-                <Link to="/assessment" className="px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground text-sm font-bold flex items-center gap-2 whitespace-nowrap hover:scale-[1.02] transition-transform">
-                  Pilot it <ArrowRight className="size-4" />
-                </Link>
-              </div>
+              <SmartSearch />
             </motion.div>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
