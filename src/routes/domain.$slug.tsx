@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { ArrowRight, TrendingUp, Sparkles, Target, Calendar, BookOpen, Users, Award, CheckCircle2, Circle, Zap } from "lucide-react";
-import { getDomainData } from "@/lib/domains";
+import { getDomainData, type DomainData } from "@/lib/domains";
 
 export const Route = createFileRoute("/domain/$slug")({
   head: ({ params }) => {
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/domain/$slug")({
 const STORAGE_KEY = (slug: string) => `cp_tasks_${slug}`;
 
 function DomainPage() {
-  const d = Route.useLoaderData();
+  const d = Route.useLoaderData() as DomainData;
   const [done, setDone] = useState<Record<number, boolean>>(() => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY(d.slug)) || "{}"); } catch { return {}; }
