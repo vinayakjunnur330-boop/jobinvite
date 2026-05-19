@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Sparkles, Brain, Compass, Rocket, TrendingUp, Search, Zap, Star, Shield, Globe } from "lucide-react";
+import { ArrowRight, Sparkles, Brain, Compass, Rocket, TrendingUp, Zap, Star, Shield, Globe } from "lucide-react";
 import heroAi from "@/assets/hero-ai.jpg";
 import studentAi from "@/assets/student-ai.jpg";
 import careersCollage from "@/assets/careers-collage.jpg";
@@ -12,6 +12,8 @@ import sports from "@/assets/sports.jpg";
 import business from "@/assets/business.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
+import { SmartSearch } from "@/components/SmartSearch";
+import { CareerScenes } from "@/components/CareerScenes";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -114,16 +116,7 @@ function Home() {
               transition={{ delay: 0.4, duration: 0.7 }}
               className="mt-8 max-w-2xl"
             >
-              <div className="glass-strong rounded-2xl p-2 flex items-center gap-2 hover-lift">
-                <Search className="size-5 ml-3 text-muted-foreground" />
-                <input
-                  placeholder="Search 2,400+ careers — try 'pilot', 'designer', 'AI'..."
-                  className="flex-1 bg-transparent px-2 py-3 text-sm md:text-base outline-none placeholder:text-muted-foreground"
-                />
-                <Link to="/assessment" className="px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground text-sm font-bold flex items-center gap-2 whitespace-nowrap hover:scale-[1.02] transition-transform">
-                  Pilot it <ArrowRight className="size-4" />
-                </Link>
-              </div>
+              <SmartSearch />
             </motion.div>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -161,19 +154,8 @@ function Home() {
         </div>
       </section>
 
-      {/* LOGO MARQUEE */}
-      <section className="border-y border-border py-8 overflow-hidden bg-card/30">
-        <div className="text-center text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6">
-          Trusted by students & professionals from
-        </div>
-        <div className="relative">
-          <div className="flex gap-16 animate-marquee whitespace-nowrap text-2xl font-bold text-muted-foreground/50">
-            {[..."Google · Meta · IIT Bombay · Stanford · AIIMS · NIFT · IIM · Microsoft · NASA · Tesla · Amazon · Pixar · Goldman Sachs · UN".split("·"), ..."Google · Meta · IIT Bombay · Stanford · AIIMS · NIFT · IIM · Microsoft · NASA · Tesla · Amazon · Pixar · Goldman Sachs · UN".split("·")].map((l, i) => (
-              <span key={i} className="tracking-tight">{l.trim()}</span>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* CAREER SCENES (replaces logo marquee) */}
+      <CareerScenes />
 
       {/* CAREER DOMAINS */}
       <section className="max-w-7xl mx-auto px-6 py-24">
