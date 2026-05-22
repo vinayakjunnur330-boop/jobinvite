@@ -119,10 +119,10 @@ export function ChatWidget() {
 
   // Voice input (Web Speech API) — optional, gracefully unavailable
   const startVoice = () => {
-    const SR = (window as unknown as { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition
-      || (window as unknown as { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition;
+    const w = window as unknown as { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown };
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) { toast.message("Voice input not supported in this browser"); return; }
-    const r = new SR();
+    const r = new SR() as { lang: string; start: () => void; onresult: (e: { results: { 0: { transcript: string } }[] }) => void; onerror: () => void };
     r.lang = "en-US";
     r.onresult = (e: { results: { 0: { transcript: string } }[] }) => {
       const t = e.results[0][0].transcript;
