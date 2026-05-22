@@ -31,6 +31,7 @@ import { Route as AssessmentRouteImport } from './routes/assessment'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DomainSlugRouteImport } from './routes/domain.$slug'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const SuccessStoriesRoute = SuccessStoriesRouteImport.update({
   id: '/success-stories',
@@ -142,6 +143,11 @@ const DomainSlugRoute = DomainSlugRouteImport.update({
   path: '/domain/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
+  '/api/chat': typeof ApiChatRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRoutesByTo {
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
+  '/api/chat': typeof ApiChatRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRoutesById {
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
+  '/api/chat': typeof ApiChatRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRouteTypes {
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/skills'
     | '/success-stories'
+    | '/api/chat'
     | '/domain/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -264,6 +274,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/skills'
     | '/success-stories'
+    | '/api/chat'
     | '/domain/$slug'
   id:
     | '__root__'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/skills'
     | '/success-stories'
+    | '/api/chat'
     | '/domain/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -313,6 +325,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SkillsRoute: typeof SkillsRoute
   SuccessStoriesRoute: typeof SuccessStoriesRoute
+  ApiChatRoute: typeof ApiChatRoute
   DomainSlugRoute: typeof DomainSlugRoute
 }
 
@@ -472,6 +485,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DomainSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -497,18 +517,9 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SkillsRoute: SkillsRoute,
   SuccessStoriesRoute: SuccessStoriesRoute,
+  ApiChatRoute: ApiChatRoute,
   DomainSlugRoute: DomainSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
