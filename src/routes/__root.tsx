@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -7,9 +7,12 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
+import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -89,6 +92,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthSync />
       <div className="min-h-screen flex flex-col bg-background text-foreground">
         <Navbar />
         <main className="flex-1">
@@ -96,7 +100,21 @@ function RootComponent() {
         </main>
         <Footer />
         <ChatWidget />
+        <Toaster />
       </div>
     </QueryClientProvider>
   );
+}
+
+function AuthSync() {
+  const router = useRouter();
+  const qc = useQueryClient();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      router.invalidate();
+      qc.invalidateQueries();
+    });
+    return () => subscription.unsubscribe();
+  }, [router, qc]);
+  return null;
 }
