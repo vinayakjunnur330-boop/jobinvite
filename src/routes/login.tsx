@@ -141,8 +141,7 @@ function GatewayPage() {
 
   const oauth = async (provider: "google" | "apple") => {
     try {
-      const res = await lovable.auth.signInWithOAuth(provider, { redirect_uri: `${window.location.origin}/workspace` });
-      if (res.error) throw new Error(typeof res.error === "string" ? res.error : "OAuth failed");
+      await lovable.auth.signInWithOAuth(provider, { redirect_uri: `${window.location.origin}/workspace` });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "OAuth failed");
     }
