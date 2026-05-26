@@ -1,66 +1,136 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Eye, EyeOff, Lock, Mail, User as UserIcon, ArrowRight, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, Send, Minus, Maximize2, Trash2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign In — CareerPilot AI" },
-      { name: "description", content: "Sign in or create an account on CareerPilot AI." },
+      { title: "Aether — Sign in to the Intelligent Workspace" },
+      { name: "description", content: "Sign in or create an account on Aether, the intelligent ecosystem for modern workspaces." },
     ],
   }),
-  component: LoginPage,
+  component: GatewayPage,
 });
 
 type Mode = "signin" | "signup";
+type ChatMsg = { id: string; role: "user" | "bot"; text: string };
 
-function LoginPage() {
-  const [mode, setMode] = useState<Mode>("signup");
+// ────────────────────────────── Pre-auth chatbot brain ──────────────────────────────
+const KB: { keys: RegExp; reply: string }[] = [
+  { keys: /\b(hi|hello|hey|yo|greetings)\b/i, reply: "Hello — I'm **Aether AI Concierge**. I help new visitors understand the platform before they sign in. Ask me about *pricing*, *features*, *security*, or how to *get started*." },
+  { keys: /\b(price|pricing|plan|cost|how much)\b/i, reply: "Aether ships three tiers:\n\n• **Starter** — Free for up to 3 seats. All core analytics.\n• **Team** — $19 / seat / mo. Advanced data grid, theme controls, audit logs.\n• **Enterprise Pro** — Custom. SSO, dedicated infra, 99.99% SLA.\n\nCreating an account starts you on Starter — no card required." },
+  { keys: /\b(feature|capab|what (does|can)|module)\b/i, reply: "Inside the workspace you get four premium modules:\n\n1. **Executive Overview** — live revenue, latency & conversion metrics with interactive sparklines.\n2. **Identity Data Grid** — search, sort & suspend accounts in real time.\n3. **Global Network** — distributed node health across regions.\n4. **System Controls** — tune cache, AI sampling temperature, and theme accents instantly." },
+  { keys: /\b(secure|security|gdpr|soc|encrypt|privacy)\b/i, reply: "Security is foundational: SOC 2 Type II, GDPR-aligned, AES-256 at rest, TLS 1.3 in transit, scoped row-level security on every table, and SSO via Google, Apple, and GitHub." },
+  { keys: /\b(join|sign\s?up|register|create.*account|access|get started|onboard|try)\b/i, reply: "I'd love to show you around! Please fill out the **Create Account** form on the right, or click **Sign In** to enter your premium workspace instantly." },
+  { keys: /\b(google|apple|github|sso|oauth|social)\b/i, reply: "Single Sign-On is built-in. Use **Google**, **Apple**, or **GitHub** from the auth panel — your session is provisioned in under 600 ms." },
+  { keys: /\b(help|support|contact|human)\b/i, reply: "Once you're inside the workspace, support is one click away from the sidebar. Pre-signup, I can answer questions about features, pricing, security, integrations, and onboarding." },
+  { keys: /\b(integration|connect|api|webhook)\b/i, reply: "Aether ships REST + Webhooks out of the box, with first-class adapters for Slack, Linear, GitHub, Stripe, and Snowflake. Full API reference unlocks after signup." },
+  { keys: /\b(uptime|sla|reliab|status)\b/i, reply: "Platform uptime sits at **99.99%** trailing-30-days, with multi-region failover and proactive health checks every 15 seconds." },
+  { keys: /\b(theme|dark|light|color|brand)\b/i, reply: "Dark mode is the default canvas, but you can re-tune the accent — Royal Amethyst, Emerald Mint, or Cosmic Amber — live from System Controls inside the workspace." },
+];
+function reply(input: string): string {
+  for (const k of KB) if (k.keys.test(input)) return k.reply;
+  return "Great question. The fastest path is to create a free account — every workspace module unlocks instantly. Meanwhile I can cover **pricing**, **features**, **security**, or **integrations** in detail.";
+}
+function md(s: string) {
+  const esc = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-white/10 text-[12px] font-mono">$1</code>')
+    .replace(/^[•-] (.+)$/gm, '<div class="flex gap-2"><span class="text-indigo-400">•</span><span>$1</span></div>')
+    .replace(/\n\n/g, "<br/><br/>")
+    .replace(/\n/g, "<br/>");
+}
+
+// ────────────────────────────── Page ──────────────────────────────
+function GatewayPage() {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [surname, setSurname] = useState("");
+  const [fullName, setFullName] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [wave, setWave] = useState(false);
-  const navigate = useNavigate();
+
+  const [users, setUsers] = useState(1_240_912);
+  const [latency, setLatency] = useState(38);
+  const [uptime] = useState(99.99);
+
+  // Chat state — persisted into localStorage so it survives the redirect into /workspace.
+  const [open, setOpen] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [msgs, setMsgs] = useState<ChatMsg[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem("aether-chat") ?? "[]"); } catch { return []; }
+  });
+  const [draft, setDraft] = useState("");
+  const [typing, setTyping] = useState(false);
+  const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
-    });
+    supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ to: "/workspace" }); });
   }, [navigate]);
 
-  const triggerWave = () => {
-    setWave(true);
-    setTimeout(() => setWave(false), 1200);
+  // Seed welcome
+  useEffect(() => {
+    if (msgs.length === 0) {
+      setMsgs([{ id: crypto.randomUUID(), role: "bot", text: "Welcome to **Aether** — the intelligent ecosystem for modern workspaces. I'm your concierge. Ask me about *pricing*, *features*, *security*, or how to *get started*." }]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => { localStorage.setItem("aether-chat", JSON.stringify(msgs)); }, [msgs]);
+  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [msgs, typing]);
+
+  // Live metric ticker
+  useEffect(() => {
+    const t = setInterval(() => {
+      setUsers((u) => u + Math.floor(Math.random() * 7) + 1);
+      setLatency(() => 32 + Math.floor(Math.random() * 18));
+    }, 1800);
+    return () => clearInterval(t);
+  }, []);
+
+  // Validation helpers
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const pwScore = scorePw(password);
+  const canSubmit = emailOk && password.length >= 8 && (mode === "signin" || fullName.trim().length >= 2);
+
+  const send = (text?: string) => {
+    const t = (text ?? draft).trim();
+    if (!t) return;
+    setDraft("");
+    setMsgs((m) => [...m, { id: crypto.randomUUID(), role: "user", text: t }]);
+    setTyping(true);
+    const delay = 600 + Math.min(1400, t.length * 14);
+    setTimeout(() => {
+      setMsgs((m) => [...m, { id: crypto.randomUUID(), role: "bot", text: reply(t) }]);
+      setTyping(false);
+    }, delay);
   };
 
-  const submit = async (e: React.FormEvent) => {
+  const submitAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    triggerWave();
+    if (!canSubmit || busy) return;
     setBusy(true);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email, password: password || crypto.randomUUID(),
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { full_name: `${name} ${surname}`.trim() },
-          },
+          email, password,
+          options: { emailRedirectTo: `${window.location.origin}/workspace`, data: { full_name: fullName.trim() } },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email to confirm.");
+        toast.success("Account created. Check your inbox to confirm — then sign in.");
         setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Welcome back ✨");
-        navigate({ to: "/dashboard" });
+        toast.success("Welcome back.");
+        navigate({ to: "/workspace" });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
@@ -69,522 +139,340 @@ function LoginPage() {
     }
   };
 
-  const social = async (provider: "google" | "apple") => {
-    setBusy(true);
+  const oauth = async (provider: "google" | "apple") => {
     try {
-      const res = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/dashboard" });
-      if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
-      if (!res.redirected) navigate({ to: "/dashboard" });
+      await lovable.auth.signInWithOAuth(provider, { redirect_uri: `${window.location.origin}/workspace` });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Sign-in failed");
-    } finally {
-      setBusy(false);
+      toast.error(err instanceof Error ? err.message : "OAuth failed");
     }
   };
 
-  const isSignup = mode === "signup";
-
   return (
-    <div className="auth-page relative min-h-[calc(100vh-4rem)] w-full overflow-hidden flex items-center justify-center px-4 py-10">
-      <div className="ap-bg" aria-hidden />
-      <motion.div aria-hidden className="ap-orb ap-orb-1"
-        animate={{ x: [0, 60, -40, 0], y: [0, -50, 40, 0], scale: [1, 1.15, 0.95, 1] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div aria-hidden className="ap-orb ap-orb-2"
-        animate={{ x: [0, -70, 50, 0], y: [0, 60, -30, 0], scale: [1, 0.9, 1.1, 1] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div aria-hidden className="ap-orb ap-orb-3"
-        animate={{ x: [0, 40, -60, 0], y: [0, -40, 30, 0], scale: [1, 1.2, 0.9, 1] }}
-        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }} />
-      <div className="ap-grid" aria-hidden />
-      <Particles />
+    <div className="aether-gateway fixed inset-0 z-[60] grid grid-cols-1 lg:grid-cols-2 bg-[#09090B] text-[#FAFAFA] overflow-hidden">
+      <style>{styles}</style>
 
-      <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-[980px]"
-      >
-        <div className="ap-card-wrap">
-          <div className="ap-card-border" aria-hidden />
-          <div className="ap-card grid md:grid-cols-[1fr_1.1fr] gap-6 md:gap-10 items-center">
-            {/* Character */}
-            <div className="ap-character-stage order-2 md:order-1">
-              <Character mode={mode} wave={wave} />
-            </div>
+      {/* ─────────── LEFT: Brand Statement ─────────── */}
+      <aside className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden border-r border-[#1c1c20]">
+        <div className="ag-grid" aria-hidden />
+        <div className="ag-glow ag-glow-1" aria-hidden />
+        <div className="ag-glow ag-glow-2" aria-hidden />
 
-            {/* Form column */}
-            <div className="order-1 md:order-2">
-              <div className="text-center md:text-left mb-5">
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="ap-logo mb-3 mx-auto md:mx-0"
-                >
-                  <Sparkles className="size-5 text-white" />
-                </motion.div>
-                <AnimatePresence mode="wait">
-                  <motion.h1
-                    key={mode}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.3 }}
-                    className="ap-title"
-                  >
-                    {isSignup ? "Create Account" : "Welcome Back"}
-                  </motion.h1>
-                </AnimatePresence>
-                <p className="ap-subtitle">
-                  {isSignup ? "Join the next-gen career platform" : "Sign in to continue your journey"}
-                </p>
-              </div>
+        <div className="relative z-10 flex items-center gap-3">
+          <LogoMark />
+          <span className="text-[15px] font-semibold tracking-tight">Aether</span>
+          <span className="ml-auto text-[11px] font-mono uppercase tracking-[0.18em] text-[#A1A1AA]">Enterprise Pro</span>
+        </div>
 
-              <div className="ap-toggle">
-                <motion.div
-                  className="ap-toggle-pill"
-                  animate={{ x: isSignup ? "100%" : "0%" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-                <button type="button" onClick={() => setMode("signin")}
-                  className={`ap-toggle-btn ${!isSignup ? "ap-toggle-active" : ""}`}>Login</button>
-                <button type="button" onClick={() => setMode("signup")}
-                  className={`ap-toggle-btn ${isSignup ? "ap-toggle-active" : ""}`}>Register</button>
-              </div>
+        <div className="relative z-10 max-w-xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] font-mono uppercase tracking-[0.22em] text-[#A1A1AA] mb-6">
+            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live · SOC 2 Type II
+          </div>
+          <h1 className="text-[44px] xl:text-[54px] leading-[1.1] font-semibold tracking-[-0.02em]">
+            The Intelligent Ecosystem<br/>
+            for <span className="ag-grad">Modern Workspaces.</span>
+          </h1>
+          <p className="mt-5 text-[15px] leading-[1.6] text-[#A1A1AA] max-w-lg">
+            Real-time analytics, identity governance, and global infrastructure controls — orchestrated through a single, refined surface.
+          </p>
 
-              <form onSubmit={submit} className="space-y-3 mt-5">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={mode}
-                    initial={{ opacity: 0, x: isSignup ? 40 : -40 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: isSignup ? -40 : 40 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="space-y-3"
-                  >
-                    {isSignup ? (
-                      <>
-                        <div className="grid grid-cols-2 gap-3">
-                          <FloatingInput icon={<UserIcon className="size-4" />} label="Name"
-                            type="text" value={name} onChange={setName} required />
-                          <FloatingInput icon={<UserIcon className="size-4" />} label="Surname"
-                            type="text" value={surname} onChange={setSurname} required />
-                        </div>
-                        <FloatingInput icon={<Mail className="size-4" />} label="Email"
-                          type="email" value={email} onChange={setEmail} required />
-                        <FloatingInput icon={<Lock className="size-4" />} label="Password"
-                          type={showPw ? "text" : "password"} value={password} onChange={setPassword} required
-                          suffix={<button type="button" onClick={() => setShowPw(s => !s)} className="text-white/40 hover:text-emerald-300 transition-colors">{showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button>} />
-                      </>
-                    ) : (
-                      <>
-                        <FloatingInput icon={<Mail className="size-4" />} label="Email"
-                          type="email" value={email} onChange={setEmail} required />
-                        <FloatingInput icon={<Lock className="size-4" />} label="Password"
-                          type={showPw ? "text" : "password"} value={password} onChange={setPassword} required
-                          suffix={<button type="button" onClick={() => setShowPw(s => !s)} className="text-white/40 hover:text-cyan-300 transition-colors">{showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button>} />
-                        <div className="flex justify-end">
-                          <button type="button" className="ap-forgot text-xs">Forgot password?</button>
-                        </div>
-                      </>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-
-                <motion.button
-                  type="submit"
-                  disabled={busy}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onHoverStart={triggerWave}
-                  className={`ap-submit w-full mt-1 ${isSignup ? "ap-submit-green" : "ap-submit-cyan"}`}
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    {busy ? <><span className="ap-spinner" /> Please wait…</>
-                      : <>{isSignup ? "Next" : "Login"} <ArrowRight className="size-4" /></>}
-                  </span>
-                </motion.button>
-              </form>
-
-              <div className="flex items-center gap-3 my-4">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                <span className="text-[10px] uppercase tracking-[0.25em] text-white/40">or continue with</span>
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <motion.button type="button" whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => social("google")} disabled={busy} className="ap-social">
-                  <svg className="size-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
-                  Google
-                </motion.button>
-                <motion.button type="button" whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => social("apple")} disabled={busy} className="ap-social">
-                  <svg className="size-4 fill-white" viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09z"/></svg>
-                  Apple
-                </motion.button>
-              </div>
-
-              <p className="text-center md:text-left text-[11px] text-white/40 mt-4">
-                By continuing, you agree to our{" "}
-                <Link to="/about" className="text-cyan-300/80 hover:text-cyan-300 transition-colors">Terms</Link>{" "}&{" "}
-                <Link to="/about" className="text-cyan-300/80 hover:text-cyan-300 transition-colors">Privacy</Link>.
-              </p>
-            </div>
+          {/* Live metric cluster */}
+          <div className="mt-8 grid grid-cols-3 gap-3 max-w-lg">
+            <MetricCard label="Active Users" value={users.toLocaleString()} accent="indigo" />
+            <MetricCard label="API Uptime" value={`${uptime.toFixed(2)}%`} accent="emerald" />
+            <MetricCard label="P50 Latency" value={`${latency}ms`} accent="amber" />
           </div>
         </div>
-      </motion.div>
 
-      <style>{css}</style>
+        {/* Pre-auth concierge */}
+        <Chat
+          embedded
+          open={open}
+          expanded={expanded}
+          msgs={msgs}
+          draft={draft}
+          typing={typing}
+          scrollerRef={scroller}
+          onDraft={setDraft}
+          onSend={() => send()}
+          onSuggest={(s) => send(s)}
+          onToggleOpen={() => setOpen((o) => !o)}
+          onToggleExpand={() => setExpanded((e) => !e)}
+          onClear={() => setMsgs([{ id: crypto.randomUUID(), role: "bot", text: "History cleared. How can I help you next?" }])}
+        />
+
+        <div className="relative z-10 text-[11px] font-mono uppercase tracking-[0.18em] text-[#52525B]">
+          © {new Date().getFullYear()} Aether Systems · All rights reserved
+        </div>
+      </aside>
+
+      {/* ─────────── RIGHT: Auth ─────────── */}
+      <section className="relative flex items-center justify-center p-6 sm:p-10 overflow-y-auto">
+        <div className="absolute inset-0 ag-grid-light pointer-events-none opacity-40" aria-hidden />
+        <div className="relative w-full max-w-md">
+          <div className="lg:hidden flex items-center gap-3 mb-8"><LogoMark /><span className="text-[15px] font-semibold">Aether</span></div>
+
+          <h2 className="text-[28px] leading-[1.2] font-semibold tracking-tight">
+            {mode === "signin" ? "Welcome back" : "Create your workspace"}
+          </h2>
+          <p className="mt-2 text-[14px] text-[#A1A1AA]">
+            {mode === "signin" ? "Enter your credentials to access the workspace." : "Start with the free Starter tier — no card required."}
+          </p>
+
+          {/* Tabs */}
+          <div className="relative mt-7 grid grid-cols-2 rounded-xl bg-[#121214] border border-[#27272A] p-1">
+            <button
+              type="button" onClick={() => setMode("signin")}
+              className={`relative z-10 py-2.5 text-[13px] font-medium transition-colors ${mode === "signin" ? "text-white" : "text-[#A1A1AA] hover:text-white"}`}
+              aria-pressed={mode === "signin"}
+            >Sign In</button>
+            <button
+              type="button" onClick={() => setMode("signup")}
+              className={`relative z-10 py-2.5 text-[13px] font-medium transition-colors ${mode === "signup" ? "text-white" : "text-[#A1A1AA] hover:text-white"}`}
+              aria-pressed={mode === "signup"}
+            >Create Account</button>
+            <span
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-b from-[#1f1f24] to-[#16161a] border border-[#2d2d33] shadow-[0_8px_24px_-12px_rgba(99,102,241,0.45)] ag-tab"
+              style={{ transform: `translateX(${mode === "signin" ? "4px" : "calc(100% + 4px)"})` }}
+              aria-hidden
+            />
+          </div>
+
+          <form onSubmit={submitAuth} className="mt-6 space-y-4" noValidate>
+            {mode === "signup" && (
+              <FloatField id="fullName" label="Full Name" value={fullName} onChange={setFullName} autoComplete="name" />
+            )}
+            <FloatField id="email" type="email" label="Work Email" value={email} onChange={setEmail} autoComplete="email"
+              error={email.length > 0 && !emailOk ? "Enter a valid email address" : undefined} />
+
+            <div>
+              <FloatField
+                id="password" type={showPw ? "text" : "password"} label="Password"
+                value={password} onChange={setPassword} autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                trailing={
+                  <button type="button" onClick={() => setShowPw((s) => !s)} className="text-[#A1A1AA] hover:text-white" aria-label={showPw ? "Hide password" : "Show password"}>
+                    {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                }
+                error={mode === "signup" && password.length > 0 && password.length < 8 ? "Use 8+ characters" : undefined}
+              />
+              {mode === "signup" && password.length > 0 && <PwMeter score={pwScore} />}
+            </div>
+
+            <button
+              type="submit" disabled={!canSubmit || busy}
+              className="ag-primary group relative w-full h-12 rounded-xl font-semibold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="relative z-10 inline-flex items-center justify-center gap-2">
+                {busy ? <Loader2 className="size-4 animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
+                {!busy && <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />}
+              </span>
+            </button>
+
+            <div className="flex items-center gap-3 my-2">
+              <div className="h-px flex-1 bg-[#27272A]" />
+              <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#52525B]">or continue with</span>
+              <div className="h-px flex-1 bg-[#27272A]" />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <SocialBtn label="Google" onClick={() => oauth("google")}><GoogleIcon /></SocialBtn>
+              <SocialBtn label="Apple" onClick={() => oauth("apple")}><AppleIcon /></SocialBtn>
+              <SocialBtn label="GitHub" onClick={() => toast.message("GitHub SSO is enabled on Enterprise Pro plans.")}><GitHubIcon /></SocialBtn>
+            </div>
+
+            <p className="text-[12px] text-[#A1A1AA] text-center pt-2">
+              By continuing you agree to our <button type="button" onClick={() => toast.message("Terms of Service · v4.2 — available inside the workspace.")} className="text-white underline-offset-4 hover:underline">Terms</button> & <button type="button" onClick={() => toast.message("Privacy Policy · v3.1 — GDPR-aligned, SOC 2 Type II.")} className="text-white underline-offset-4 hover:underline">Privacy</button>.
+            </p>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }
 
-function FloatingInput({
-  icon, label, type, value, onChange, required, suffix,
+// ────────────────────────────── Bits ──────────────────────────────
+function LogoMark() {
+  return (
+    <span className="relative grid place-items-center size-9 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] shadow-[0_8px_24px_-8px_rgba(99,102,241,0.6)]">
+      <svg viewBox="0 0 24 24" className="size-5 text-white"><path fill="currentColor" d="M12 2 3 20h6l3-6 3 6h6L12 2Zm0 8 1.6 3.2h-3.2L12 10Z"/></svg>
+    </span>
+  );
+}
+
+function MetricCard({ label, value, accent }: { label: string; value: string; accent: "indigo" | "emerald" | "amber" }) {
+  const dot = accent === "indigo" ? "bg-indigo-400" : accent === "emerald" ? "bg-emerald-400" : "bg-amber-400";
+  return (
+    <div className="relative rounded-xl bg-[#121214]/80 border border-[#27272A] p-3 backdrop-blur-md overflow-hidden">
+      <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-[#A1A1AA]">
+        <span className={`size-1.5 rounded-full ${dot} animate-pulse`} />{label}
+      </div>
+      <div className="mt-1.5 text-[18px] font-semibold tabular-nums tracking-tight">{value}</div>
+    </div>
+  );
+}
+
+function FloatField({ id, label, value, onChange, type = "text", autoComplete, trailing, error }: {
+  id: string; label: string; value: string; onChange: (v: string) => void;
+  type?: string; autoComplete?: string; trailing?: React.ReactNode; error?: string;
+}) {
+  const filled = value.length > 0;
+  return (
+    <div>
+      <div className={`relative rounded-xl border ${error ? "border-rose-500/50" : "border-[#27272A] focus-within:border-indigo-500/70"} bg-[#121214] transition-colors`}>
+        <input
+          id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete}
+          className="peer w-full bg-transparent px-3.5 pt-5 pb-2 text-[14px] text-white outline-none placeholder-transparent"
+          placeholder={label}
+        />
+        <label htmlFor={id} className={`pointer-events-none absolute left-3.5 transition-all ${filled ? "top-1.5 text-[10px] uppercase tracking-[0.18em] text-[#A1A1AA]" : "top-3.5 text-[14px] text-[#A1A1AA]"} peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-[0.18em] peer-focus:text-indigo-300`}>{label}</label>
+        {trailing && <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div>}
+      </div>
+      {error && <div className="mt-1.5 text-[12px] text-rose-400">{error}</div>}
+    </div>
+  );
+}
+
+function scorePw(pw: string) {
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) s++;
+  if (/\d/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  return Math.min(s, 4);
+}
+function PwMeter({ score }: { score: number }) {
+  const labels = ["Too weak", "Weak", "Fair", "Strong", "Excellent"];
+  const colors = ["bg-rose-500", "bg-orange-500", "bg-amber-400", "bg-emerald-400", "bg-emerald-400"];
+  return (
+    <div className="mt-2">
+      <div className="grid grid-cols-4 gap-1.5">
+        {[0,1,2,3].map((i) => (
+          <span key={i} className={`h-1 rounded-full transition-colors ${i < score ? colors[score-1] : "bg-[#27272A]"}`} />
+        ))}
+      </div>
+      <div className="mt-1 text-[11px] text-[#A1A1AA]">Password strength: <span className="text-white">{labels[score]}</span></div>
+    </div>
+  );
+}
+
+function SocialBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={`Continue with ${label}`}
+      className="group h-11 rounded-xl bg-[#121214] border border-[#27272A] hover:border-indigo-500/50 hover:bg-[#15151a] transition-all active:scale-[0.98] flex items-center justify-center">
+      <span className="opacity-90 group-hover:opacity-100 transition-opacity">{children}</span>
+    </button>
+  );
+}
+function GoogleIcon() { return (<svg viewBox="0 0 24 24" className="size-4"><path fill="#FFC107" d="M21.8 10.2H12v3.6h5.6c-.5 2.3-2.5 3.6-5.6 3.6-3.4 0-6.1-2.7-6.1-6.1S8.6 5.2 12 5.2c1.5 0 2.9.6 4 1.5l2.6-2.6C16.9 2.6 14.6 1.7 12 1.7 6.6 1.7 2.3 6 2.3 11.4S6.6 21 12 21c5.6 0 9.4-3.9 9.4-9.5 0-.5 0-.9-.1-1.3Z"/><path fill="#FF3D00" d="M3.2 7 6.2 9.1C7 7.2 9.3 5.7 12 5.7c1.5 0 2.9.6 4 1.5l2.6-2.6C16.9 2.6 14.6 1.7 12 1.7 8.1 1.7 4.8 3.9 3.2 7Z"/><path fill="#4CAF50" d="M12 21c2.6 0 4.9-.9 6.6-2.4l-3-2.5c-.9.7-2.1 1.1-3.6 1.1-3 0-5.5-2-6.4-4.7L2.9 15c1.6 3.7 5.1 6 9.1 6Z"/><path fill="#1976D2" d="M21.8 10.2H12v3.6h5.6c-.3 1.1-.9 2.1-1.8 2.8l3 2.5C20.4 17.6 22 14.7 22 11.4c0-.4 0-.8-.2-1.2Z"/></svg>); }
+function AppleIcon() { return (<svg viewBox="0 0 24 24" className="size-4"><path fill="#FAFAFA" d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.9-.8-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.6.8 1.2 1.7 2.5 2.9 2.4 1.2-.1 1.6-.8 3-.8s1.8.8 3 .8c1.2 0 2.1-1.2 2.8-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.4-.9-2.4-3.6ZM14.5 5.4c.6-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.2-.5 2.8-1.3Z"/></svg>); }
+function GitHubIcon() { return (<svg viewBox="0 0 24 24" className="size-4"><path fill="#FAFAFA" d="M12 .5C5.7.5.6 5.6.6 12c0 5 3.3 9.3 7.8 10.8.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.5-.3-5.2-1.3-5.2-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.2 5.7.4.3.8 1 .8 2.1v3.1c0 .3.2.7.8.6 4.6-1.5 7.8-5.8 7.8-10.8C23.4 5.6 18.3.5 12 .5Z"/></svg>); }
+
+// ────────────────────────────── Chat ──────────────────────────────
+function Chat({
+  embedded, open, expanded, msgs, draft, typing, scrollerRef,
+  onDraft, onSend, onSuggest, onToggleOpen, onToggleExpand, onClear,
 }: {
-  icon: React.ReactNode; label: string; type: string; value: string;
-  onChange: (v: string) => void; required?: boolean; suffix?: React.ReactNode;
+  embedded: boolean; open: boolean; expanded: boolean;
+  msgs: ChatMsg[]; draft: string; typing: boolean;
+  scrollerRef: React.RefObject<HTMLDivElement | null>;
+  onDraft: (s: string) => void; onSend: () => void; onSuggest: (s: string) => void;
+  onToggleOpen: () => void; onToggleExpand: () => void; onClear: () => void;
 }) {
   return (
-    <div className="ap-input-wrap group">
-      <span className="ap-input-icon">{icon}</span>
-      <input type={type} required={required} value={value}
-        onChange={(e) => onChange(e.target.value)} placeholder=" " className="ap-input peer" />
-      <label className="ap-input-label">{label}</label>
-      {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 z-10">{suffix}</span>}
-      <span className="ap-input-glow" aria-hidden />
-    </div>
-  );
-}
+    <div className={`relative z-10 ${embedded ? "max-w-xl" : ""} ${expanded ? "fixed inset-6 z-[80] max-w-none" : ""}`}>
+      <div className="ag-chat rounded-2xl border border-[#27272A] bg-[#0c0c0e]/85 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#1e1e22] bg-[#0e0e11]/80">
+          <span className="relative grid place-items-center size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700">
+            <Sparkles className="size-3.5 text-white" />
+          </span>
+          <div className="leading-tight">
+            <div className="text-[13px] font-semibold">Aether AI Concierge</div>
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-emerald-400"><span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online</div>
+          </div>
+          <div className="ml-auto flex items-center gap-1">
+            <button onClick={onClear} className="size-7 grid place-items-center rounded-md text-[#A1A1AA] hover:text-white hover:bg-white/5" aria-label="Clear history"><Trash2 className="size-3.5" /></button>
+            <button onClick={onToggleExpand} className="size-7 grid place-items-center rounded-md text-[#A1A1AA] hover:text-white hover:bg-white/5" aria-label={expanded ? "Restore" : "Expand"}><Maximize2 className="size-3.5" /></button>
+            <button onClick={onToggleOpen} className="size-7 grid place-items-center rounded-md text-[#A1A1AA] hover:text-white hover:bg-white/5" aria-label={open ? "Minimize" : "Open"}><Minus className="size-3.5" /></button>
+          </div>
+        </div>
 
-function Particles() {
-  const dots = Array.from({ length: 22 });
-  return (
-    <div className="ap-particles" aria-hidden>
-      {dots.map((_, i) => {
-        const size = 2 + Math.random() * 3;
-        const left = Math.random() * 100;
-        const delay = Math.random() * 8;
-        const dur = 10 + Math.random() * 12;
-        return (
-          <motion.span key={i} className="ap-dot"
-            style={{ left: `${left}%`, width: size, height: size }}
-            initial={{ y: "110vh", opacity: 0 }}
-            animate={{ y: "-10vh", opacity: [0, 0.8, 0] }}
-            transition={{ duration: dur, delay, repeat: Infinity, ease: "linear" }} />
-        );
-      })}
-    </div>
-  );
-}
+        {open && (
+          <>
+            <div ref={scrollerRef} className={`ag-scroll px-4 py-4 space-y-3 overflow-y-auto ${expanded ? "h-[calc(100vh-220px)]" : "h-[260px]"}`}>
+              {msgs.map((m) => (
+                <div key={m.id} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  {m.role === "bot" && (
+                    <span className="shrink-0 mt-0.5 grid place-items-center size-7 rounded-lg bg-gradient-to-br from-indigo-500/30 to-indigo-700/30 border border-indigo-500/30">
+                      <Sparkles className="size-3.5 text-indigo-300" />
+                    </span>
+                  )}
+                  <div className={`max-w-[78%] text-[13px] leading-[1.55] px-3.5 py-2.5 rounded-2xl ${m.role === "user" ? "bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-br-md" : "bg-white/5 border border-white/10 text-[#FAFAFA] rounded-bl-md"}`}
+                    dangerouslySetInnerHTML={{ __html: md(m.text) }}
+                  />
+                </div>
+              ))}
+              {typing && (
+                <div className="flex gap-2 justify-start">
+                  <span className="shrink-0 mt-0.5 grid place-items-center size-7 rounded-lg bg-gradient-to-br from-indigo-500/30 to-indigo-700/30 border border-indigo-500/30"><Sparkles className="size-3.5 text-indigo-300" /></span>
+                  <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-white/5 border border-white/10 flex items-center gap-1.5">
+                    <span className="ag-dot" /><span className="ag-dot" style={{ animationDelay: "0.15s" }} /><span className="ag-dot" style={{ animationDelay: "0.3s" }} />
+                  </div>
+                </div>
+              )}
+            </div>
 
-/* ---------------- Animated SVG Character ---------------- */
-function Character({ mode, wave }: { mode: Mode; wave: boolean }) {
-  const isSignup = mode === "signup";
-  return (
-    <div className="ap-char-wrap">
-      <motion.div className="ap-char-glow" aria-hidden
-        animate={{ scale: [1, 1.08, 1], opacity: [0.55, 0.85, 0.55] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.svg
-        viewBox="0 0 220 320"
-        className="ap-char-svg"
-        initial={{ x: -80, opacity: 0 }}
-        animate={{ x: 0, opacity: 1, y: [0, -8, 0] }}
-        transition={{ x: { duration: 0.9, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.9 }, y: { duration: 4, repeat: Infinity, ease: "easeInOut" } }}
-      >
-        {/* shadow */}
-        <ellipse cx="110" cy="300" rx="55" ry="8" fill="rgba(0,0,0,0.45)" />
-
-        {/* Left arm (crossed in signup, hanging/waving in signin) */}
-        <AnimatePresence mode="wait">
-          {isSignup ? (
-            <motion.g key="larm-cross" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <path d="M70 165 Q95 175 130 168 L132 182 Q95 192 70 182 Z" fill="#3a4150" />
-              <circle cx="132" cy="175" r="10" fill="#f4c9a8" />
-            </motion.g>
-          ) : (
-            <motion.g key="larm-down" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <path d="M72 160 Q66 200 70 235 L84 235 Q86 200 86 162 Z" fill="#3a4150" />
-              <circle cx="77" cy="240" r="9" fill="#f4c9a8" />
-            </motion.g>
-          )}
-        </AnimatePresence>
-
-        {/* Body / jacket */}
-        <path d="M70 160 Q70 145 110 142 Q150 145 150 160 L150 235 Q110 245 70 235 Z" fill="#4b5263" />
-        <path d="M108 145 L108 235" stroke="#2d323d" strokeWidth="2" />
-        {/* White tee peek */}
-        <path d="M96 145 Q110 152 124 145 L124 158 Q110 162 96 158 Z" fill="#f5f7fa" />
-
-        {/* Pants */}
-        <path d="M75 235 L100 235 L100 295 L82 295 Z" fill="#1c1f27" />
-        <path d="M120 235 L145 235 L138 295 L120 295 Z" fill="#1c1f27" />
-        {/* Shoes */}
-        <ellipse cx="89" cy="298" rx="14" ry="6" fill="#ffffff" />
-        <ellipse cx="131" cy="298" rx="14" ry="6" fill="#ffffff" />
-
-        {/* Right arm — animates wave on submit, crossed on signup */}
-        <AnimatePresence mode="wait">
-          {isSignup ? (
-            <motion.g key="rarm-cross" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <path d="M150 165 Q125 175 90 168 L88 182 Q125 192 150 182 Z" fill="#3a4150" />
-              <circle cx="88" cy="175" r="10" fill="#f4c9a8" />
-            </motion.g>
-          ) : (
-            <motion.g
-              key="rarm-side"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, rotate: wave ? [0, -55, -35, -55, -20, 0] : 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ rotate: { duration: 1.1, ease: "easeInOut" } }}
-              style={{ transformOrigin: "148px 162px" }}
-            >
-              <path d="M148 160 Q156 200 150 235 L136 235 Q134 200 134 162 Z" fill="#3a4150" />
-              <circle cx="143" cy="240" r="9" fill="#f4c9a8" />
-            </motion.g>
-          )}
-        </AnimatePresence>
-
-        {/* Neck */}
-        <rect x="102" y="118" width="16" height="20" fill="#e9b890" />
-
-        {/* Head */}
-        <motion.g
-          animate={{ rotate: wave ? [0, -6, 4, 0] : [0, 2, -2, 0] }}
-          transition={{ duration: wave ? 1 : 6, repeat: wave ? 0 : Infinity, ease: "easeInOut" }}
-          style={{ transformOrigin: "110px 95px" }}
-        >
-          <ellipse cx="110" cy="92" rx="32" ry="36" fill="#f4c9a8" />
-          {/* Hair — blonde */}
-          <path d="M78 80 Q82 50 110 48 Q142 50 144 82 Q138 70 120 68 Q108 75 96 70 Q86 72 80 84 Z" fill="#f5d27a" />
-          <path d="M82 80 Q90 64 108 66 L102 82 Q94 80 86 90 Z" fill="#e6bf60" />
-          {/* Ears */}
-          <ellipse cx="78" cy="95" rx="5" ry="7" fill="#e9b890" />
-          <ellipse cx="142" cy="95" rx="5" ry="7" fill="#e9b890" />
-          {/* Eyes */}
-          <motion.g
-            animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
-            transition={{ duration: 4, times: [0, 0.46, 0.5, 0.54, 1], repeat: Infinity, ease: "easeInOut" }}
-            style={{ transformOrigin: "110px 92px" }}
-          >
-            <ellipse cx="100" cy="92" rx="3" ry="4" fill="#1a1f2b" />
-            <ellipse cx="120" cy="92" rx="3" ry="4" fill="#1a1f2b" />
-          </motion.g>
-          {/* Brows */}
-          <path d="M94 84 Q100 81 106 84" stroke="#a8862e" strokeWidth="2" fill="none" strokeLinecap="round" />
-          <path d="M114 84 Q120 81 126 84" stroke="#a8862e" strokeWidth="2" fill="none" strokeLinecap="round" />
-          {/* Mouth */}
-          <AnimatePresence mode="wait">
-            {isSignup ? (
-              <motion.path key="m-smile" d="M102 108 Q110 114 118 108" stroke="#3a2417" strokeWidth="2.2" fill="none" strokeLinecap="round"
-                initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} />
-            ) : (
-              <motion.path key="m-grin" d="M100 107 Q110 117 120 107 Q110 112 100 107 Z" fill="#3a2417"
-                initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}
-                style={{ transformOrigin: "110px 110px" }} />
+            {msgs.length <= 1 && (
+              <div className="px-4 pb-2 flex flex-wrap gap-1.5">
+                {["Pricing", "Key features", "Security", "How to get started"].map((s) => (
+                  <button key={s} onClick={() => onSuggest(s)} className="text-[11px] px-2.5 py-1.5 rounded-full bg-white/5 border border-white/10 hover:border-indigo-500/60 hover:bg-white/10 transition-colors">{s}</button>
+                ))}
+              </div>
             )}
-          </AnimatePresence>
-          {/* Cheeks */}
-          <circle cx="92" cy="104" r="3.5" fill="#ffb3a7" opacity="0.55" />
-          <circle cx="128" cy="104" r="3.5" fill="#ffb3a7" opacity="0.55" />
-        </motion.g>
 
-        {/* Sparkle on wave */}
-        <AnimatePresence>
-          {wave && (
-            <motion.g key="spark" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
-              <path d="M165 55 L168 62 L175 65 L168 68 L165 75 L162 68 L155 65 L162 62 Z" fill="#fff7b0" />
-            </motion.g>
-          )}
-        </AnimatePresence>
-      </motion.svg>
+            <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="p-3 border-t border-[#1e1e22] flex gap-2 bg-[#0e0e11]/80">
+              <input
+                value={draft} onChange={(e) => onDraft(e.target.value)} placeholder="Ask Aether anything…"
+                className="flex-1 bg-[#121214] border border-[#27272A] rounded-xl px-3.5 py-2.5 text-[13px] outline-none focus:border-indigo-500/70"
+                aria-label="Message"
+              />
+              <button type="submit" disabled={!draft.trim()} className="ag-primary size-10 rounded-xl grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Send">
+                <Send className="size-4" />
+              </button>
+            </form>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-const css = `
-.auth-page {
-  background: radial-gradient(ellipse at center, #0b2a55 0%, #07142e 45%, #04081a 100%);
-  color: #fff;
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-.ap-bg {
-  position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(700px 500px at 20% 30%, rgba(59,130,246,.25), transparent 60%),
-    radial-gradient(800px 600px at 80% 70%, rgba(14,165,233,.22), transparent 60%),
-    radial-gradient(900px 600px at 50% 50%, rgba(99,102,241,.14), transparent 70%);
-}
-.ap-grid {
-  position: absolute; inset: 0; pointer-events: none; opacity: .35;
-  background-image:
-    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-}
-.ap-orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; }
-.ap-orb-1 { width: 420px; height: 420px; top: -120px; left: -100px; background: radial-gradient(circle, #3b82f6, transparent 70%); opacity: .45; }
-.ap-orb-2 { width: 480px; height: 480px; bottom: -160px; right: -120px; background: radial-gradient(circle, #06b6d4, transparent 70%); opacity: .4; }
-.ap-orb-3 { width: 360px; height: 360px; top: 40%; left: 60%; background: radial-gradient(circle, #6366f1, transparent 70%); opacity: .35; }
-
-.ap-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.ap-dot { position: absolute; border-radius: 50%;
-  background: radial-gradient(circle, #fff, rgba(59,130,246,.6));
-  box-shadow: 0 0 8px rgba(59,130,246,.6); }
-
-.ap-card-wrap { position: relative; border-radius: 28px; }
-.ap-card-border {
-  position: absolute; inset: -1.5px; border-radius: 28px;
-  background: conic-gradient(from var(--angle,0deg), #3b82f6, #06b6d4, #6366f1, #3b82f6);
-  opacity: .8; filter: blur(2px);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude; padding: 1.5px;
-  animation: ap-rotate 6s linear infinite; pointer-events: none;
-}
-.ap-card {
-  position: relative; border-radius: 27px; padding: 32px;
-  background: linear-gradient(155deg, rgba(15,30,60,.7), rgba(8,16,36,.6));
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 30px 80px -20px rgba(59,130,246,.4), inset 0 1px 0 rgba(255,255,255,.06);
-}
-
-.ap-character-stage {
-  position: relative; display: flex; align-items: center; justify-content: center;
-  min-height: 320px;
-}
-.ap-char-wrap { position: relative; width: 100%; max-width: 260px; }
-.ap-char-svg { width: 100%; height: auto; filter: drop-shadow(0 20px 30px rgba(59,130,246,.35)); }
-.ap-char-glow {
-  position: absolute; inset: -20% 0 0 0; margin: auto;
-  width: 80%; height: 80%; border-radius: 50%;
-  background: radial-gradient(circle, rgba(59,130,246,.6), transparent 65%);
-  filter: blur(40px); z-index: -1;
-}
-
-.ap-logo {
-  width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
-  box-shadow: 0 10px 30px -8px rgba(6,182,212,.55), 0 0 0 1px rgba(255,255,255,.1) inset;
-}
-.ap-title {
-  font-size: clamp(22px, 4vw, 28px); font-weight: 800; letter-spacing: -.02em;
-  background: linear-gradient(135deg, #fff 0%, #bae6fd 50%, #93c5fd 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.ap-subtitle { font-size: 13px; color: rgba(255,255,255,.55); margin-top: 4px; }
-
-.ap-toggle {
-  position: relative; display: grid; grid-template-columns: 1fr 1fr;
-  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06);
-  border-radius: 999px; padding: 4px; overflow: hidden;
-}
-.ap-toggle-pill {
-  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px);
-  border-radius: 999px;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
-  box-shadow: 0 6px 20px -4px rgba(6,182,212,.55);
-}
-.ap-toggle-btn {
-  position: relative; z-index: 1; padding: 10px 0; font-size: 13px; font-weight: 600;
-  color: rgba(255,255,255,.55); transition: color .3s ease;
-}
-.ap-toggle-active { color: #fff; }
-
-.ap-input-wrap {
-  position: relative; display: flex; align-items: center;
-  background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.08);
-  border-radius: 14px; padding: 0 14px 0 42px; height: 52px;
-  transition: border-color .3s ease, background .3s ease;
-}
-.ap-input-wrap:focus-within {
-  border-color: rgba(6,182,212,.6); background: rgba(255,255,255,.05);
-  box-shadow: 0 0 0 4px rgba(6,182,212,.08), 0 8px 30px -10px rgba(59,130,246,.35);
-}
-.ap-input-icon {
-  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-  color: rgba(255,255,255,.4); transition: color .3s ease; pointer-events: none;
-}
-.ap-input-wrap:focus-within .ap-input-icon { color: #67e8f9; }
-.ap-input {
-  width: 100%; height: 100%; background: transparent; border: none; outline: none;
-  font-size: 14px; color: #fff; padding-top: 8px;
-}
-.ap-input-label {
-  position: absolute; left: 42px; top: 50%; transform: translateY(-50%);
-  font-size: 14px; color: rgba(255,255,255,.45);
-  pointer-events: none; transition: all .25s ease;
-}
-.ap-input:focus ~ .ap-input-label,
-.ap-input:not(:placeholder-shown) ~ .ap-input-label {
-  top: 10px; transform: translateY(0); font-size: 10px;
-  color: #67e8f9; letter-spacing: .08em; text-transform: uppercase;
-}
-.ap-input-glow {
-  position: absolute; left: 14px; right: 14px; bottom: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, #06b6d4, #3b82f6, transparent);
-  opacity: 0; transition: opacity .3s ease;
-}
-.ap-input-wrap:focus-within .ap-input-glow { opacity: 1; }
-
-.ap-forgot { color: rgba(255,255,255,.55); position: relative; padding-bottom: 2px; transition: color .25s ease; }
-.ap-forgot::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
-  background: linear-gradient(90deg, #3b82f6, #06b6d4);
-  transform: scaleX(0); transform-origin: left; transition: transform .3s ease; }
-.ap-forgot:hover { color: #67e8f9; }
-.ap-forgot:hover::after { transform: scaleX(1); }
-
-.ap-submit {
-  position: relative; height: 52px; border-radius: 14px; overflow: hidden;
-  color: #fff; font-weight: 700; font-size: 14px; letter-spacing: .02em;
-  box-shadow: 0 10px 30px -8px rgba(6,182,212,.55), 0 0 0 1px rgba(255,255,255,.1) inset;
-  transition: box-shadow .35s ease, background-position .8s ease;
-  background-size: 200% 200%;
-  animation: ap-shift 6s ease infinite;
-}
-.ap-submit-green { background: linear-gradient(135deg, #10b981 0%, #22c55e 50%, #34d399 100%); }
-.ap-submit-cyan  { background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #22d3ee 100%); }
-.ap-submit:hover:not(:disabled) {
-  box-shadow: 0 18px 50px -10px rgba(6,182,212,.7), 0 0 0 1px rgba(255,255,255,.18) inset,
-              0 0 40px -6px rgba(59,130,246,.6);
-}
-.ap-submit:disabled { opacity: .7; cursor: wait; }
-
-.ap-spinner {
-  width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.25);
-  border-top-color: #fff; border-radius: 50%; animation: ap-spin .8s linear infinite;
-}
-
-.ap-social {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 46px; border-radius: 12px; font-size: 13px; font-weight: 600; color: #fff;
-  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
-  transition: all .3s ease;
-}
-.ap-social:hover:not(:disabled) {
-  background: rgba(255,255,255,.08); border-color: rgba(6,182,212,.35);
-  box-shadow: 0 8px 24px -8px rgba(59,130,246,.4);
-}
-.ap-social:disabled { opacity: .5; cursor: not-allowed; }
-
-@property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-@keyframes ap-rotate { to { --angle: 360deg; } }
-@keyframes ap-spin { to { transform: rotate(360deg); } }
-@keyframes ap-shift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-
-@media (max-width: 768px) {
-  .ap-card { padding: 24px 20px; }
-  .ap-character-stage { min-height: 240px; }
-  .ap-char-wrap { max-width: 200px; }
-}
+// ────────────────────────────── Styles ──────────────────────────────
+const styles = `
+.aether-gateway, .aether-gateway * { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.aether-gateway button, .aether-gateway a, .aether-gateway input { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.aether-gateway button:active { transform: scale(0.98); }
+.ag-grad { background: linear-gradient(120deg, #818CF8 0%, #6366F1 50%, #4F46E5 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ag-grid { position: absolute; inset: -1px; background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 48px 48px; mask-image: radial-gradient(ellipse at 30% 40%, #000 30%, transparent 75%); animation: ag-drift 40s linear infinite; }
+.ag-grid-light { background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 64px 64px; }
+@keyframes ag-drift { from { background-position: 0 0, 0 0; } to { background-position: 48px 48px, 48px 48px; } }
+.ag-glow { position: absolute; border-radius: 9999px; filter: blur(80px); opacity: 0.55; pointer-events: none; }
+.ag-glow-1 { width: 480px; height: 480px; background: radial-gradient(circle, #6366F1 0%, transparent 65%); top: -80px; left: -80px; animation: ag-pulse 9s ease-in-out infinite; }
+.ag-glow-2 { width: 520px; height: 520px; background: radial-gradient(circle, #4F46E5 0%, transparent 65%); bottom: -100px; right: -120px; animation: ag-pulse 11s ease-in-out infinite reverse; }
+@keyframes ag-pulse { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.08); opacity: 0.7; } }
+.ag-tab { transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+.ag-primary { background: linear-gradient(180deg, #6366F1 0%, #4F46E5 100%); color: white; box-shadow: 0 10px 30px -10px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.18); position: relative; }
+.ag-primary::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.05) 40%, rgba(99,102,241,0.6)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0.7; }
+.ag-primary:hover:not(:disabled) { box-shadow: 0 16px 40px -10px rgba(99,102,241,0.7), inset 0 1px 0 rgba(255,255,255,0.22); transform: translateY(-1px); }
+.ag-scroll::-webkit-scrollbar { width: 6px; }
+.ag-scroll::-webkit-scrollbar-track { background: transparent; }
+.ag-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
+.ag-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+.ag-dot { width: 6px; height: 6px; border-radius: 999px; background: #A1A1AA; display: inline-block; animation: ag-dot 1.2s ease-in-out infinite; }
+@keyframes ag-dot { 0%,80%,100% { transform: scale(0.7); opacity: 0.4; } 40% { transform: scale(1.1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .ap-card-border, .ap-submit, .ap-orb, .ap-dot { animation: none !important; }
+  .ag-glow, .ag-grid { animation: none !important; }
+  .aether-gateway *, .ag-tab { transition: none !important; }
 }
 `;
