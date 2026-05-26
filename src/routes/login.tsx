@@ -375,7 +375,7 @@ function Chat({
 }: {
   embedded: boolean; open: boolean; expanded: boolean;
   msgs: ChatMsg[]; draft: string; typing: boolean;
-  scrollerRef: React.RefObject<HTMLDivElement>;
+  scrollerRef: React.RefObject<HTMLDivElement | null>;
   onDraft: (s: string) => void; onSend: () => void; onSuggest: (s: string) => void;
   onToggleOpen: () => void; onToggleExpand: () => void; onClear: () => void;
 }) {
