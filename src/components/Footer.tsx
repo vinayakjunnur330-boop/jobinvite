@@ -1,51 +1,84 @@
 import { Link } from "@tanstack/react-router";
+import { Compass, Twitter, Linkedin, Github } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card/30 mt-24">
-      <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-4 gap-10">
+    <footer className="border-t border-border bg-secondary/40 mt-24">
+      <div className="max-w-7xl mx-auto px-6 py-14 grid md:grid-cols-5 gap-10">
         <div className="md:col-span-2">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="size-8 bg-primary rounded-lg flex items-center justify-center font-bold text-primary-foreground">P</div>
-            <span className="text-lg font-bold tracking-tighter">CAREERPILOT<span className="text-primary">AI</span></span>
-          </div>
-          <p className="text-sm text-muted-foreground max-w-sm">
-            Navigate your career airspace with AI-powered telemetry, skill analysis, and personalized roadmaps.
+          <Link to="/" className="flex items-center gap-2.5 mb-4">
+            <div className="size-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+              <Compass className="size-4" strokeWidth={2.4} />
+            </div>
+            <span className="text-[15px] font-semibold tracking-tight">CareerPilot</span>
+          </Link>
+          <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+            Personalized career intelligence built on millions of verified job market signals.
           </p>
+          <div className="flex items-center gap-2 mt-5">
+            {[
+              { href: "https://twitter.com", icon: Twitter, label: "Twitter" },
+              { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
+              { href: "https://github.com", icon: Github, label: "GitHub" },
+            ].map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="size-9 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/30 flex items-center justify-center transition-colors"
+              >
+                <s.icon className="size-4" />
+              </a>
+            ))}
+          </div>
         </div>
-        <div>
-          <h5 className="text-xs font-bold uppercase tracking-widest text-foreground mb-4">Platform</h5>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/assessment" className="hover:text-primary">Assessment</Link></li>
-            <li><Link to="/resume" className="hover:text-primary">Resume Scan</Link></li>
-            <li><Link to="/skills" className="hover:text-primary">Skill Analysis</Link></li>
-            <li><Link to="/roadmap" className="hover:text-primary">Roadmap</Link></li>
-            <li><Link to="/jobs" className="hover:text-primary">Job Trends</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h5 className="text-xs font-bold uppercase tracking-widest text-foreground mb-4">Company</h5>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/about" className="hover:text-primary">About</Link></li>
-            <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
-            <li><Link to="/login" className="hover:text-primary">Sign In</Link></li>
-            <li><Link to="/profile" className="hover:text-primary">Profile</Link></li>
-          </ul>
-        </div>
+
+        <FooterCol title="Product" links={[
+          { to: "/assessment", label: "Assessment" },
+          { to: "/resume", label: "Resume scan" },
+          { to: "/skills", label: "Skill analysis" },
+          { to: "/roadmap", label: "Roadmap" },
+        ]} />
+        <FooterCol title="Discover" links={[
+          { to: "/jobs", label: "Jobs" },
+          { to: "/mentors", label: "Mentors" },
+          { to: "/scholarships", label: "Scholarships" },
+          { to: "/internships", label: "Internships" },
+        ]} />
+        <FooterCol title="Company" links={[
+          { to: "/about", label: "About" },
+          { to: "/contact", label: "Contact" },
+          { to: "/blog", label: "Insights" },
+          { to: "/login", label: "Sign in" },
+        ]} />
       </div>
-      <div className="border-t border-border py-6 px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap gap-8 justify-center items-center grayscale opacity-60">
-          <div className="flex items-center gap-2 font-mono text-xs tracking-widest text-muted-foreground">
-            <span className="size-2 bg-success rounded-full" /> LATENCY: 42MS
-          </div>
-          <div className="flex items-center gap-2 font-mono text-xs tracking-widest text-muted-foreground">
-            <span className="size-2 bg-primary rounded-full" /> USERS_ACTIVE: 12.4K
-          </div>
-          <div className="flex items-center gap-2 font-mono text-xs tracking-widest text-muted-foreground">
-            <span className="size-2 bg-accent rounded-full" /> PATHS_MAPPED: 1.2M
+      <div className="border-t border-border">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+          <span>© {new Date().getFullYear()} CareerPilot, Inc. All rights reserved.</span>
+          <div className="flex items-center gap-5">
+            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+            <a href="#" className="hover:text-foreground transition-colors">Security</a>
           </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: { to: string; label: string }[] }) {
+  return (
+    <div>
+      <h5 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-4">{title}</h5>
+      <ul className="space-y-2.5 text-sm text-muted-foreground">
+        {links.map((l) => (
+          <li key={l.to}>
+            <Link to={l.to} className="hover:text-foreground transition-colors">{l.label}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
