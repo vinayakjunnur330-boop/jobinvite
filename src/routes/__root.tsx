@@ -12,7 +12,6 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
 import { Toaster } from "@/components/ui/sonner";
-import { AetherGate } from "@/components/AetherGate";
 import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
@@ -94,17 +93,15 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
-      <AetherGate>
-        <div className="min-h-screen flex flex-col bg-background text-foreground">
-          <Navbar />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <Footer />
-          <ChatWidget />
-        </div>
-      </AetherGate>
-      <Toaster />
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <Navbar />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+        <ChatWidget />
+        <Toaster />
+      </div>
     </QueryClientProvider>
   );
 }
