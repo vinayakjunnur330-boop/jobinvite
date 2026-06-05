@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LayoutDashboard, BarChart3, Users, Settings, LogOut, Search, ArrowUpDown, Activity, TrendingUp, Server, Zap } from "lucide-react";
 
 type Row = { id: number; name: string; email: string; role: string; status: "Active" | "Idle" | "Offline"; usage: number };
@@ -151,7 +151,7 @@ function MiniGraph() {
 
 function Overview({ analyticsOnly = false }: { analyticsOnly?: boolean }) {
   const [tick, setTick] = useState(0);
-  useState(() => { const id = setInterval(() => setTick((t) => t + 1), 2200); return () => clearInterval(id); });
+  useEffect(() => { const id = setInterval(() => setTick((t) => t + 1), 2200); return () => clearInterval(id); }, []);
   const reqs = 12480 + ((tick * 37) % 500);
   const uptime = (99.97 + Math.sin(tick) * 0.01).toFixed(3);
 
