@@ -9,6 +9,7 @@ import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RRadar,
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
+import nexusBg from "@/assets/nexus-bg.png.asset.json";
 
 export const Route = createFileRoute("/nexus")({
   component: NexusPage,
@@ -104,13 +105,10 @@ function NexusPage() {
         {/* Portal background */}
         <div className="absolute inset-0 -z-10">
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-[0.18]"
-            style={{
-              backgroundImage:
-                "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1920&q=80')",
-            }}
+            className="absolute inset-0 bg-cover bg-center opacity-40"
+            style={{ backgroundImage: `url('${nexusBg.url}')` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/70 via-[#0F172A]/85 to-[#0F172A]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/60 via-[#0F172A]/80 to-[#0F172A]" />
           <div className="absolute inset-0 [background-image:linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 size-[640px] rounded-full bg-cyan-500/10 blur-[140px]" />
           <div className="absolute bottom-0 right-0 size-[420px] rounded-full bg-violet-600/10 blur-[140px]" />
