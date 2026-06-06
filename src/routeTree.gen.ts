@@ -19,6 +19,7 @@ import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PersonalityRouteImport } from './routes/personality'
+import { Route as NexusRouteImport } from './routes/nexus'
 import { Route as MentorsRouteImport } from './routes/mentors'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JobsRouteImport } from './routes/jobs'
@@ -82,6 +83,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PersonalityRoute = PersonalityRouteImport.update({
   id: '/personality',
   path: '/personality',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NexusRoute = NexusRouteImport.update({
+  id: '/nexus',
+  path: '/nexus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MentorsRoute = MentorsRouteImport.update({
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mentors': typeof MentorsRoute
+  '/nexus': typeof NexusRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mentors': typeof MentorsRoute
+  '/nexus': typeof NexusRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mentors': typeof MentorsRoute
+  '/nexus': typeof NexusRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/resume': typeof ResumeRoute
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/login'
     | '/mentors'
+    | '/nexus'
     | '/personality'
     | '/profile'
     | '/resume'
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/login'
     | '/mentors'
+    | '/nexus'
     | '/personality'
     | '/profile'
     | '/resume'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/login'
     | '/mentors'
+    | '/nexus'
     | '/personality'
     | '/profile'
     | '/resume'
@@ -328,6 +340,7 @@ export interface RootRouteChildren {
   JobsRoute: typeof JobsRoute
   LoginRoute: typeof LoginRoute
   MentorsRoute: typeof MentorsRoute
+  NexusRoute: typeof NexusRoute
   PersonalityRoute: typeof PersonalityRoute
   ProfileRoute: typeof ProfileRoute
   ResumeRoute: typeof ResumeRoute
@@ -412,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/personality'
       fullPath: '/personality'
       preLoaderRoute: typeof PersonalityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nexus': {
+      id: '/nexus'
+      path: '/nexus'
+      fullPath: '/nexus'
+      preLoaderRoute: typeof NexusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mentors': {
@@ -528,6 +548,7 @@ const rootRouteChildren: RootRouteChildren = {
   JobsRoute: JobsRoute,
   LoginRoute: LoginRoute,
   MentorsRoute: MentorsRoute,
+  NexusRoute: NexusRoute,
   PersonalityRoute: PersonalityRoute,
   ProfileRoute: ProfileRoute,
   ResumeRoute: ResumeRoute,
