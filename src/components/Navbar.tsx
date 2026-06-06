@@ -6,10 +6,10 @@ import { toast } from "sonner";
 
 const primaryLinks = [
   { to: "/", label: "Home" },
+  { to: "/nexus", label: "Nexus" },
   { to: "/assessment", label: "Assessment" },
   { to: "/jobs", label: "Jobs" },
   { to: "/mentors", label: "Mentors" },
-  { to: "/blog", label: "Insights" },
   { to: "/about", label: "About" },
 ] as const;
 
