@@ -9,6 +9,7 @@ import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RRadar,
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
+import nexusBg from "@/assets/nexus-bg.png.asset.json";
 
 export const Route = createFileRoute("/nexus")({
   component: NexusPage,
