@@ -199,6 +199,7 @@ export function ChatWidget() {
                 </div>
               </div>
             )}
+            <div ref={endRef} />
           </div>
 
           <div className="p-3 border-t border-border bg-card/80 flex gap-2">
