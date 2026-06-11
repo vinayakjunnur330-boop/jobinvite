@@ -144,7 +144,7 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-6 right-6 z-[100]">
       {open ? (
-        <div className="w-[380px] max-w-[calc(100vw-3rem)] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
+        <div className="w-[380px] max-w-[calc(100vw-3rem)] h-[min(600px,calc(100dvh-3rem))] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80">
             <div className="flex items-center gap-2">
               <div className="size-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
