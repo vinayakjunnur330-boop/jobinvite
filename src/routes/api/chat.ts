@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -14,6 +15,9 @@ Your style:
 - If the user is vague, ask ONE crisp clarifying question, then give a useful answer anyway.
 - Always end long answers with a "Next step" line the user can do today.`;
 
+const ALLOWED_ROLES = new Set(["user", "assistant"]);
+const MAX_CONTENT_LEN = 4000;
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
@@ -27,6 +31,31 @@ export const Route = createFileRoute("/api/chat")({
           },
         }),
       POST: async ({ request }) => {
+        // Require authentication to prevent AI gateway abuse
+        const authHeader = request.headers.get("authorization");
+        if (!authHeader?.startsWith("Bearer ")) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        const token = authHeader.slice("Bearer ".length).trim();
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+        if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+          return new Response(JSON.stringify({ error: "Auth not configured" }), { status: 500 });
+        }
+        const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const { data: claims, error: claimsErr } = await sb.auth.getClaims(token);
+        if (claimsErr || !claims?.claims?.sub) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) {
           return new Response(JSON.stringify({ error: "AI gateway not configured" }), { status: 500 });
@@ -37,9 +66,21 @@ export const Route = createFileRoute("/api/chat")({
         } catch {
           return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
         }
-        const messages = Array.isArray(body.messages) ? body.messages.slice(-20) : [];
+        const messages = Array.isArray(body.messages)
+          ? body.messages
+              .filter(
+                (m): m is Msg =>
+                  !!m &&
+                  typeof m === "object" &&
+                  ALLOWED_ROLES.has((m as Msg).role) &&
+                  typeof (m as Msg).content === "string" &&
+                  (m as Msg).content.length > 0 &&
+                  (m as Msg).content.length <= MAX_CONTENT_LEN,
+              )
+              .slice(-20)
+          : [];
         if (messages.length === 0) {
-          return new Response(JSON.stringify({ error: "No messages provided" }), { status: 400 });
+          return new Response(JSON.stringify({ error: "No valid messages provided" }), { status: 400 });
         }
 
         const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
