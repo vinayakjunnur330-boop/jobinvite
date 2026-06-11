@@ -160,13 +160,18 @@ export function ChatWidget() {
             </button>
           </div>
 
-          <div ref={scrollRef} className="flex-1 px-4 py-3 h-80 overflow-y-auto space-y-3 bg-background/40">
+          <div
+            ref={scrollRef}
+            className="flex-1 min-h-0 w-full px-4 py-3 overflow-y-auto scroll-smooth overscroll-contain space-y-3 bg-background/60"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             {msgs.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}>
-                <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
+                <div className={`max-w-[88%] text-sm leading-relaxed px-3 py-2 rounded-2xl ${
                   m.role === "user"
                     ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-card text-foreground rounded-bl-sm border border-border"
+                    : "bg-card text-foreground rounded-bl-sm border border-border shadow-sm"
                 }`}>
                   <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
                   {m.role === "assistant" && m.content && !streaming && (
