@@ -31,9 +31,10 @@ export function ChatWidget() {
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [msgs, streaming]);
 
   const send = async (text?: string) => {
