@@ -31,10 +31,9 @@ export function ChatWidget() {
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs, streaming]);
 
   const send = async (text?: string) => {
@@ -145,7 +144,7 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-6 right-6 z-[100]">
       {open ? (
-        <div className="w-[380px] max-w-[calc(100vw-3rem)] h-[min(600px,calc(100dvh-3rem))] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
+        <div className="w-[380px] max-w-[calc(100vw-3rem)] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80">
             <div className="flex items-center gap-2">
               <div className="size-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
@@ -161,18 +160,13 @@ export function ChatWidget() {
             </button>
           </div>
 
-          <div
-            ref={scrollRef}
-            className="flex-1 min-h-0 w-full px-4 py-3 overflow-y-auto scroll-smooth overscroll-contain space-y-3 bg-background/60"
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
-          >
+          <div ref={scrollRef} className="flex-1 px-4 py-3 h-80 overflow-y-auto space-y-3 bg-background/40">
             {msgs.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}>
-                <div className={`max-w-[88%] text-sm leading-relaxed px-3 py-2 rounded-2xl ${
+                <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
                   m.role === "user"
                     ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-card text-foreground rounded-bl-sm border border-border shadow-sm"
+                    : "bg-card text-foreground rounded-bl-sm border border-border"
                 }`}>
                   <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
                   {m.role === "assistant" && m.content && !streaming && (
@@ -199,7 +193,6 @@ export function ChatWidget() {
                 </div>
               </div>
             )}
-            <div ref={endRef} />
           </div>
 
           <div className="p-3 border-t border-border bg-card/80 flex gap-2">
