@@ -16,7 +16,7 @@ export const Route = createFileRoute("/login")({
 
 type Provider = "google" | "github" | "apple" | "linkedin" | "reddit";
 
-const PROVIDERS: { id: Provider; label: string; bg: string; icon: JSX.Element }[] = [
+const PROVIDERS: { id: Provider; label: string; bg: string; icon: React.ReactNode }[] = [
   { id: "google", label: "Google",   bg: "hover:bg-white hover:text-slate-900",
     icon: <svg viewBox="0 0 24 24" className="size-5"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.66 4.1-5.5 4.1A6.2 6.2 0 1 1 12 5.8a5.6 5.6 0 0 1 4 1.55l2.7-2.6A9.7 9.7 0 1 0 12 21.8c5.6 0 9.3-3.9 9.3-9.5 0-.65-.07-1.15-.16-1.65H12Z"/></svg> },
   { id: "github", label: "GitHub",   bg: "hover:bg-slate-100 hover:text-slate-900",
