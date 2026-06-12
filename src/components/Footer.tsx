@@ -18,23 +18,11 @@ export function Footer() {
           <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
             Personalized career intelligence built on millions of verified job market signals.
           </p>
-          <div className="flex items-center gap-2 mt-5">
-            {[
-              { href: "https://twitter.com", icon: Twitter, label: "Twitter" },
-              { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
-              { href: "https://github.com", icon: Github, label: "GitHub" },
-            ].map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={s.label}
-                className="size-9 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/30 flex items-center justify-center transition-colors"
-              >
-                <s.icon className="size-4" />
-              </a>
-            ))}
+          <div className="mt-5">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+              Tuned for · <span className="text-foreground">{profile.label}</span>
+            </div>
+            <SocialLinks />
           </div>
         </div>
 
