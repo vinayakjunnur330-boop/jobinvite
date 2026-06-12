@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { MessageSquare, Send, X, Sparkles, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { toast } from "sonner";
+import { parallaxStore } from "@/lib/parallax-store";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
