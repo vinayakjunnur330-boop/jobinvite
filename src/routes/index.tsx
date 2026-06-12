@@ -14,8 +14,6 @@ import careersCollage from "@/assets/careers-collage.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
 import { SmartSearch } from "@/components/SmartSearch";
-import { CareerSwitcher } from "@/components/CareerSwitcher";
-import { ResourceCards } from "@/components/ResourceCards";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -151,26 +149,6 @@ function Home() {
           </div>
         </div>
       </section>
-
-      {/* CAREER-AWARE RESOURCE LINKER */}
-      <section className="max-w-6xl mx-auto px-6 py-20 md:py-24 border-b border-border">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
-          <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-primary mb-2">
-              Adaptive resource engine
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Pick a path — every link on this page rewires instantly.
-            </h2>
-            <p className="text-sm md:text-base text-muted-foreground mt-2 max-w-2xl">
-              Learning platforms, video channels, networks and communities all hot-swap to match your active career focus. Footer socials update too.
-            </p>
-          </div>
-          <CareerSwitcher />
-        </div>
-        <ResourceCards />
-      </section>
-
 
       {/* HOW IT WORKS */}
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-24">
