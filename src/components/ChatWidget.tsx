@@ -33,10 +33,25 @@ export function ChatWidget() {
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollTop = useRef(0);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs, streaming]);
+
+  // Reset parallax offset when the panel opens / closes.
+  useEffect(() => {
+    if (!open) parallaxStore.reset();
+    if (scrollRef.current) lastScrollTop.current = scrollRef.current.scrollTop;
+  }, [open]);
+
+  const handleChatScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const top = e.currentTarget.scrollTop;
+    const delta = top - lastScrollTop.current;
+    lastScrollTop.current = top;
+    // Inverted: scrolling down (positive delta) pushes background up.
+    parallaxStore.add(-delta * 0.6);
+  };
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
