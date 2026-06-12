@@ -13,6 +13,9 @@ import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CareerProvider } from "@/contexts/CareerContext";
+import { ParallaxBackdrop } from "@/components/ParallaxBackdrop";
+import { RippleLayer } from "@/components/RippleLayer";
 
 import appCss from "../styles.css?url";
 
