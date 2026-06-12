@@ -13,6 +13,9 @@ import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CareerProvider } from "@/contexts/CareerContext";
+import { ParallaxBackdrop } from "@/components/ParallaxBackdrop";
+import { RippleLayer } from "@/components/RippleLayer";
 
 import appCss from "../styles.css?url";
 
@@ -92,16 +95,20 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthSync />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <Navbar />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <Footer />
-        <ChatWidget />
-        <Toaster />
-      </div>
+      <CareerProvider>
+        <AuthSync />
+        <ParallaxBackdrop />
+        <div className="relative min-h-screen flex flex-col bg-background/60 text-foreground">
+          <Navbar />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <Footer />
+          <ChatWidget />
+          <RippleLayer />
+          <Toaster />
+        </div>
+      </CareerProvider>
     </QueryClientProvider>
   );
 }
