@@ -10,7 +10,8 @@ export function ParallaxBackdrop() {
 
   useEffect(() => {
     raw.set(parallaxStore.get());
-    return parallaxStore.subscribe((v) => raw.set(v));
+    const unsub = parallaxStore.subscribe((v) => raw.set(v));
+    return () => { unsub(); };
   }, [raw]);
 
   // Different layers move at different rates for true depth.
