@@ -95,16 +95,20 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthSync />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <Navbar />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <Footer />
-        <ChatWidget />
-        <Toaster />
-      </div>
+      <CareerProvider>
+        <AuthSync />
+        <ParallaxBackdrop />
+        <div className="relative min-h-screen flex flex-col bg-background/60 text-foreground">
+          <Navbar />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <Footer />
+          <ChatWidget />
+          <RippleLayer />
+          <Toaster />
+        </div>
+      </CareerProvider>
     </QueryClientProvider>
   );
 }
