@@ -159,86 +159,101 @@ export function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100]">
-      {open ? (
-        <div className="w-[380px] max-w-[calc(100vw-3rem)] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80">
-            <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
-                <Sparkles className="size-4" />
+    <>
+      <AnimatePresence>
+        {open && (
+          <motion.aside
+            key="chat-panel"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 260, damping: 30 }}
+            className="fixed top-0 right-0 bottom-0 z-[110] w-full sm:w-[420px] max-w-full bg-card/95 backdrop-blur-xl border-l border-border shadow-2xl flex flex-col"
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80">
+              <div className="flex items-center gap-2">
+                <div className="size-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                  <Sparkles className="size-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold">Pilot Assistant</div>
+                  <div className="text-[10px] font-mono text-success">● {streaming ? "TYPING" : "ONLINE"} · parallax-sync</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm font-bold">Pilot Assistant</div>
-                <div className="text-[10px] font-mono text-success">● {streaming ? "TYPING" : "ONLINE"}</div>
-              </div>
+              <button onClick={() => setOpen(false)} className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary flex items-center justify-center" aria-label="Close">
+                <X className="size-4" />
+              </button>
             </div>
-            <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close">
-              <X className="size-4" />
-            </button>
-          </div>
 
-          <div ref={scrollRef} className="flex-1 px-4 py-3 h-80 overflow-y-auto space-y-3 bg-background/40">
-            {msgs.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}>
-                <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
-                  m.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-card text-foreground rounded-bl-sm border border-border"
-                }`}>
-                  <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
-                  {m.role === "assistant" && m.content && !streaming && (
-                    <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => speak(m.content)} className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"><Volume2 className="size-3"/> Speak</button>
-                      {i === msgs.length - 1 && (
-                        <button onClick={retry} className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"><RotateCcw className="size-3"/> Retry</button>
-                      )}
-                    </div>
-                  )}
+            <div
+              ref={scrollRef}
+              onScroll={handleChatScroll}
+              className="flex-1 px-4 py-3 overflow-y-auto space-y-3 bg-background/40 scroll-smooth"
+            >
+              {msgs.map((m, i) => (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}>
+                  <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
+                    m.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-sm"
+                      : "bg-card text-foreground rounded-bl-sm border border-border"
+                  }`}>
+                    <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
+                    {m.role === "assistant" && m.content && !streaming && (
+                      <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => speak(m.content)} className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"><Volume2 className="size-3"/> Speak</button>
+                        {i === msgs.length - 1 && (
+                          <button onClick={retry} className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"><RotateCcw className="size-3"/> Retry</button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {msgs.length <= 1 && (
-              <div className="pt-2">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Try asking</div>
-                <div className="flex flex-col gap-1.5">
-                  {SUGGESTED.map((s) => (
-                    <button key={s} onClick={() => send(s)} className="text-left text-[11px] px-3 py-2 rounded-lg bg-white/5 border border-border hover:border-primary/60 hover:bg-white/10 transition-colors">
-                      {s}
-                    </button>
-                  ))}
+              {msgs.length <= 1 && (
+                <div className="pt-2">
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Try asking</div>
+                  <div className="flex flex-col gap-1.5">
+                    {SUGGESTED.map((s) => (
+                      <button key={s} onClick={() => send(s)} className="text-left text-[11px] px-3 py-2 rounded-lg bg-secondary border border-border hover:border-primary/60 hover:bg-secondary/70 transition-colors">
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="p-3 border-t border-border bg-card/80 flex gap-2">
-            <button onClick={startVoice} className="size-9 rounded-lg border border-border bg-white/5 hover:bg-white/10 flex items-center justify-center" aria-label="Voice input">
-              <Mic className="size-4" />
-            </button>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Ask about your future..."
-              className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
-              disabled={streaming}
-            />
-            <button onClick={() => send()} disabled={streaming || !input.trim()} className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100" aria-label="Send">
-              <Send className="size-4" />
-            </button>
-          </div>
-        </div>
-      ) : (
+            <div className="p-3 border-t border-border bg-card/80 flex gap-2">
+              <button onClick={startVoice} className="size-9 rounded-lg border border-border bg-background hover:bg-secondary flex items-center justify-center" aria-label="Voice input">
+                <Mic className="size-4" />
+              </button>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && send()}
+                placeholder="Ask about your future..."
+                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+                disabled={streaming}
+              />
+              <button onClick={() => send()} disabled={streaming || !input.trim()} className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100" aria-label="Send">
+                <Send className="size-4" />
+              </button>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="size-14 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center hover:scale-105 transition-transform animate-float"
+          className="fixed bottom-6 right-6 z-[100] size-14 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center hover:scale-105 transition-transform"
           style={{ boxShadow: "0 0 25px -2px var(--primary)" }}
           aria-label="Open chat"
         >
           <MessageSquare className="size-6" />
         </button>
       )}
-    </div>
+    </>
   );
 }
