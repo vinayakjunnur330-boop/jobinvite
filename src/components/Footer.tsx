@@ -1,7 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Compass, Twitter, Linkedin, Github } from "lucide-react";
+import { Compass } from "lucide-react";
+import { SocialLinks } from "@/components/SocialLinks";
+import { useCareer } from "@/contexts/CareerContext";
 
 export function Footer() {
+  const { profile } = useCareer();
   return (
     <footer className="border-t border-border bg-secondary/40 mt-24">
       <div className="max-w-7xl mx-auto px-6 py-14 grid md:grid-cols-5 gap-10">
