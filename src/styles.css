@@ -143,21 +143,12 @@
   }
 
   .hover-lift {
-    transition: all 0.3s ease-in-out;
+    transition: transform 0.35s var(--ease-cockpit), border-color 0.25s, box-shadow 0.35s var(--ease-cockpit);
   }
   .hover-lift:hover {
-    transform: translateY(-4px) scale(1.02);
+    transform: translateY(-2px);
     border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
-    box-shadow: 0 12px 32px -12px color-mix(in oklab, var(--primary) 35%, transparent), var(--shadow-elevated);
-  }
-  .icon-hover {
-    transition: all 0.3s ease-in-out;
-  }
-  .icon-hover:hover {
-    transform: translateY(-4px) scale(1.08);
-    color: var(--primary);
-    border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
-    box-shadow: 0 8px 24px -8px color-mix(in oklab, var(--primary) 45%, transparent);
+    box-shadow: var(--shadow-elevated);
   }
 
   .text-gradient-brand {
