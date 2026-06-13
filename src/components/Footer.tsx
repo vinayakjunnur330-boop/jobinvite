@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Compass, Twitter, Linkedin, Github } from "lucide-react";
+import { Compass, Twitter, Linkedin, Github, Instagram } from "lucide-react";
 
 export function Footer() {
   return (
