@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight, Brain, Compass, Rocket, TrendingUp, Zap, Star,
   ShieldCheck, Globe, CheckCircle2, Sparkles,
+  Briefcase, Newspaper, GraduationCap, BookOpen, Linkedin, Twitter, Instagram, Github,
 } from "lucide-react";
 import medical from "@/assets/medical.jpg";
 import design from "@/assets/design.jpg";
@@ -416,6 +417,72 @@ function Home() {
         </div>
       </section>
 
+      {/* EXPLORE HUB — Career, News, Student Benefits, Skill Development, Social */}
+      <section className="max-w-6xl mx-auto px-6 py-20 md:py-24 border-t border-border">
+        <SectionHeader
+          eyebrow="Explore the hub"
+          title="Everything you need, organized in one place."
+          subtitle="Career resources, daily market updates, student perks, and skill development paths."
+        />
+        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <HubCard
+            to="/jobs"
+            icon={Briefcase}
+            eyebrow="Career"
+            title="Jobs, internships & growth"
+            desc="Curated openings, internship boards, and professional growth playbooks across 44 industries."
+          />
+          <HubCard
+            to="/blog"
+            icon={Newspaper}
+            eyebrow="Daily updates"
+            title="Day-to-day market news"
+            desc="Hiring signals, layoffs, salary moves, and policy changes — updated every weekday."
+          />
+          <HubCard
+            to="/scholarships"
+            icon={GraduationCap}
+            eyebrow="Student benefits"
+            title="Perks, discounts & grants"
+            desc="Free Pro features, course discounts, and scholarship leads exclusively for verified students."
+          />
+          <HubCard
+            to="/courses"
+            icon={BookOpen}
+            eyebrow="Skill development"
+            title="Courses & certifications"
+            desc="Curated learning paths from top providers with certifications that move the hiring needle."
+          />
+        </div>
+
+        {/* Social strip */}
+        <div className="mt-12 panel p-6 md:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div>
+            <div className="text-xs font-medium text-primary mb-1">Stay connected</div>
+            <h3 className="text-lg font-semibold tracking-tight">Follow CareerPilot for daily career intelligence.</h3>
+          </div>
+          <div className="flex items-center gap-2.5">
+            {[
+              { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
+              { href: "https://twitter.com", icon: Twitter, label: "X (Twitter)" },
+              { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
+              { href: "https://github.com", icon: Github, label: "GitHub" },
+            ].map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="icon-hover size-11 rounded-xl border border-border bg-card text-muted-foreground flex items-center justify-center"
+              >
+                <s.icon className="size-5" />
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-6 pb-24">
         <div className="relative rounded-3xl overflow-hidden border border-border bg-foreground text-background p-10 md:p-16">
@@ -525,6 +592,23 @@ function CategoryCard({ image, title, count, highlight }: { image: string; title
           Explore <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </div>
+    </Link>
+  );
+}
+function HubCard({
+  to, icon: Icon, eyebrow, title, desc,
+}: { to: string; icon: React.ComponentType<{ className?: string }>; eyebrow: string; title: string; desc: string }) {
+  return (
+    <Link to={to} className="panel p-6 hover-lift block group">
+      <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+        <Icon className="size-5" />
+      </div>
+      <div className="text-[11px] font-medium text-primary uppercase tracking-wider mb-1.5">{eyebrow}</div>
+      <h3 className="text-base font-semibold mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-4">{desc}</p>
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
+        Explore <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" />
+      </span>
     </Link>
   );
 }
