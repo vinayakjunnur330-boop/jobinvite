@@ -595,6 +595,23 @@ function CategoryCard({ image, title, count, highlight }: { image: string; title
     </Link>
   );
 }
+function HubCard({
+  to, icon: Icon, eyebrow, title, desc,
+}: { to: string; icon: React.ComponentType<{ className?: string }>; eyebrow: string; title: string; desc: string }) {
+  return (
+    <Link to={to} className="panel p-6 hover-lift block group">
+      <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+        <Icon className="size-5" />
+      </div>
+      <div className="text-[11px] font-medium text-primary uppercase tracking-wider mb-1.5">{eyebrow}</div>
+      <h3 className="text-base font-semibold mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-4">{desc}</p>
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
+        Explore <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" />
+      </span>
+    </Link>
+  );
+}
 
 function ChatPreview() {
   const messages = [
