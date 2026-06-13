@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight, Brain, Compass, Rocket, TrendingUp, Zap, Star,
   ShieldCheck, Globe, CheckCircle2, Sparkles,
+  Briefcase, Newspaper, GraduationCap, BookOpen, Linkedin, Twitter, Instagram, Github,
 } from "lucide-react";
 import medical from "@/assets/medical.jpg";
 import design from "@/assets/design.jpg";
