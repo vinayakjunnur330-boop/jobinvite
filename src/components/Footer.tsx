@@ -17,8 +17,9 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-2 mt-5">
             {[
-              { href: "https://twitter.com", icon: Twitter, label: "Twitter" },
               { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
+              { href: "https://twitter.com", icon: Twitter, label: "X (Twitter)" },
+              { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
               { href: "https://github.com", icon: Github, label: "GitHub" },
             ].map((s) => (
               <a
@@ -27,7 +28,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                className="size-9 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/30 flex items-center justify-center transition-colors"
+                className="icon-hover size-9 rounded-lg border border-border bg-background text-muted-foreground flex items-center justify-center"
               >
                 <s.icon className="size-4" />
               </a>
