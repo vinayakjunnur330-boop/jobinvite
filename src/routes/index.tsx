@@ -417,6 +417,72 @@ function Home() {
         </div>
       </section>
 
+      {/* EXPLORE HUB — Career, News, Student Benefits, Skill Development, Social */}
+      <section className="max-w-6xl mx-auto px-6 py-20 md:py-24 border-t border-border">
+        <SectionHeader
+          eyebrow="Explore the hub"
+          title="Everything you need, organized in one place."
+          subtitle="Career resources, daily market updates, student perks, and skill development paths."
+        />
+        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <HubCard
+            to="/jobs"
+            icon={Briefcase}
+            eyebrow="Career"
+            title="Jobs, internships & growth"
+            desc="Curated openings, internship boards, and professional growth playbooks across 44 industries."
+          />
+          <HubCard
+            to="/blog"
+            icon={Newspaper}
+            eyebrow="Daily updates"
+            title="Day-to-day market news"
+            desc="Hiring signals, layoffs, salary moves, and policy changes — updated every weekday."
+          />
+          <HubCard
+            to="/scholarships"
+            icon={GraduationCap}
+            eyebrow="Student benefits"
+            title="Perks, discounts & grants"
+            desc="Free Pro features, course discounts, and scholarship leads exclusively for verified students."
+          />
+          <HubCard
+            to="/courses"
+            icon={BookOpen}
+            eyebrow="Skill development"
+            title="Courses & certifications"
+            desc="Curated learning paths from top providers with certifications that move the hiring needle."
+          />
+        </div>
+
+        {/* Social strip */}
+        <div className="mt-12 panel p-6 md:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div>
+            <div className="text-xs font-medium text-primary mb-1">Stay connected</div>
+            <h3 className="text-lg font-semibold tracking-tight">Follow CareerPilot for daily career intelligence.</h3>
+          </div>
+          <div className="flex items-center gap-2.5">
+            {[
+              { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
+              { href: "https://twitter.com", icon: Twitter, label: "X (Twitter)" },
+              { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
+              { href: "https://github.com", icon: Github, label: "GitHub" },
+            ].map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="icon-hover size-11 rounded-xl border border-border bg-card text-muted-foreground flex items-center justify-center"
+              >
+                <s.icon className="size-5" />
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-6 pb-24">
         <div className="relative rounded-3xl overflow-hidden border border-border bg-foreground text-background p-10 md:p-16">
