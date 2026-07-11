@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -27,6 +28,31 @@ export const Route = createFileRoute("/api/chat")({
           },
         }),
       POST: async ({ request }) => {
+        // Require authentication
+        const authHeader = request.headers.get("authorization");
+        if (!authHeader?.startsWith("Bearer ")) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        const token = authHeader.slice(7).trim();
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+        if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+          return new Response(JSON.stringify({ error: "Auth not configured" }), { status: 500 });
+        }
+        const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+          auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+        });
+        const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+        if (claimsError || !claimsData?.claims?.sub) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) {
           return new Response(JSON.stringify({ error: "AI gateway not configured" }), { status: 500 });
@@ -37,7 +63,11 @@ export const Route = createFileRoute("/api/chat")({
         } catch {
           return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
         }
-        const messages = Array.isArray(body.messages) ? body.messages.slice(-20) : [];
+        const raw = Array.isArray(body.messages) ? body.messages.slice(-20) : [];
+        // Filter out client-supplied system messages; enforce content length
+        const messages = raw
+          .filter((m): m is Msg => !!m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+          .map((m) => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
         if (messages.length === 0) {
           return new Response(JSON.stringify({ error: "No messages provided" }), { status: 400 });
         }
