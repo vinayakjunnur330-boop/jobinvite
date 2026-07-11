@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Send, X, Sparkles, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
