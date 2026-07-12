@@ -32,14 +32,63 @@ export function ChatWidget() {
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
+  const touchYRef = useRef(0);
 
   useEffect(() => {
+    if (!stickToBottomRef.current) return;
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs, streaming]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!open || !el) return;
+
+    const containScroll = (deltaY: number, event: WheelEvent | TouchEvent) => {
+      const canScroll = el.scrollHeight > el.clientHeight;
+      if (!canScroll) return;
+
+      const atTop = el.scrollTop <= 0;
+      const atBottom = Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+
+      if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
+        event.preventDefault();
+      }
+
+      event.stopPropagation();
+    };
+
+    const onWheel = (event: WheelEvent) => containScroll(event.deltaY, event);
+    const onTouchStart = (event: TouchEvent) => {
+      touchYRef.current = event.touches[0]?.clientY ?? 0;
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      const nextY = event.touches[0]?.clientY ?? touchYRef.current;
+      containScroll(touchYRef.current - nextY, event);
+      touchYRef.current = nextY;
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [open]);
+
+  const handleMessagesScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+  };
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || streaming) return;
+    stickToBottomRef.current = true;
     setInput("");
     const next: Msg[] = [...msgs, { role: "user", content }, { role: "assistant", content: "" }];
     setMsgs(next);
@@ -150,7 +199,7 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-6 right-6 z-[100]">
       {open ? (
-        <div className="w-[380px] max-w-[calc(100vw-3rem)] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
+        <div className="w-[380px] max-w-[calc(100vw-3rem)] max-h-[calc(100dvh-3rem)] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80">
             <div className="flex items-center gap-2">
               <div className="size-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
@@ -166,7 +215,7 @@ export function ChatWidget() {
             </button>
           </div>
 
-          <div ref={scrollRef} className="flex-1 px-4 py-3 h-80 overflow-y-auto overscroll-contain space-y-3 bg-background/40">
+          <div ref={scrollRef} onScroll={handleMessagesScroll} className="flex-1 min-h-0 px-4 py-3 h-[min(20rem,calc(100dvh-12rem))] overflow-y-auto overscroll-contain space-y-3 bg-background/40 touch-pan-y">
             {msgs.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}>
                 <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
