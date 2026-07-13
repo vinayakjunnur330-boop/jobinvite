@@ -297,6 +297,9 @@ function GatewayPage() {
             <p className="text-[12px] text-[#A1A1AA] text-center pt-2">
               By continuing you agree to our <button type="button" onClick={() => toast.message("Terms of Service · v4.2 — available inside the workspace.")} className="text-white underline-offset-4 hover:underline">Terms</button> & <button type="button" onClick={() => toast.message("Privacy Policy · v3.1 — GDPR-aligned, SOC 2 Type II.")} className="text-white underline-offset-4 hover:underline">Privacy</button>.
             </p>
+            <p className="text-[12px] text-center text-[#A1A1AA]">
+              Administrator? <Link to="/admin-login" className="text-indigo-400 hover:text-indigo-300 underline-offset-4 hover:underline">Sign in to the admin console</Link>
+            </p>
           </form>
         </div>
       </section>
