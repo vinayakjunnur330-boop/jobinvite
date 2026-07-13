@@ -74,9 +74,20 @@ function GatewayPage() {
   const [typing, setTyping] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
 
+  const checkRoles = useServerFn(getMyRoles);
+  const routeAfterAuth = async () => {
+    try {
+      const r = await checkRoles();
+      navigate({ to: r.isAdmin ? "/admin" : "/workspace" });
+    } catch {
+      navigate({ to: "/workspace" });
+    }
+  };
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ to: "/workspace" }); });
-  }, [navigate]);
+    supabase.auth.getSession().then(({ data }) => { if (data.session) routeAfterAuth(); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Seed welcome
   useEffect(() => {
