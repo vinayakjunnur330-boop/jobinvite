@@ -4,6 +4,9 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, ArrowRight, Send, Minus, Maximize2, Trash2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyRoles } from "@/lib/roles.functions";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
