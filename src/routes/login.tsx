@@ -144,7 +144,7 @@ function GatewayPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back.");
-        navigate({ to: "/workspace" });
+        await routeAfterAuth();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
