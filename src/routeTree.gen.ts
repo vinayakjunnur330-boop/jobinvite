@@ -29,6 +29,8 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AssessmentRouteImport } from './routes/assessment'
+import { Route as AdminLoginRouteImport } from './routes/admin-login'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DomainSlugRouteImport } from './routes/domain.$slug'
@@ -134,6 +136,16 @@ const AssessmentRoute = AssessmentRouteImport.update({
   path: '/assessment',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin-login',
+  path: '/admin-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -158,6 +170,8 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/admin-login': typeof AdminLoginRoute
   '/assessment': typeof AssessmentRoute
   '/blog': typeof BlogRoute
   '/compare': typeof CompareRoute
@@ -184,6 +198,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/admin-login': typeof AdminLoginRoute
   '/assessment': typeof AssessmentRoute
   '/blog': typeof BlogRoute
   '/compare': typeof CompareRoute
@@ -211,6 +227,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/admin-login': typeof AdminLoginRoute
   '/assessment': typeof AssessmentRoute
   '/blog': typeof BlogRoute
   '/compare': typeof CompareRoute
@@ -239,6 +257,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
+    | '/admin-login'
     | '/assessment'
     | '/blog'
     | '/compare'
@@ -265,6 +285,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/admin'
+    | '/admin-login'
     | '/assessment'
     | '/blog'
     | '/compare'
@@ -291,6 +313,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
+    | '/admin-login'
     | '/assessment'
     | '/blog'
     | '/compare'
@@ -318,6 +342,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AssessmentRoute: typeof AssessmentRoute
   BlogRoute: typeof BlogRoute
   CompareRoute: typeof CompareRoute
@@ -484,6 +510,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssessmentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-login': {
+      id: '/admin-login'
+      path: '/admin-login'
+      fullPath: '/admin-login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -518,6 +558,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AssessmentRoute: AssessmentRoute,
   BlogRoute: BlogRoute,
   CompareRoute: CompareRoute,
@@ -544,13 +586,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
