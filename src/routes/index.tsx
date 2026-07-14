@@ -14,6 +14,9 @@ import careersCollage from "@/assets/careers-collage.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
 import { SmartSearch } from "@/components/SmartSearch";
+import { Reveal, RevealItem } from "@/components/motion/Reveal";
+import { MouseGlow } from "@/components/motion/MouseGlow";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -68,7 +71,9 @@ function Home() {
               "radial-gradient(ellipse at top, color-mix(in oklab, var(--primary) 12%, transparent), transparent 70%)",
           }}
         />
+        <MouseGlow size={520} color="color-mix(in oklab, var(--primary) 22%, transparent)" />
         <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+
           <motion.div
             initial="hidden"
             animate="show"
@@ -111,10 +116,11 @@ function Home() {
             <motion.div variants={fadeUp} transition={{ duration: 0.5 }} className="mt-5 flex flex-wrap items-center gap-3">
               <Link
                 to="/assessment"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]"
+                className="btn-cta inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]"
               >
                 <Brain className="size-4" /> Take the assessment
               </Link>
+
               <Link
                 to="/resume"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border bg-background text-sm font-medium hover:border-foreground/30 transition-colors"
@@ -157,20 +163,14 @@ function Home() {
           title="From confused to confident in three steps."
           subtitle="A structured process built around verified data and a personal roadmap that adapts as you grow."
         />
-        <div className="mt-12 grid md:grid-cols-3 gap-4">
+        <Reveal stagger staggerDelay={0.1} className="mt-12 grid md:grid-cols-3 gap-4">
+
           {[
             { icon: Brain, title: "Tell us about you", desc: "Five minutes to capture your skills, interests, and goals across 30+ structured signals." },
             { icon: Compass, title: "Get matched paths", desc: "Top careers ranked by personal fit, market demand, and projected compensation." },
             { icon: Rocket, title: "Follow your roadmap", desc: "A 12-month milestone plan with curated courses, mentor intros, and progress tracking." },
           ].map((s, i) => (
-            <motion.div
-              key={s.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ delay: i * 0.08, duration: 0.55 }}
-              className="panel p-6 hover-lift"
-            >
+            <RevealItem key={s.title} className="panel p-6 hover-lift">
               <div className="flex items-center gap-3 mb-4">
                 <div className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                   <s.icon className="size-4.5" />
@@ -179,10 +179,11 @@ function Home() {
               </div>
               <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-            </motion.div>
+            </RevealItem>
           ))}
-        </div>
+        </Reveal>
       </section>
+
 
       {/* DOMAINS */}
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-24 border-t border-border">
@@ -191,15 +192,9 @@ function Home() {
           title="Every industry. Every role. Mapped."
           subtitle="From neurosurgery to product design — 44 domains and thousands of role variants."
         />
-        <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
-          {domains.map((d, i) => (
-            <motion.div
-              key={d}
-              initial={{ opacity: 0, y: 8 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: (i % 12) * 0.02 }}
-            >
+        <Reveal stagger staggerDelay={0.04} className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+          {domains.map((d) => (
+            <RevealItem key={d} y={12}>
               <Link
                 to="/domain/$slug"
                 params={{ slug: slugifyDomain(d) }}
@@ -207,10 +202,11 @@ function Home() {
               >
                 {d}
               </Link>
-            </motion.div>
+            </RevealItem>
           ))}
-        </div>
+        </Reveal>
       </section>
+
 
       {/* CATEGORY CARDS */}
       <section className="max-w-6xl mx-auto px-6 pb-20 md:pb-24">
@@ -362,16 +358,9 @@ function Home() {
       <section className="border-t border-border bg-secondary/30">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-24">
           <SectionHeader eyebrow="Customer stories" title="People who found their path." />
-          <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={t.name}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.06 }}
-                className="panel p-6 hover-lift"
-              >
+          <Reveal stagger staggerDelay={0.1} className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {testimonials.map((t) => (
+              <RevealItem key={t.name} className="panel p-6 hover-lift">
                 <div className="flex gap-0.5 mb-3">
                   {[...Array(5)].map((_, k) => <Star key={k} className="size-3.5 fill-primary text-primary" />)}
                 </div>
@@ -385,9 +374,10 @@ function Home() {
                     <div className="text-xs text-muted-foreground">{t.role}</div>
                   </div>
                 </div>
-              </motion.div>
+              </RevealItem>
             ))}
-          </div>
+          </Reveal>
+
         </div>
       </section>
 
@@ -437,9 +427,10 @@ function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/assessment"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-background text-foreground text-sm font-semibold hover:bg-primary hover:text-primary-foreground transition-colors active:scale-[0.98]"
+                className="btn-cta inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-background text-foreground text-sm font-semibold hover:bg-primary hover:text-primary-foreground transition-colors active:scale-[0.98]"
               >
                 Start free assessment <ArrowRight className="size-4" />
+
               </Link>
               <Link
                 to="/contact"

@@ -1,9 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { Compass, Twitter, Linkedin, Github } from "lucide-react";
+import { MouseGlow } from "@/components/motion/MouseGlow";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-secondary/40 mt-24">
+    <footer className="relative border-t border-border bg-secondary/40 mt-24 overflow-hidden">
+      <MouseGlow size={520} color="color-mix(in oklab, var(--primary) 22%, transparent)" />
+
       <div className="max-w-7xl mx-auto px-6 py-14 grid md:grid-cols-5 gap-10">
         <div className="md:col-span-2">
           <Link to="/" className="flex items-center gap-2.5 mb-4">

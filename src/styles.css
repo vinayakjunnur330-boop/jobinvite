@@ -101,6 +101,15 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+@keyframes btn-shine {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  60%, 100% { transform: translateX(220%) skewX(-18deg); }
+}
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 35%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--primary) 0%, transparent); }
+}
+
 
 @layer utilities {
   .animate-float { animation: float 7s var(--ease-cockpit) infinite; }
@@ -177,7 +186,48 @@
     transition: transform 0.3s var(--ease-cockpit);
   }
   .story-link:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  /* Primary CTA — slow pulse ring + on-hover shimmer sweep */
+  .btn-cta {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    animation: cta-pulse 2.8s var(--ease-cockpit) infinite;
+  }
+  .btn-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      color-mix(in oklab, white 55%, transparent) 50%,
+      transparent 100%);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1;
+  }
+  .btn-cta:hover::before {
+    opacity: 0.7;
+    animation: btn-shine 1.2s var(--ease-cockpit);
+  }
+  .btn-cta > * { position: relative; z-index: 2; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-entrance,
+  .animate-fade,
+  .shimmer,
+  .btn-cta,
+  .btn-cta::before {
+    animation: none !important;
+    transition: none !important;
+  }
+  .hover-lift { transition: none !important; }
+  .hover-lift:hover { transform: none !important; }
+}
+
 
 @layer base {
   * { border-color: var(--color-border); }
