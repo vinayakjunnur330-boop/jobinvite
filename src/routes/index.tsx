@@ -14,6 +14,9 @@ import careersCollage from "@/assets/careers-collage.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
 import { SmartSearch } from "@/components/SmartSearch";
+import { Reveal, RevealItem } from "@/components/motion/Reveal";
+import { MouseGlow } from "@/components/motion/MouseGlow";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
