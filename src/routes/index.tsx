@@ -71,7 +71,9 @@ function Home() {
               "radial-gradient(ellipse at top, color-mix(in oklab, var(--primary) 12%, transparent), transparent 70%)",
           }}
         />
+        <MouseGlow size={520} color="color-mix(in oklab, var(--primary) 22%, transparent)" />
         <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+
           <motion.div
             initial="hidden"
             animate="show"
