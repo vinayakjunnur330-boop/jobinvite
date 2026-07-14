@@ -192,15 +192,9 @@ function Home() {
           title="Every industry. Every role. Mapped."
           subtitle="From neurosurgery to product design — 44 domains and thousands of role variants."
         />
-        <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
-          {domains.map((d, i) => (
-            <motion.div
-              key={d}
-              initial={{ opacity: 0, y: 8 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: (i % 12) * 0.02 }}
-            >
+        <Reveal stagger staggerDelay={0.04} className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+          {domains.map((d) => (
+            <RevealItem key={d} y={12}>
               <Link
                 to="/domain/$slug"
                 params={{ slug: slugifyDomain(d) }}
@@ -208,10 +202,11 @@ function Home() {
               >
                 {d}
               </Link>
-            </motion.div>
+            </RevealItem>
           ))}
-        </div>
+        </Reveal>
       </section>
+
 
       {/* CATEGORY CARDS */}
       <section className="max-w-6xl mx-auto px-6 pb-20 md:pb-24">
