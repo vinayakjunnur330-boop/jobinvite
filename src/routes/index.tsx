@@ -443,9 +443,10 @@ function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/assessment"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-background text-foreground text-sm font-semibold hover:bg-primary hover:text-primary-foreground transition-colors active:scale-[0.98]"
+                className="btn-cta inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-background text-foreground text-sm font-semibold hover:bg-primary hover:text-primary-foreground transition-colors active:scale-[0.98]"
               >
                 Start free assessment <ArrowRight className="size-4" />
+
               </Link>
               <Link
                 to="/contact"
