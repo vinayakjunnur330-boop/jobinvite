@@ -358,16 +358,9 @@ function Home() {
       <section className="border-t border-border bg-secondary/30">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-24">
           <SectionHeader eyebrow="Customer stories" title="People who found their path." />
-          <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={t.name}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.06 }}
-                className="panel p-6 hover-lift"
-              >
+          <Reveal stagger staggerDelay={0.1} className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {testimonials.map((t) => (
+              <RevealItem key={t.name} className="panel p-6 hover-lift">
                 <div className="flex gap-0.5 mb-3">
                   {[...Array(5)].map((_, k) => <Star key={k} className="size-3.5 fill-primary text-primary" />)}
                 </div>
@@ -381,9 +374,10 @@ function Home() {
                     <div className="text-xs text-muted-foreground">{t.role}</div>
                   </div>
                 </div>
-              </motion.div>
+              </RevealItem>
             ))}
-          </div>
+          </Reveal>
+
         </div>
       </section>
 
