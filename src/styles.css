@@ -101,6 +101,15 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+@keyframes btn-shine {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  60%, 100% { transform: translateX(220%) skewX(-18deg); }
+}
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 35%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--primary) 0%, transparent); }
+}
+
 
 @layer utilities {
   .animate-float { animation: float 7s var(--ease-cockpit) infinite; }
