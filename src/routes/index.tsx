@@ -163,8 +163,8 @@ function Home() {
           title="From confused to confident in three steps."
           subtitle="A structured process built around verified data and a personal roadmap that adapts as you grow."
         />
-        <div className="mt-12 grid md:grid-cols-3 gap-4">
         <Reveal stagger staggerDelay={0.1} className="mt-12 grid md:grid-cols-3 gap-4">
+
           {[
             { icon: Brain, title: "Tell us about you", desc: "Five minutes to capture your skills, interests, and goals across 30+ structured signals." },
             { icon: Compass, title: "Get matched paths", desc: "Top careers ranked by personal fit, market demand, and projected compensation." },
