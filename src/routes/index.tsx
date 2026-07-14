@@ -164,19 +164,13 @@ function Home() {
           subtitle="A structured process built around verified data and a personal roadmap that adapts as you grow."
         />
         <div className="mt-12 grid md:grid-cols-3 gap-4">
+        <Reveal stagger staggerDelay={0.1} className="mt-12 grid md:grid-cols-3 gap-4">
           {[
             { icon: Brain, title: "Tell us about you", desc: "Five minutes to capture your skills, interests, and goals across 30+ structured signals." },
             { icon: Compass, title: "Get matched paths", desc: "Top careers ranked by personal fit, market demand, and projected compensation." },
             { icon: Rocket, title: "Follow your roadmap", desc: "A 12-month milestone plan with curated courses, mentor intros, and progress tracking." },
           ].map((s, i) => (
-            <motion.div
-              key={s.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ delay: i * 0.08, duration: 0.55 }}
-              className="panel p-6 hover-lift"
-            >
+            <RevealItem key={s.title} className="panel p-6 hover-lift">
               <div className="flex items-center gap-3 mb-4">
                 <div className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                   <s.icon className="size-4.5" />
@@ -185,10 +179,11 @@ function Home() {
               </div>
               <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-            </motion.div>
+            </RevealItem>
           ))}
-        </div>
+        </Reveal>
       </section>
+
 
       {/* DOMAINS */}
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-24 border-t border-border">
