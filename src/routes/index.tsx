@@ -116,10 +116,11 @@ function Home() {
             <motion.div variants={fadeUp} transition={{ duration: 0.5 }} className="mt-5 flex flex-wrap items-center gap-3">
               <Link
                 to="/assessment"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]"
+                className="btn-cta inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]"
               >
                 <Brain className="size-4" /> Take the assessment
               </Link>
+
               <Link
                 to="/resume"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border bg-background text-sm font-medium hover:border-foreground/30 transition-colors"
