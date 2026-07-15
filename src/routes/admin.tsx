@@ -1,11 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { Shield, Users, Bookmark, MessageSquare, LogOut, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Shield, Users, Bookmark, MessageSquare, LogOut, Loader2, ScrollText, ShieldPlus, ShieldMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getMyRoles, listAllUsers } from "@/lib/roles.functions";
+import { listAuditLogs, changeUserRole } from "@/lib/audit.functions";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
