@@ -232,7 +232,7 @@
   .animate-entrance,
   .animate-fade,
   .shimmer,
-  .btn-cta,
+  .btn-cta::after,
   .btn-cta::before {
     animation: none !important;
     transition: none !important;
@@ -240,6 +240,7 @@
   .hover-lift { transition: none !important; }
   .hover-lift:hover { transform: none !important; }
 }
+
 
 
 @layer base {
