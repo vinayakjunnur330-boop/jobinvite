@@ -188,12 +188,23 @@
   }
   .story-link:hover::after { transform: scaleX(1); transform-origin: left; }
 
-  /* Primary CTA — slow pulse ring + on-hover shimmer sweep */
+  /* Primary CTA — composited pulse ring (::after) + on-hover shimmer sweep (::before) */
   .btn-cta {
     position: relative;
     overflow: hidden;
     isolation: isolate;
+  }
+  .btn-cta::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 55%, transparent);
+    pointer-events: none;
+    opacity: 0.55;
+    z-index: 0;
     animation: cta-pulse 2.8s var(--ease-cockpit) infinite;
+    will-change: transform, opacity;
   }
   .btn-cta::before {
     content: "";
@@ -213,6 +224,7 @@
     animation: btn-shine 1.2s var(--ease-cockpit);
   }
   .btn-cta > * { position: relative; z-index: 2; }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
