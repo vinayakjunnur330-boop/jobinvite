@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Shield, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRoles } from "@/lib/roles.functions";
+import { logAdminLogin } from "@/lib/audit.functions";
+
 
 export const Route = createFileRoute("/admin-login")({
   head: () => ({
