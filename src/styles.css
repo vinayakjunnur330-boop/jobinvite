@@ -106,9 +106,10 @@
   60%, 100% { transform: translateX(220%) skewX(-18deg); }
 }
 @keyframes cta-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 35%, transparent); }
-  50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--primary) 0%, transparent); }
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0; transform: scale(1.08); }
 }
+
 
 
 @layer utilities {
