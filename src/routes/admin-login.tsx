@@ -22,6 +22,8 @@ export const Route = createFileRoute("/admin-login")({
 function AdminLoginPage() {
   const navigate = useNavigate();
   const checkRoles = useServerFn(getMyRoles);
+  const recordLogin = useServerFn(logAdminLogin);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
