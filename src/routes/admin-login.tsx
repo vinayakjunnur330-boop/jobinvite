@@ -53,8 +53,10 @@ function AdminLoginPage() {
         await supabase.auth.signOut();
         throw new Error("This account does not have admin access.");
       }
+      try { await recordLogin(); } catch { /* non-fatal */ }
       toast.success("Welcome, admin.");
       navigate({ to: "/admin" });
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign in failed");
     } finally {
