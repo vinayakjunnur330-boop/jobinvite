@@ -68,27 +68,117 @@ export type Database = {
         }
         Relationships: []
       }
+      job_alert_preferences: {
+        Row: {
+          arrangements: string[]
+          created_at: string
+          employment_types: string[]
+          enabled: boolean
+          experience_levels: string[]
+          frequency: string
+          industries: string[]
+          min_salary: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arrangements?: string[]
+          created_at?: string
+          employment_types?: string[]
+          enabled?: boolean
+          experience_levels?: string[]
+          frequency?: string
+          industries?: string[]
+          min_salary?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arrangements?: string[]
+          created_at?: string
+          employment_types?: string[]
+          enabled?: boolean
+          experience_levels?: string[]
+          frequency?: string
+          industries?: string[]
+          min_salary?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      job_applications: {
+        Row: {
+          company: string
+          cover_note: string | null
+          created_at: string
+          id: string
+          job_id: string
+          job_title: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company: string
+          cover_note?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          job_title: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string
+          cover_note?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          job_title?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           full_name: string | null
+          headline: string | null
           id: string
+          location: string | null
+          phone: string | null
+          resume_url: string | null
           updated_at: string
+          years_experience: number | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
+          headline?: string | null
           id: string
+          location?: string | null
+          phone?: string | null
+          resume_url?: string | null
           updated_at?: string
+          years_experience?: number | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
+          headline?: string | null
           id?: string
+          location?: string | null
+          phone?: string | null
+          resume_url?: string | null
           updated_at?: string
+          years_experience?: number | null
         }
         Relationships: []
       }

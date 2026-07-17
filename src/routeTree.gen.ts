@@ -17,6 +17,7 @@ import { Route as ScholarshipsRouteImport } from './routes/scholarships'
 import { Route as SalaryRouteImport } from './routes/salary'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ResumeRouteImport } from './routes/resume'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PersonalityRouteImport } from './routes/personality'
 import { Route as MentorsRouteImport } from './routes/mentors'
@@ -74,6 +75,11 @@ const RoadmapRoute = RoadmapRouteImport.update({
 const ResumeRoute = ResumeRouteImport.update({
   id: '/resume',
   path: '/resume',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/salary': typeof SalaryRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/salary': typeof SalaryRoute
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/salary': typeof SalaryRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/resources'
     | '/resume'
     | '/roadmap'
     | '/salary'
@@ -299,6 +309,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/resources'
     | '/resume'
     | '/roadmap'
     | '/salary'
@@ -327,6 +338,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/resources'
     | '/resume'
     | '/roadmap'
     | '/salary'
@@ -356,6 +368,7 @@ export interface RootRouteChildren {
   MentorsRoute: typeof MentorsRoute
   PersonalityRoute: typeof PersonalityRoute
   ProfileRoute: typeof ProfileRoute
+  ResourcesRoute: typeof ResourcesRoute
   ResumeRoute: typeof ResumeRoute
   RoadmapRoute: typeof RoadmapRoute
   SalaryRoute: typeof SalaryRoute
@@ -424,6 +437,13 @@ declare module '@tanstack/react-router' {
       path: '/resume'
       fullPath: '/resume'
       preLoaderRoute: typeof ResumeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -572,6 +592,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentorsRoute: MentorsRoute,
   PersonalityRoute: PersonalityRoute,
   ProfileRoute: ProfileRoute,
+  ResourcesRoute: ResourcesRoute,
   ResumeRoute: ResumeRoute,
   RoadmapRoute: RoadmapRoute,
   SalaryRoute: SalaryRoute,
@@ -586,13 +607,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
