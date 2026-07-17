@@ -17,6 +17,7 @@ import { Route as ScholarshipsRouteImport } from './routes/scholarships'
 import { Route as SalaryRouteImport } from './routes/salary'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ResumeRouteImport } from './routes/resume'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PersonalityRouteImport } from './routes/personality'
 import { Route as MentorsRouteImport } from './routes/mentors'
@@ -34,6 +35,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DomainSlugRouteImport } from './routes/domain.$slug'
+import { Route as ApplyJobIdRouteImport } from './routes/apply.$jobId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
@@ -74,6 +76,11 @@ const RoadmapRoute = RoadmapRouteImport.update({
 const ResumeRoute = ResumeRouteImport.update({
   id: '/resume',
   path: '/resume',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -161,6 +168,11 @@ const DomainSlugRoute = DomainSlugRouteImport.update({
   path: '/domain/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyJobIdRoute = ApplyJobIdRouteImport.update({
+  id: '/apply/$jobId',
+  path: '/apply/$jobId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -184,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/salary': typeof SalaryRoute
@@ -193,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/success-stories': typeof SuccessStoriesRoute
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRoutesByTo {
@@ -212,6 +226,7 @@ export interface FileRoutesByTo {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/salary': typeof SalaryRoute
@@ -221,6 +236,7 @@ export interface FileRoutesByTo {
   '/success-stories': typeof SuccessStoriesRoute
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRoutesById {
@@ -241,6 +257,7 @@ export interface FileRoutesById {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
   '/salary': typeof SalaryRoute
@@ -250,6 +267,7 @@ export interface FileRoutesById {
   '/success-stories': typeof SuccessStoriesRoute
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRouteTypes {
@@ -271,6 +289,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/resources'
     | '/resume'
     | '/roadmap'
     | '/salary'
@@ -280,6 +299,7 @@ export interface FileRouteTypes {
     | '/success-stories'
     | '/workspace'
     | '/api/chat'
+    | '/apply/$jobId'
     | '/domain/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -299,6 +319,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/resources'
     | '/resume'
     | '/roadmap'
     | '/salary'
@@ -308,6 +329,7 @@ export interface FileRouteTypes {
     | '/success-stories'
     | '/workspace'
     | '/api/chat'
+    | '/apply/$jobId'
     | '/domain/$slug'
   id:
     | '__root__'
@@ -327,6 +349,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/resources'
     | '/resume'
     | '/roadmap'
     | '/salary'
@@ -336,6 +359,7 @@ export interface FileRouteTypes {
     | '/success-stories'
     | '/workspace'
     | '/api/chat'
+    | '/apply/$jobId'
     | '/domain/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -356,6 +380,7 @@ export interface RootRouteChildren {
   MentorsRoute: typeof MentorsRoute
   PersonalityRoute: typeof PersonalityRoute
   ProfileRoute: typeof ProfileRoute
+  ResourcesRoute: typeof ResourcesRoute
   ResumeRoute: typeof ResumeRoute
   RoadmapRoute: typeof RoadmapRoute
   SalaryRoute: typeof SalaryRoute
@@ -365,6 +390,7 @@ export interface RootRouteChildren {
   SuccessStoriesRoute: typeof SuccessStoriesRoute
   WorkspaceRoute: typeof WorkspaceRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApplyJobIdRoute: typeof ApplyJobIdRoute
   DomainSlugRoute: typeof DomainSlugRoute
 }
 
@@ -424,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/resume'
       fullPath: '/resume'
       preLoaderRoute: typeof ResumeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -545,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DomainSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply/$jobId': {
+      id: '/apply/$jobId'
+      path: '/apply/$jobId'
+      fullPath: '/apply/$jobId'
+      preLoaderRoute: typeof ApplyJobIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -572,6 +612,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentorsRoute: MentorsRoute,
   PersonalityRoute: PersonalityRoute,
   ProfileRoute: ProfileRoute,
+  ResourcesRoute: ResourcesRoute,
   ResumeRoute: ResumeRoute,
   RoadmapRoute: RoadmapRoute,
   SalaryRoute: SalaryRoute,
@@ -581,18 +622,9 @@ const rootRouteChildren: RootRouteChildren = {
   SuccessStoriesRoute: SuccessStoriesRoute,
   WorkspaceRoute: WorkspaceRoute,
   ApiChatRoute: ApiChatRoute,
+  ApplyJobIdRoute: ApplyJobIdRoute,
   DomainSlugRoute: DomainSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
