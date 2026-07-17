@@ -126,7 +126,7 @@ function ApplyForm({ job, email }: { job: typeof jobs[number]; email: string }) 
           <div className="grid md:grid-cols-2 gap-4">
             <Field label="Full name" value={full_name} onChange={setName} required />
             <Field label="Headline" value={headline} onChange={setHeadline} placeholder="Senior Product Designer" />
-            <Field label="Email" value={profile?.id ? "" : ""} disabled placeholder="From your account" />
+            <Field label="Email" value={email} disabled />
             <Field label="Phone" value={phone} onChange={setPhone} />
             <Field label="Location" value={location} onChange={setLocation} placeholder="City, Country" />
             <Field label="Years of experience" type="number" value={years === "" ? "" : String(years)} onChange={(v) => setYears(v === "" ? "" : Number(v))} />
