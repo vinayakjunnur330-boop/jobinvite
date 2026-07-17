@@ -8,6 +8,7 @@ const primaryLinks = [
   { to: "/", label: "Home" },
   { to: "/assessment", label: "Assessment" },
   { to: "/jobs", label: "Jobs" },
+  { to: "/resources", label: "Career Hub" },
   { to: "/mentors", label: "Mentors" },
   { to: "/blog", label: "Insights" },
   { to: "/about", label: "About" },

@@ -35,6 +35,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DomainSlugRouteImport } from './routes/domain.$slug'
+import { Route as ApplyJobIdRouteImport } from './routes/apply.$jobId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
@@ -167,6 +168,11 @@ const DomainSlugRoute = DomainSlugRouteImport.update({
   path: '/domain/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyJobIdRoute = ApplyJobIdRouteImport.update({
+  id: '/apply/$jobId',
+  path: '/apply/$jobId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/success-stories': typeof SuccessStoriesRoute
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRoutesByTo {
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/success-stories': typeof SuccessStoriesRoute
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRoutesById {
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/success-stories': typeof SuccessStoriesRoute
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/domain/$slug': typeof DomainSlugRoute
 }
 export interface FileRouteTypes {
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/success-stories'
     | '/workspace'
     | '/api/chat'
+    | '/apply/$jobId'
     | '/domain/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/success-stories'
     | '/workspace'
     | '/api/chat'
+    | '/apply/$jobId'
     | '/domain/$slug'
   id:
     | '__root__'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/success-stories'
     | '/workspace'
     | '/api/chat'
+    | '/apply/$jobId'
     | '/domain/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -378,6 +390,7 @@ export interface RootRouteChildren {
   SuccessStoriesRoute: typeof SuccessStoriesRoute
   WorkspaceRoute: typeof WorkspaceRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApplyJobIdRoute: typeof ApplyJobIdRoute
   DomainSlugRoute: typeof DomainSlugRoute
 }
 
@@ -565,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DomainSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply/$jobId': {
+      id: '/apply/$jobId'
+      path: '/apply/$jobId'
+      fullPath: '/apply/$jobId'
+      preLoaderRoute: typeof ApplyJobIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -602,6 +622,7 @@ const rootRouteChildren: RootRouteChildren = {
   SuccessStoriesRoute: SuccessStoriesRoute,
   WorkspaceRoute: WorkspaceRoute,
   ApiChatRoute: ApiChatRoute,
+  ApplyJobIdRoute: ApplyJobIdRoute,
   DomainSlugRoute: DomainSlugRoute,
 }
 export const routeTree = rootRouteImport
