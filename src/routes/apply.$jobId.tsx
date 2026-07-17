@@ -40,10 +40,10 @@ function ApplyPage() {
     return <div className="max-w-3xl mx-auto px-6 py-20"><div className="h-80 glass rounded-2xl animate-pulse" /></div>;
   }
 
-  return <ApplyForm job={job} />;
+  return <ApplyForm job={job} email={user.email ?? ""} />;
 }
 
-function ApplyForm({ job }: { job: typeof jobs[number] }) {
+function ApplyForm({ job, email }: { job: typeof jobs[number]; email: string }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const getProfile = useServerFn(getMyProfile);
