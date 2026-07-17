@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { ArrowRight, Bookmark, Download, Trash2, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, Bell, Bookmark, Briefcase, Download, Trash2, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { careers, trends } from "@/lib/careers";
+import { INDUSTRIES, ARRANGEMENTS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS } from "@/lib/jobs";
 import { listSavedCareers, removeSavedCareer } from "@/lib/saved-careers.functions";
+import { listMyApplications, getMyAlertPrefs, upsertMyAlertPrefs } from "@/lib/careers-profile.functions";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard")({
