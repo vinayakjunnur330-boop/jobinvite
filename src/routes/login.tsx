@@ -240,8 +240,10 @@ function LoginPage() {
               }
               error={mode === "signup" && password.length > 0 && password.length < 8 ? "8+ characters required" : undefined}
             />
+            </div>
 
             <button
+
               type="submit"
               disabled={!canSubmit || busy}
               className="group relative w-full h-12 rounded-xl font-semibold text-[14px] text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-[0_8px_32px_-8px_rgba(168,85,247,0.6)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
