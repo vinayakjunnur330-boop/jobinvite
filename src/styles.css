@@ -109,9 +109,16 @@
   .float-b { animation: float-b 8s ease-in-out infinite; will-change: transform; }
   .float-c { animation: float-c 10s ease-in-out infinite; will-change: transform; }
 
+  /* GPU stabilization — prevents mobile flicker/repaint on scroll */
+  .gpu {
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+  }
+
   /* ============ THE DEEP GLASS FORMULA ============ */
-  /* Applied to every glass surface. Uses a mouse-tracked spotlight
-     via CSS vars set globally by AmbientBackground. */
   .glass-deep {
     position: relative;
     background-color: rgba(255, 255, 255, 0.02);
@@ -121,9 +128,11 @@
     box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05), 0 8px 32px 0 rgba(0, 0, 0, 0.35);
     overflow: hidden;
     isolation: isolate;
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
   }
-  /* Local cursor spotlight — reveals the panel with a soft violet glow that follows the pointer */
   .glass-deep::before {
     content: "";
     position: absolute;
@@ -135,7 +144,6 @@
     opacity: 0.9;
     mix-blend-mode: screen;
   }
-  /* Prismatic glare — swipes across on hover */
   .glass-deep::after {
     content: "";
     position: absolute;
@@ -147,26 +155,28 @@
     z-index: 1;
     transition: opacity 0.2s ease;
   }
-  .glass-deep:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.30);
-    box-shadow: 0 12px 42px 0 rgba(255, 255, 255, 0.08), 0 16px 48px 0 rgba(0, 0, 0, 0.45);
-  }
-  .glass-deep:hover::after {
-    opacity: 1;
-    animation: glare-sweep 1.1s cubic-bezier(0.32,0.72,0,1);
+  @media (hover: hover) and (pointer: fine) {
+    .glass-deep:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.30);
+      box-shadow: 0 12px 42px 0 rgba(255, 255, 255, 0.08), 0 16px 48px 0 rgba(0, 0, 0, 0.45);
+    }
+    .glass-deep:hover::after {
+      opacity: 1;
+      animation: glare-sweep 1.1s cubic-bezier(0.32,0.72,0,1);
+    }
   }
   .glass-deep > * { position: relative; z-index: 2; }
 
-  /* Softer variant for background layers (varying blur depth for holographic depth) */
   .glass-soft {
     background-color: rgba(255, 255, 255, 0.02);
     backdrop-filter: blur(16px) saturate(140%);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius);
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
-  /* Legacy aliases — the whole codebase already uses these */
   .panel, .glass, .glass-strong, .panel-soft {
     position: relative;
     background-color: rgba(255, 255, 255, 0.02);
@@ -174,6 +184,40 @@
     border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: var(--radius);
     box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05), 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  /* ============ PREMIUM GLASS BUTTON ============ */
+  .btn-glass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: rgba(255,255,255,0.10);
+    backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.20);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.20);
+    color: #fff;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius);
+    padding: 0.6rem 1.05rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-glass:hover {
+      background-color: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.35);
+      box-shadow: 0 6px 22px rgba(139,92,246,0.28);
+    }
+  }
+  .btn-glass:active {
+    transform: scale(0.95);
+    background-color: rgba(255,255,255,0.05);
   }
 
   .grid-bg {
@@ -187,16 +231,28 @@
   .hover-lift {
     transition: transform 0.35s cubic-bezier(0.32,0.72,0,1), border-color 0.25s, box-shadow 0.35s cubic-bezier(0.32,0.72,0,1), background-color 0.25s;
   }
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    background-color: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.30);
-    box-shadow: 0 12px 42px 0 rgba(0, 0, 0, 0.5);
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      background-color: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.30);
+      box-shadow: 0 12px 42px 0 rgba(0, 0, 0, 0.5);
+    }
   }
 
   .text-gradient-brand {
     background: linear-gradient(135deg, #a78bfa, #22d3ee);
     -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .text-gradient-ai {
+    background: linear-gradient(90deg, #22d3ee, #a78bfa, #ec4899, #22d3ee);
+    background-size: 300% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: ai-gradient 6s linear infinite;
+  }
+  @keyframes ai-gradient {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
   }
   .text-glow { text-shadow: 0 0 24px rgba(139,92,246,0.35), 0 0 2px rgba(255,255,255,0.4); }
 
@@ -216,9 +272,10 @@
     transform: scaleX(0); transform-origin: right;
     transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
   }
-  .story-link:hover::after { transform: scaleX(1); transform-origin: left; }
+  @media (hover: hover) and (pointer: fine) {
+    .story-link:hover::after { transform: scaleX(1); transform-origin: left; }
+  }
 
-  /* Primary CTA — pulse + shimmer */
   .btn-cta { position: relative; overflow: hidden; isolation: isolate; }
   .btn-cta::after {
     content: ""; position: absolute; inset: -2px; border-radius: inherit;
@@ -232,8 +289,26 @@
     transform: translateX(-120%) skewX(-18deg);
     pointer-events: none; opacity: 0; z-index: 1;
   }
-  .btn-cta:hover::before { opacity: 0.7; animation: glare-sweep 1.1s cubic-bezier(0.32,0.72,0,1); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-cta:hover::before { opacity: 0.7; animation: glare-sweep 1.1s cubic-bezier(0.32,0.72,0,1); }
+  }
   .btn-cta > * { position: relative; z-index: 2; }
+
+  /* Chatbot living pulse */
+  @keyframes bot-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.35); opacity: 0; }
+  }
+  .bot-pulse { position: relative; }
+  .bot-pulse::before {
+    content: "";
+    position: absolute; inset: -4px;
+    border-radius: inherit;
+    background: radial-gradient(circle, rgba(34,211,238,0.55), rgba(139,92,246,0.35) 55%, transparent 72%);
+    animation: bot-breathe 2.4s ease-out infinite;
+    z-index: -1;
+    pointer-events: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

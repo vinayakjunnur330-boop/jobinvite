@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, LogOut, Compass } from "lucide-react";
+import { Menu, X, LogOut, Compass, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
@@ -28,13 +28,16 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/[0.02] backdrop-blur-3xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05)]">
+    <header className="sticky top-0 z-50 w-full bg-white/[0.02] backdrop-blur-3xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05)] gpu">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
-        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <div className="size-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-            <Compass className="size-4" strokeWidth={2.4} />
+        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
+          <div className="relative size-9 rounded-xl bg-gradient-to-br from-cyan-500/30 to-purple-600/40 border border-white/15 backdrop-blur-md flex items-center justify-center shadow-[0_0_20px_-4px_rgba(139,92,246,0.6)]">
+            <Compass className="size-4 text-cyan-300" strokeWidth={2.4} />
+            <Sparkles className="absolute -top-1 -right-1 size-3 text-fuchsia-300 drop-shadow-[0_0_6px_rgba(236,72,153,0.9)]" strokeWidth={2.5} />
           </div>
-          <span className="text-[15px] font-semibold tracking-tight">CareerPilot</span>
+          <span className="text-[15px] font-semibold tracking-tight text-white">
+            CareerPilot<span className="text-gradient-ai font-bold ml-1">AI</span>
+          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-7 text-sm">
@@ -69,7 +72,7 @@ export function Navbar() {
               </Link>
               <Link
                 to="/assessment"
-                className="inline-flex items-center px-4 py-2 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]"
+                className="btn-glass text-sm"
               >
                 Get started
               </Link>

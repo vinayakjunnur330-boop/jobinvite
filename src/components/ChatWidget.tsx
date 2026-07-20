@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Send, X, Sparkles, RotateCcw, Mic, Volume2 } from "lucide-react";
+import { Send, X, Sparkles, RotateCcw, Mic, Volume2, Bot } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -154,14 +154,21 @@ export function ChatWidget() {
 
   return (
     <div className="z-[9999]">
-      {/* Floating toggle button */}
+      {/* Floating toggle button — living AI orb */}
       <motion.button
         onClick={() => setOpen((v) => !v)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-[9999] size-14 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center shadow-lg"
-        style={{ boxShadow: "0 0 25px -2px var(--primary)" }}
-        aria-label={open ? "Close chat" : "Open chat"}
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.92 }}
+        animate={{ scale: [1, 1.04, 1] }}
+        transition={{ scale: { duration: 2.6, repeat: Infinity, ease: "easeInOut" } }}
+        className="bot-pulse fixed bottom-6 right-6 z-[9999] size-14 rounded-2xl flex items-center justify-center text-white gpu"
+        style={{
+          background: "linear-gradient(135deg, rgba(34,211,238,0.35), rgba(139,92,246,0.55), rgba(236,72,153,0.35))",
+          border: "1px solid rgba(255,255,255,0.25)",
+          backdropFilter: "blur(16px) saturate(160%)",
+          boxShadow: "0 8px 32px -4px rgba(139,92,246,0.55), inset 0 0 20px rgba(255,255,255,0.08)",
+        }}
+        aria-label={open ? "Close chat" : "Open Pilot AI"}
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
@@ -169,10 +176,10 @@ export function ChatWidget() {
             initial={{ rotate: -90, opacity: 0, scale: 0.6 }}
             animate={{ rotate: 0, opacity: 1, scale: 1 }}
             exit={{ rotate: 90, opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-center justify-center"
+            transition={{ duration: 0.25 }}
+            className="flex items-center justify-center drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
           >
-            {open ? <X className="size-6" /> : <MessageSquare className="size-6" />}
+            {open ? <X className="size-6" /> : <Bot className="size-6" strokeWidth={2.2} />}
           </motion.span>
         </AnimatePresence>
       </motion.button>
@@ -187,13 +194,14 @@ export function ChatWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={{ transformOrigin: "bottom right" }}
-            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05),0_20px_60px_0_rgba(0,0,0,0.6)] flex flex-col overflow-hidden float-b"
+            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05),0_20px_60px_0_rgba(0,0,0,0.6)] flex flex-col overflow-hidden gpu"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.03]">
 
               <div className="flex items-center gap-2">
-                <div className="size-7 rounded-lg bg-primary/20 text-primary flex items-center justify-center">
-                  <Sparkles className="size-4" />
+                <div className="relative size-7 rounded-lg bg-gradient-to-br from-cyan-500/30 to-purple-600/40 border border-white/20 flex items-center justify-center">
+                  <Bot className="size-4 text-cyan-300" />
+                  <Sparkles className="absolute -top-1 -right-1 size-2.5 text-fuchsia-300" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-white">Pilot Assistant</div>
