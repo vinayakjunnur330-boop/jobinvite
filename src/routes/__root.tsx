@@ -11,8 +11,10 @@ import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
+import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+
 
 import appCss from "../styles.css?url";
 
