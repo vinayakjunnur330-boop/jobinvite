@@ -316,6 +316,51 @@
   }
 }
 
+/* ---------- Dynamic interactive utilities ---------- */
+@utility shimmer-sweep {
+  position: relative;
+  overflow: hidden;
+}
+@utility shimmer-sweep {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 700ms cubic-bezier(0.22,1,0.36,1);
+    pointer-events: none;
+  }
+  &:hover::after { transform: translateX(120%); }
+}
+
+@utility card-spotlight {
+  position: relative;
+  isolation: isolate;
+}
+@utility card-spotlight {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(600px circle at var(--mx-l, 50%) var(--my-l, 50%), rgba(139,92,246,0.18), transparent 40%);
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+  &:hover::before { opacity: 1; }
+}
+
+@utility press {
+  transition: transform 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms ease, border-color 240ms ease;
+}
+@utility press {
+  &:hover { transform: translateY(-1px) scale(1.02); border-color: rgba(34,211,238,0.5); box-shadow: 0 0 32px rgba(34,211,238,0.18); }
+  &:active { transform: scale(0.97); backdrop-filter: blur(28px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .float-a, .float-b, .float-c,
   .animate-entrance, .animate-fade,
