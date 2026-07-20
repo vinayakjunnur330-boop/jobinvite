@@ -143,7 +143,13 @@ function Home() {
 
       {/* FEATURED DOMAINS + LIVE FEED */}
       <section className="max-w-6xl mx-auto px-6 pb-20 md:pb-24">
-        <div className="flex items-end justify-between mb-8 gap-6 flex-wrap">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+          className="flex items-end justify-between mb-8 gap-6 flex-wrap"
+        >
           <div className="max-w-xl">
             <div className="text-[11px] uppercase tracking-[0.18em] text-white/50 mb-2">Featured domains</div>
             <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
@@ -151,7 +157,7 @@ function Home() {
             </h2>
           </div>
           <LiveActivityFeed className="w-full md:w-[360px]" />
-        </div>
+        </motion.div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURED_DOMAINS.map((d) => (
             <DomainCard key={d.title} {...d} />
