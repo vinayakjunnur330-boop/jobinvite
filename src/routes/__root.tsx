@@ -14,6 +14,7 @@ import { ChatWidget } from "@/components/ChatWidget";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { AuthProvider } from "@/context/AuthContext";
 
 
 import appCss from "../styles.css?url";
@@ -94,17 +95,19 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthSync />
-      <AmbientBackground />
-      <div className="relative min-h-screen flex flex-col text-foreground">
-        <Navbar />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <Footer />
-        <ChatWidget />
-        <Toaster />
-      </div>
+      <AuthProvider>
+        <AuthSync />
+        <AmbientBackground />
+        <div className="relative min-h-screen flex flex-col text-foreground">
+          <Navbar />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <Footer />
+          <ChatWidget />
+          <Toaster />
+        </div>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
