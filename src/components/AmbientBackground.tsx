@@ -32,7 +32,11 @@ export function AmbientBackground() {
   }, []);
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden gpu"
+      style={{ transform: "translateZ(0)", willChange: "transform" }}
+    >
       {/* Deep base */}
       <div className="absolute inset-0 bg-[#05060d]" />
 
