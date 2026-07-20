@@ -81,33 +81,20 @@ function LoginPage() {
 
   const oauth = async (provider: Provider) => {
     if (oauthBusy) return;
+    if (provider !== "google" && provider !== "apple") {
+      toast.info(
+        `${provider[0].toUpperCase() + provider.slice(1)} sign-in is coming soon. Please continue with Google or Apple for now.`,
+      );
+      return;
+    }
     setOauthBusy(provider);
     try {
-      if (provider === "google" || provider === "apple") {
-        const result = await lovable.auth.signInWithOAuth(provider, {
-          redirect_uri: `${window.location.origin}/workspace`,
-        });
-        if (result.error) throw result.error;
-      } else if (provider === "instagram") {
-        // Supabase does not offer native Instagram — surface a graceful message.
-        toast.info("Instagram sign-in is coming soon. Try Google, Apple, GitHub, Facebook, or X for now.");
-        setOauthBusy(null);
-        return;
-      } else {
-        // github, facebook, twitter → native Supabase providers
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: { redirectTo: `${window.location.origin}/workspace` },
-        });
-        if (error) throw error;
-      }
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: `${window.location.origin}/workspace`,
+      });
+      if (result.error) throw result.error;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "OAuth failed";
-      toast.error(
-        /provider is not enabled/i.test(msg)
-          ? `${provider[0].toUpperCase() + provider.slice(1)} sign-in isn't enabled yet.`
-          : msg,
-      );
+      toast.error(err instanceof Error ? err.message : "OAuth failed");
       setOauthBusy(null);
     }
   };

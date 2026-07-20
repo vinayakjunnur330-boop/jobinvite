@@ -59,12 +59,14 @@ export function ChatWidget() {
     abortRef.current = new AbortController();
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession().catch(() => ({ data: { session: null } as { session: null } }));
       const token = sessionData.session?.access_token;
-      if (!token) throw new Error("Please sign in to chat with Pilot.");
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ messages: next.slice(0, -1).map((m) => ({ role: m.role, content: m.content })) }),
         signal: abortRef.current.signal,
       });
