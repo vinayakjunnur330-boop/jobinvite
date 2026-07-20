@@ -143,14 +143,19 @@ function LoginPage() {
 
       {/* Card */}
       <div className="relative h-full w-full flex items-center justify-center overflow-y-auto p-4 sm:p-8">
+        {/* Ambient glow behind glass */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-purple-500/20 blur-[120px]"
+        />
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full max-w-md rounded-3xl border border-white/10 bg-black/30 backdrop-blur-3xl shadow-[0_24px_64px_rgba(0,0,0,0.5)] p-8 sm:p-10"
+          className="relative w-full max-w-[540px] mx-auto rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] p-10 md:p-14 flex flex-col gap-8"
         >
           {/* Brand */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3">
             <span className="relative grid place-items-center size-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-[0_8px_24px_-8px_rgba(168,85,247,0.7)]">
               <Sparkles className="size-5 text-white" />
             </span>
@@ -159,6 +164,7 @@ function LoginPage() {
               <div className="text-[11px] uppercase tracking-[0.2em] text-white/40">Intelligent Careers</div>
             </div>
           </div>
+
 
           <AnimatePresence mode="wait">
             <motion.div
