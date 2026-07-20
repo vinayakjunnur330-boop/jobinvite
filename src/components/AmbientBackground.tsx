@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ParticleField } from "@/components/motion/ParticleField";
 
 /**
  * Global animated backdrop that lives behind every route so the
