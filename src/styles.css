@@ -86,88 +86,119 @@
 }
 
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-@keyframes btn-shine {
-  0% { transform: translateX(-120%) skewX(-18deg); }
-  60%, 100% { transform: translateX(220%) skewX(-18deg); }
+@keyframes float-a { 0%,100% { transform: translateY(-5px); } 50% { transform: translateY(5px); } }
+@keyframes float-b { 0%,100% { transform: translateY(4px); } 50% { transform: translateY(-6px); } }
+@keyframes float-c { 0%,100% { transform: translateY(-3px) translateX(2px); } 50% { transform: translateY(4px) translateX(-2px); } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes glare-sweep {
+  0% { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateX(220%) skewX(-18deg); opacity: 0; }
 }
 @keyframes cta-pulse {
   0%, 100% { opacity: 0.55; transform: scale(1); }
   50% { opacity: 0; transform: scale(1.08); }
 }
 
-
-
 @layer utilities {
-  .animate-float { animation: float 7s var(--ease-cockpit) infinite; }
-  .animate-entrance { animation: slide-up 0.6s var(--ease-cockpit) both; }
+  .animate-entrance { animation: slide-up 0.6s cubic-bezier(0.32,0.72,0,1) both; }
   .animate-fade { animation: fade-in 0.5s ease-out both; }
+  .float-a { animation: float-a 6s ease-in-out infinite; will-change: transform; }
+  .float-b { animation: float-b 8s ease-in-out infinite; will-change: transform; }
+  .float-c { animation: float-c 10s ease-in-out infinite; will-change: transform; }
 
-  /* Subtle shimmer for skeletons */
-  .shimmer {
-    background: linear-gradient(90deg,
-      color-mix(in oklab, var(--muted) 80%, transparent) 0%,
-      color-mix(in oklab, var(--foreground) 6%, transparent) 50%,
-      color-mix(in oklab, var(--muted) 80%, transparent) 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.8s linear infinite;
+  /* ============ THE DEEP GLASS FORMULA ============ */
+  /* Applied to every glass surface. Uses a mouse-tracked spotlight
+     via CSS vars set globally by AmbientBackground. */
+  .glass-deep {
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05), 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    isolation: isolate;
+    transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+  /* Local cursor spotlight — reveals the panel with a soft violet glow that follows the pointer */
+  .glass-deep::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(139,92,246,0.18), rgba(34,211,238,0.06) 40%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.9;
+    mix-blend-mode: screen;
+  }
+  /* Prismatic glare — swipes across on hover */
+  .glass-deep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 0%, transparent 40%, rgba(255,255,255,0.22) 50%, transparent 60%, transparent 100%);
+    transform: translateX(-120%);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1;
+    transition: opacity 0.2s ease;
+  }
+  .glass-deep:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.30);
+    box-shadow: 0 12px 42px 0 rgba(255, 255, 255, 0.08), 0 16px 48px 0 rgba(0, 0, 0, 0.45);
+  }
+  .glass-deep:hover::after {
+    opacity: 1;
+    animation: glare-sweep 1.1s cubic-bezier(0.32,0.72,0,1);
+  }
+  .glass-deep > * { position: relative; z-index: 2; }
+
+  /* Softer variant for background layers (varying blur depth for holographic depth) */
+  .glass-soft {
+    background-color: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
   }
 
-  /* Premium panel — crisp border, no muddy shadow */
-  .panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
+  /* Legacy aliases — the whole codebase already uses these */
+  .panel, .glass, .glass-strong, .panel-soft {
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05), 0 8px 32px 0 rgba(0, 0, 0, 0.35);
   }
-  .panel-soft {
-    background: color-mix(in oklab, var(--card) 70%, var(--secondary));
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-  }
-  /* Legacy glass classes mapped to clean panels (light-mode safe) */
-  .glass { background: var(--card); border: 1px solid var(--border); }
-  .glass-strong { background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow-elevated); }
 
   .grid-bg {
     background-image:
-      linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+      linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
     background-size: 56px 56px;
   }
-  .radial-fade {
-    mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
-  }
+  .radial-fade { mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%); }
 
   .hover-lift {
-    transition: transform 0.35s var(--ease-cockpit), border-color 0.25s, box-shadow 0.35s var(--ease-cockpit);
+    transition: transform 0.35s cubic-bezier(0.32,0.72,0,1), border-color 0.25s, box-shadow 0.35s cubic-bezier(0.32,0.72,0,1), background-color 0.25s;
   }
   .hover-lift:hover {
     transform: translateY(-2px);
-    border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
-    box-shadow: var(--shadow-elevated);
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.30);
+    box-shadow: 0 12px 42px 0 rgba(0, 0, 0, 0.5);
   }
 
   .text-gradient-brand {
-    background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 60%, var(--foreground)));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    background: linear-gradient(135deg, #a78bfa, #22d3ee);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
+  .text-glow { text-shadow: 0 0 24px rgba(139,92,246,0.35), 0 0 2px rgba(255,255,255,0.4); }
 
   .focus-ring:focus-visible {
     outline: none;
@@ -175,66 +206,41 @@
     border-color: var(--primary);
   }
 
-  .story-link {
-    position: relative;
-  }
+  .story-link { position: relative; }
   .story-link::after {
     content: "";
     position: absolute;
     left: 0; bottom: -2px;
     height: 1px; width: 100%;
-    background: currentColor;
+    background: linear-gradient(90deg, #a78bfa, #22d3ee);
     transform: scaleX(0); transform-origin: right;
-    transition: transform 0.3s var(--ease-cockpit);
+    transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
   }
   .story-link:hover::after { transform: scaleX(1); transform-origin: left; }
 
-  /* Primary CTA — composited pulse ring (::after) + on-hover shimmer sweep (::before) */
-  .btn-cta {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-  }
+  /* Primary CTA — pulse + shimmer */
+  .btn-cta { position: relative; overflow: hidden; isolation: isolate; }
   .btn-cta::after {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    border-radius: inherit;
-    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 55%, transparent);
-    pointer-events: none;
-    opacity: 0.55;
-    z-index: 0;
-    animation: cta-pulse 2.8s var(--ease-cockpit) infinite;
-    will-change: transform, opacity;
+    content: ""; position: absolute; inset: -2px; border-radius: inherit;
+    box-shadow: 0 0 0 2px rgba(139,92,246,0.55);
+    pointer-events: none; opacity: 0.55; z-index: 0;
+    animation: cta-pulse 2.8s cubic-bezier(0.32,0.72,0,1) infinite;
   }
   .btn-cta::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      color-mix(in oklab, white 55%, transparent) 50%,
-      transparent 100%);
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
     transform: translateX(-120%) skewX(-18deg);
-    pointer-events: none;
-    opacity: 0;
-    z-index: 1;
+    pointer-events: none; opacity: 0; z-index: 1;
   }
-  .btn-cta:hover::before {
-    opacity: 0.7;
-    animation: btn-shine 1.2s var(--ease-cockpit);
-  }
+  .btn-cta:hover::before { opacity: 0.7; animation: glare-sweep 1.1s cubic-bezier(0.32,0.72,0,1); }
   .btn-cta > * { position: relative; z-index: 2; }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-float,
-  .animate-entrance,
-  .animate-fade,
-  .shimmer,
-  .btn-cta::after,
-  .btn-cta::before {
+  .float-a, .float-b, .float-c,
+  .animate-entrance, .animate-fade,
+  .btn-cta::after, .btn-cta::before,
+  .glass-deep::after {
     animation: none !important;
     transition: none !important;
   }
@@ -242,16 +248,15 @@
   .hover-lift:hover { transform: none !important; }
 }
 
-
-
 @layer base {
   * { border-color: var(--color-border); }
   html { font-family: var(--font-sans); }
   body {
-    background-color: var(--color-background);
+    background-color: transparent;
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4 { letter-spacing: -0.02em; }
 }
+
