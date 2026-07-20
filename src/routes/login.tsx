@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2, ArrowRight, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,89 +109,133 @@ function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen w-full relative flex flex-col items-center justify-center bg-[#050505] overflow-hidden text-white">
-      {/* Cinematic full-screen background */}
-      <div className="absolute inset-0 z-0 bg-[#050505]" aria-hidden />
-      <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
-        <div className="bg-purple-600/15 blur-[150px] w-[800px] h-[800px] rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-        <div className="bg-indigo-600/10 blur-[140px] w-[600px] h-[600px] rounded-full absolute top-1/4 -right-40" />
-        <div className="bg-rose-600/10 blur-[140px] w-[600px] h-[600px] rounded-full absolute -bottom-40 left-1/4" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.7)_100%)]" />
-      </div>
+    <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden bg-black m-0 p-0 text-white">
+      {/* LEFT — Cinematic Branding */}
+      <aside className="hidden lg:flex w-1/2 h-full relative items-center justify-center border-r border-white/10 bg-black overflow-hidden">
+        {/* Slow mesh spotlight */}
+        <motion.div
+          aria-hidden
+          className="absolute -top-1/4 -left-1/4 w-[900px] h-[900px] rounded-full blur-[160px]"
+          style={{ background: "radial-gradient(circle, rgba(34,211,238,0.18), transparent 60%)" }}
+          animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute -bottom-1/4 -right-1/4 w-[900px] h-[900px] rounded-full blur-[160px]"
+          style={{ background: "radial-gradient(circle, rgba(139,92,246,0.22), transparent 60%)" }}
+          animate={{ x: [0, -50, 0], y: [0, -30, 0] }}
+          transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Grain / vignette */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
+            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          }}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.85)_100%)]" />
 
-      {/* Desktop-proportioned glass card */}
-      <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-[480px] bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.6)] p-10 md:p-12 rounded-3xl flex flex-col gap-8"
-      >
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <span className="relative grid place-items-center size-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-[0_8px_24px_-8px_rgba(168,85,247,0.7)]">
-            <Sparkles className="size-5 text-white" />
-          </span>
-          <div>
-            <div className="text-[15px] font-semibold tracking-tight">CareerPilot AI</div>
-            <div className="text-[11px] uppercase tracking-[0.2em] text-white/40">Intelligent Careers</div>
-          </div>
-        </div>
-
-        <AnimatePresence mode="wait">
+        <div className="relative z-10 w-full max-w-[520px] px-14">
           <motion.div
-            key={mode}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h1 className="text-[26px] sm:text-[30px] font-semibold tracking-tight leading-tight">
-              {mode === "signin" ? "Welcome back" : "Create your account"}
+            <div className="text-[11px] uppercase tracking-[0.24em] text-white/40 mb-6">
+              CareerPilot / Intelligent careers
+            </div>
+            <h1 className="text-[64px] xl:text-[80px] font-semibold tracking-[-0.03em] leading-[0.95] text-white">
+              CareerPilot
+              <span className="block bg-gradient-to-r from-cyan-300 via-white to-violet-300 bg-clip-text text-transparent">
+                AI.
+              </span>
             </h1>
-            <p className="mt-2 text-[14px] text-white/50">
-              {mode === "signin" ? "Sign in to continue your journey." : "Start your personalized career path today."}
+            <p className="mt-8 text-[15px] leading-relaxed text-white/55 max-w-md">
+              The intelligent co-pilot for your career. Personalized roadmaps, real skill gaps, and
+              tailored opportunities — engineered for the next decade of work.
+            </p>
+            <div className="mt-14 h-px w-24 bg-white/20" />
+            <p className="mt-6 text-[12px] tracking-wide text-white/35">
+              Trusted by 40+ career domains and thousands of ambitious professionals.
             </p>
           </motion.div>
-        </AnimatePresence>
-
-        {/* Mode toggle */}
-        <div className="relative grid grid-cols-2 rounded-xl border border-white/10 bg-white/5 p-1">
-          {(["signin", "signup"] as Mode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`relative z-10 py-2.5 text-[13px] font-medium transition-colors ${
-                mode === m ? "text-white" : "text-white/50 hover:text-white/80"
-              }`}
-            >
-              {m === "signin" ? "Sign In" : "Sign Up"}
-            </button>
-          ))}
-          <motion.span
-            layout
-            transition={{ type: "spring", stiffness: 400, damping: 32 }}
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-white/10 border border-white/10 shadow-[0_4px_16px_rgba(139,92,246,0.3)]"
-            style={{ left: mode === "signin" ? 4 : "calc(50% + 0px)" }}
-            aria-hidden
-          />
         </div>
+      </aside>
 
-        <form onSubmit={submitAuth} className="flex flex-col gap-8" noValidate>
-          <div className="space-y-4">
+      {/* RIGHT — Login form */}
+      <section className="w-full lg:w-1/2 h-full flex items-center justify-center bg-[#050505] relative overflow-y-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-[400px] px-8 py-10"
+        >
+          {/* Mobile brand */}
+          <div className="lg:hidden mb-8 text-center">
+            <div className="text-[22px] font-semibold tracking-tight">CareerPilot AI</div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+            >
+              <h2 className="text-[26px] font-semibold tracking-tight leading-tight">
+                {mode === "signin" ? "Sign in" : "Create account"}
+              </h2>
+              <p className="mt-1.5 text-[13px] text-white/45">
+                {mode === "signin"
+                  ? "Welcome back. Enter your details."
+                  : "Start your personalized career path."}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Mode toggle — subtle underline tabs */}
+          <div className="mt-7 flex items-center gap-6 border-b border-white/10">
+            {(["signin", "signup"] as Mode[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`relative pb-3 text-[13px] font-medium transition-colors ${
+                  mode === m ? "text-white" : "text-white/40 hover:text-white/70"
+                }`}
+              >
+                {m === "signin" ? "Sign In" : "Sign Up"}
+                {mode === m && (
+                  <motion.span
+                    layoutId="tab-underline"
+                    className="absolute left-0 right-0 -bottom-px h-px bg-cyan-400"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={submitAuth} className="mt-7 flex flex-col gap-4" noValidate>
             {mode === "signup" && (
-              <FloatField id="fullName" label="Full name" value={fullName} onChange={setFullName} autoComplete="name" />
+              <Field id="fullName" label="Full name" value={fullName} onChange={setFullName} autoComplete="name" />
             )}
-            <FloatField
+            <Field
               id="email"
               type="email"
-              label="Email address"
+              label="Email"
               value={email}
               onChange={setEmail}
               autoComplete="email"
               error={email.length > 0 && !emailOk ? "Enter a valid email" : undefined}
             />
-            <FloatField
+            <Field
               id="password"
               type={showPw ? "text" : "password"}
               label="Password"
@@ -202,7 +246,7 @@ function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw((s) => !s)}
-                  className="text-white/50 hover:text-white transition-colors"
+                  className="text-white/40 hover:text-white transition-colors"
                   aria-label={showPw ? "Hide password" : "Show password"}
                 >
                   {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -210,75 +254,87 @@ function LoginPage() {
               }
               error={mode === "signup" && password.length > 0 && password.length < 8 ? "8+ characters required" : undefined}
             />
-          </div>
 
-          <button
-            type="submit"
-            disabled={!canSubmit || busy}
-            className="group relative w-full h-12 rounded-xl font-semibold text-[14px] text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-[0_8px_32px_-8px_rgba(168,85,247,0.6)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="inline-flex items-center justify-center gap-2">
-              {busy ? <Loader2 className="size-4 animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
-              {!busy && <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />}
-            </span>
-          </button>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 pt-2">
-            <div className="h-px flex-1 bg-white/10" />
-            <span className="text-[11px] uppercase tracking-[0.2em] text-white/40">Or continue with</span>
-            <div className="h-px flex-1 bg-white/10" />
-          </div>
-
-          {/* Social grid - 3x2 square tiles */}
-          <div className="grid grid-cols-3 gap-4">
-            {socials.map(({ id, label, Icon }) => {
-              const loading = oauthBusy === id;
-              return (
+            {mode === "signin" && (
+              <div className="flex justify-end -mt-1">
                 <button
-                  key={id}
                   type="button"
-                  onClick={() => oauth(id)}
-                  disabled={!!oauthBusy}
-                  aria-label={`Continue with ${label}`}
-                  title={`Continue with ${label}`}
-                  className="group relative aspect-square flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => toast.message("Password reset coming soon")}
+                  className="text-[12px] text-white/45 hover:text-white transition-colors"
                 >
-                  {loading ? (
-                    <Loader2 className="w-6 h-6 animate-spin text-white/80" />
-                  ) : (
-                    <Icon className="w-6 h-6 text-white" />
-                  )}
+                  Forgot password?
                 </button>
-              );
-            })}
-          </div>
+              </div>
+            )}
 
-          <p className="text-[11px] text-center text-white/40 pt-2">
-            By continuing you agree to our{" "}
-            <button type="button" onClick={() => toast.message("Terms of Service")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
-              Terms
-            </button>{" "}
-            &{" "}
-            <button type="button" onClick={() => toast.message("Privacy Policy")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
-              Privacy
+            <button
+              type="submit"
+              disabled={!canSubmit || busy}
+              className="group mt-2 h-11 w-full rounded-lg font-medium text-[13.5px] text-black bg-white hover:bg-white/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+            >
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  {mode === "signin" ? "Sign In" : "Create Account"}
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
             </button>
-            .
-          </p>
-          <p className="text-[12px] text-center text-white/50">
-            Administrator?{" "}
-            <Link to="/admin-login" className="text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline">
-              Admin console
-            </Link>
-          </p>
-        </form>
-      </motion.div>
+
+            {/* Divider */}
+            <div className="mt-2 flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/10" />
+              <span className="text-[10.5px] uppercase tracking-[0.2em] text-white/35">Or continue with</span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+
+            {/* Compact social row */}
+            <div className="grid grid-cols-3 gap-3">
+              {socials.map(({ id, label, Icon }) => {
+                const loading = oauthBusy === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => oauth(id)}
+                    disabled={!!oauthBusy}
+                    aria-label={`Continue with ${label}`}
+                    title={`Continue with ${label}`}
+                    className="h-11 flex items-center justify-center rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 transition-all text-white/70 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-[18px] h-[18px]" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="mt-4 text-[11px] text-center text-white/35 leading-relaxed">
+              By continuing you agree to our{" "}
+              <button type="button" onClick={() => toast.message("Terms of Service")} className="text-white/60 hover:text-white underline-offset-4 hover:underline">
+                Terms
+              </button>{" "}
+              &{" "}
+              <button type="button" onClick={() => toast.message("Privacy Policy")} className="text-white/60 hover:text-white underline-offset-4 hover:underline">
+                Privacy
+              </button>
+              .
+            </p>
+            <p className="text-[11.5px] text-center text-white/45">
+              Administrator?{" "}
+              <Link to="/admin-login" className="text-cyan-300/90 hover:text-cyan-200 underline-offset-4 hover:underline">
+                Admin console
+              </Link>
+            </p>
+          </form>
+        </motion.div>
+      </section>
     </div>
   );
 }
 
-// Floating-label input
-function FloatField({
+// Elegant standard input (not floating)
+function Field({
   id, label, value, onChange, type = "text", autoComplete, error, trailing,
 }: {
   id: string;
@@ -290,41 +346,27 @@ function FloatField({
   error?: string;
   trailing?: React.ReactNode;
 }) {
-  const [focused, setFocused] = useState(false);
-  const active = focused || value.length > 0;
   return (
     <div>
-      <div
-        className={`relative rounded-xl bg-black/20 border transition-all duration-300 ${
-          error
-            ? "border-red-400/40 focus-within:ring-1 focus-within:ring-red-400/50"
-            : "border-white/10 focus-within:border-cyan-400/50 focus-within:ring-1 focus-within:ring-cyan-400/50"
-        }`}
-      >
-        <label
-          htmlFor={id}
-          className={`pointer-events-none absolute left-5 transition-all duration-200 ${
-            active
-              ? "top-2 text-[10px] uppercase tracking-[0.15em] text-white/50"
-              : "top-1/2 -translate-y-1/2 text-[14px] text-white/40"
-          }`}
-        >
-          {label}
-        </label>
+      <label htmlFor={id} className="block text-[11.5px] font-medium text-white/60 mb-1.5">
+        {label}
+      </label>
+      <div className="relative">
         <input
           id={id}
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           autoComplete={autoComplete}
-          className="w-full bg-transparent px-5 pt-6 pb-2.5 pr-10 text-[14px] text-white placeholder-white/40 focus:outline-none"
-          placeholder={active ? label : undefined}
+          className={`h-11 w-full bg-transparent border rounded-lg px-4 ${trailing ? "pr-10" : ""} text-[13.5px] text-white placeholder-white/30 focus:outline-none focus:ring-1 transition-all ${
+            error
+              ? "border-red-400/40 focus:border-red-400 focus:ring-red-400/40"
+              : "border-white/10 focus:border-cyan-400 focus:ring-cyan-400"
+          }`}
         />
-        {trailing && <div className="absolute right-4 top-1/2 -translate-y-1/2">{trailing}</div>}
+        {trailing && <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div>}
       </div>
-      {error && <p className="mt-1.5 text-[12px] text-red-300/90">{error}</p>}
+      {error && <p className="mt-1 text-[11.5px] text-red-300/90">{error}</p>}
     </div>
   );
 }
