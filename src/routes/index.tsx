@@ -52,10 +52,6 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
   return <span>{n.toLocaleString()}{suffix}</span>;
 }
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0 },
-};
 
 function Home() {
   return (
