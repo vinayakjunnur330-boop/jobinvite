@@ -328,19 +328,17 @@ function FloatField({
   return (
     <div>
       <div
-        className={`relative rounded-xl border bg-white/5 transition-all duration-200 ${
+        className={`relative rounded-xl bg-black/20 border transition-all duration-300 ${
           error
-            ? "border-red-400/40"
-            : focused
-              ? "border-white/20 ring-2 ring-white/20"
-              : "border-white/10"
+            ? "border-red-400/40 focus-within:ring-1 focus-within:ring-red-400/50"
+            : "border-white/10 focus-within:border-cyan-400/50 focus-within:ring-1 focus-within:ring-cyan-400/50"
         }`}
       >
         <label
           htmlFor={id}
-          className={`pointer-events-none absolute left-3 transition-all duration-200 ${
+          className={`pointer-events-none absolute left-5 transition-all duration-200 ${
             active
-              ? "top-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50"
+              ? "top-2 text-[10px] uppercase tracking-[0.15em] text-white/50"
               : "top-1/2 -translate-y-1/2 text-[14px] text-white/40"
           }`}
         >
@@ -354,9 +352,10 @@ function FloatField({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoComplete={autoComplete}
-          className="w-full h-14 bg-transparent px-3 pt-5 pb-1 pr-10 text-[14px] text-white placeholder-transparent focus:outline-none"
+          className="w-full bg-transparent px-5 pt-6 pb-2.5 pr-10 text-[14px] text-white placeholder-white/40 focus:outline-none"
+          placeholder={active ? label : undefined}
         />
-        {trailing && <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div>}
+        {trailing && <div className="absolute right-4 top-1/2 -translate-y-1/2">{trailing}</div>}
       </div>
       {error && <p className="mt-1.5 text-[12px] text-red-300/90">{error}</p>}
     </div>
