@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { clearCareerPilotSession, getHydratedCareerPilotSession } from "@/lib/auth-persistence";
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({ meta: [{ title: "Workspace — Aether" }, { name: "description", content: "Aether enterprise workspace." }] }),
@@ -45,8 +46,7 @@ function Workspace() {
 
   // Auth gate
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const s = data.session;
+    getHydratedCareerPilotSession().then((s) => {
       if (!s) { navigate({ to: "/login" }); return; }
       const md0 = (s.user.user_metadata ?? {}) as { full_name?: string };
       setUser({ email: s.user.email ?? "you@aether.dev", name: md0.full_name ?? s.user.email?.split("@")[0] ?? "Operator" });
@@ -63,9 +63,10 @@ function Workspace() {
   }, [accent]);
 
   const logout = async () => {
+    clearCareerPilotSession();
     await supabase.auth.signOut();
     toast.success("Signed out.");
-    navigate({ to: "/login" });
+    navigate({ to: "/" });
   };
 
   if (!user) {

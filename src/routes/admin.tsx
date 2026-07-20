@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { Shield, Users, Bookmark, MessageSquare, LogOut, Loader2, ScrollText, ShieldPlus, ShieldMinus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getMyRoles, listAllUsers } from "@/lib/roles.functions";
 import { listAuditLogs, changeUserRole } from "@/lib/audit.functions";
@@ -21,7 +20,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPanel() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const checkRoles = useServerFn(getMyRoles);
@@ -90,7 +89,7 @@ function AdminPanel() {
           <p className="text-muted-foreground mt-1 text-sm">Signed in as <span className="text-foreground font-medium">{user.email}</span></p>
         </div>
         <button
-          onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/admin-login" }); }}
+          onClick={async () => { await signOut(); navigate({ to: "/" }); }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border hover:bg-white/5 text-sm"
         >
           <LogOut className="size-4" /> Sign out

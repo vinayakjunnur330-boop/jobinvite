@@ -1,39 +1,59 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
+import type { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  clearCareerPilotSession,
+  getHydratedCareerPilotSession,
+  persistCareerPilotSession,
+  readCareerPilotSession,
+} from "@/lib/auth-persistence";
 
 type AuthCtx = {
   session: Session | null;
   user: User | null;
+  isAuthenticated: boolean;
   loading: boolean;
-  signOut: () => Promise<{ error: Error | null } | void>;
+  signOut: () => Promise<{ error: AuthError | null } | void>;
 };
 
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session | null>(() => readCareerPilotSession()?.session ?? null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Register listener FIRST so we don't miss the INITIAL_SESSION event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, s) => {
+    let active = true;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       setLoading(false);
+      if (s) persistCareerPilotSession(s, { touchLastLogin: event === "SIGNED_IN" });
+      if (event === "SIGNED_OUT") clearCareerPilotSession();
     });
-    // Hydrate from persisted localStorage session
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+
+    getHydratedCareerPilotSession().then((hydratedSession) => {
+      if (!active) return;
+      setSession(hydratedSession);
       setLoading(false);
     });
-    return () => subscription.unsubscribe();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value: AuthCtx = {
     session,
     user: session?.user ?? null,
+    isAuthenticated: !!session?.user,
     loading,
-    signOut: () => supabase.auth.signOut(),
+    signOut: async () => {
+      clearCareerPilotSession();
+      setSession(null);
+      return supabase.auth.signOut();
+    },
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
