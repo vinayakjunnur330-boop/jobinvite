@@ -11,8 +11,10 @@ import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
+import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+
 
 import appCss from "../styles.css?url";
 
@@ -80,7 +82,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
       <head><HeadContent /></head>
-      <body className="bg-[#0a0a0a] text-white">
+      <body className="text-white" style={{ background: "#05060d" }}>
         {children}
         <Scripts />
       </body>
@@ -93,7 +95,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <AmbientBackground />
+      <div className="relative min-h-screen flex flex-col text-foreground">
         <Navbar />
         <main className="flex-1">
           <Outlet />
@@ -105,6 +108,7 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
 
 function AuthSync() {
   const router = useRouter();

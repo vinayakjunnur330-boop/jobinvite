@@ -28,7 +28,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+    <header className="sticky top-0 z-50 w-full bg-white/[0.02] backdrop-blur-3xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05)]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
           <div className="size-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
@@ -44,7 +44,7 @@ export function Navbar() {
               <Link
                 key={l.to}
                 to={l.to}
-                className={`transition-colors ${active ? "text-foreground font-medium" : "text-muted-foreground hover:text-foreground"}`}
+                className={`relative story-link transition-colors ${active ? "text-white font-medium" : "text-white/60 hover:text-white"}`}
               >
                 {l.label}
               </Link>
@@ -83,7 +83,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-border bg-background px-6 py-5 space-y-3">
+        <div className="md:hidden border-t border-white/10 bg-white/[0.02] backdrop-blur-3xl px-6 py-5 space-y-3">
           {primaryLinks.map((l) => (
             <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="block text-sm text-muted-foreground hover:text-foreground">
               {l.label}
