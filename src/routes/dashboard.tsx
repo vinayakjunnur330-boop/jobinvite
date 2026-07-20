@@ -9,6 +9,7 @@ import { INDUSTRIES, ARRANGEMENTS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS } from "@
 import { listSavedCareers, removeSavedCareer } from "@/lib/saved-careers.functions";
 import { listMyApplications, getMyAlertPrefs, upsertMyAlertPrefs } from "@/lib/careers-profile.functions";
 import { useAuth } from "@/hooks/use-auth";
+import { LiveActivityFeed } from "@/components/LiveActivityFeed";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -77,12 +78,14 @@ function Authed() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <Stat label="SAVED_PATHS" value={String(saved.length)} tone="primary" />
         <Stat label="MARKET_DEMAND" value="Extreme" tone="accent" />
         <Stat label="AI_MATCHES" value="5 top" tone="primary" />
         <Stat label="SKILL_GAPS" value="3 found" tone="accent" />
       </div>
+
+      <LiveActivityFeed className="mb-8" />
 
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
