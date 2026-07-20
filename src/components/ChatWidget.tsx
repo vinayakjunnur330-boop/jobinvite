@@ -187,9 +187,10 @@ export function ChatWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={{ transformOrigin: "bottom right" }}
-            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05),0_20px_60px_0_rgba(0,0,0,0.6)] flex flex-col overflow-hidden float-b"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.03]">
+
               <div className="flex items-center gap-2">
                 <div className="size-7 rounded-lg bg-primary/20 text-primary flex items-center justify-center">
                   <Sparkles className="size-4" />
@@ -244,8 +245,8 @@ export function ChatWidget() {
               <div ref={endRef} />
             </div>
 
-            <div className="p-3 border-t border-white/10 bg-white/5 flex gap-2">
-              <button onClick={startVoice} className="size-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/70" aria-label="Voice input">
+            <div className="p-3 border-t border-white/10 bg-white/[0.03] flex gap-2">
+              <button onClick={startVoice} className="size-9 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/30 flex items-center justify-center text-white/70 transition-colors" aria-label="Voice input">
                 <Mic className="size-4" />
               </button>
               <input
@@ -253,7 +254,8 @@ export function ChatWidget() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
                 placeholder="Ask about your future..."
-                className="flex-1 bg-slate-950/60 border border-white/10 text-white placeholder:text-white/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="flex-1 bg-white/[0.03] border border-white/10 text-white placeholder:text-white/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+
                 disabled={streaming}
               />
               <motion.button
