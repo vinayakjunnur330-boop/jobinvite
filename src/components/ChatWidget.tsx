@@ -162,12 +162,12 @@ export function ChatWidget() {
         whileTap={{ scale: 0.92 }}
         animate={{ scale: [1, 1.04, 1] }}
         transition={{ scale: { duration: 2.6, repeat: Infinity, ease: "easeInOut" } }}
-        className="bot-pulse fixed bottom-6 right-6 z-[9999] size-14 rounded-2xl flex items-center justify-center text-white gpu"
+        className="fixed bottom-6 right-6 z-[9999] size-14 rounded-full flex items-center justify-center overflow-hidden gpu"
         style={{
-          background: "linear-gradient(135deg, rgba(34,211,238,0.35), rgba(139,92,246,0.55), rgba(236,72,153,0.35))",
-          border: "1px solid rgba(255,255,255,0.25)",
-          backdropFilter: "blur(16px) saturate(160%)",
-          boxShadow: "0 8px 32px -4px rgba(139,92,246,0.55), inset 0 0 20px rgba(255,255,255,0.08)",
+          background: "rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.2)",
+          backdropFilter: "blur(24px) saturate(160%)",
+          boxShadow: "0 8px 32px -4px rgba(16,185,129,0.45), 0 0 0 1px rgba(255,255,255,0.05) inset",
         }}
         aria-label={open ? "Close chat" : "Open Pilot AI"}
       >
@@ -178,9 +178,13 @@ export function ChatWidget() {
             animate={{ rotate: 0, opacity: 1, scale: 1 }}
             exit={{ rotate: 90, opacity: 0, scale: 0.6 }}
             transition={{ duration: 0.25 }}
-            className="flex items-center justify-center drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+            className="flex items-center justify-center"
           >
-            {open ? <X className="size-6" /> : <Bot className="size-6" strokeWidth={2.2} />}
+            {open ? (
+              <X className="size-6 text-white" />
+            ) : (
+              <img src={chatbotLogo} alt="Pilot AI" width={512} height={512} loading="lazy" className="size-11 object-contain drop-shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
+            )}
           </motion.span>
         </AnimatePresence>
       </motion.button>
