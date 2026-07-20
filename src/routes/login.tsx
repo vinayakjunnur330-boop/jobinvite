@@ -262,7 +262,7 @@ function LoginPage() {
             </div>
 
             {/* Social grid */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               {socials.map(({ id, label, Icon }) => {
                 const loading = oauthBusy === id;
                 return (
@@ -273,17 +273,18 @@ function LoginPage() {
                     disabled={!!oauthBusy}
                     aria-label={`Continue with ${label}`}
                     title={`Continue with ${label}`}
-                    className="group relative flex items-center justify-center h-12 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative aspect-square flex items-center justify-center rounded-2xl bg-white/[0.02] hover:bg-white/[0.08] border border-white/5 hover:border-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
-                      <Loader2 className="size-5 animate-spin text-white/80" />
+                      <Loader2 className="w-6 h-6 animate-spin text-white/80" />
                     ) : (
-                      <Icon className="size-5 text-white" />
+                      <Icon className="w-6 h-6 text-white" />
                     )}
                   </button>
                 );
               })}
             </div>
+
 
             <p className="text-[11px] text-center text-white/40 pt-2">
               By continuing you agree to our{" "}
