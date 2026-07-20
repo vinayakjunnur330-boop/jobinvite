@@ -7,6 +7,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyRoles } from "@/lib/roles.functions";
 import { Link } from "@tanstack/react-router";
+import { getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -85,7 +86,7 @@ function GatewayPage() {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { if (data.session) routeAfterAuth(); });
+    getHydratedCareerPilotSession().then((session) => { if (session) routeAfterAuth(); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -141,8 +142,9 @@ function GatewayPage() {
         toast.success("Account created. Check your inbox to confirm — then sign in.");
         setMode("signin");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (data.session) persistCareerPilotSession(data.session, { touchLastLogin: true });
         toast.success("Welcome back.");
         await routeAfterAuth();
       }

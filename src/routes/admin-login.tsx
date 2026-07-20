@@ -6,6 +6,7 @@ import { Shield, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRoles } from "@/lib/roles.functions";
 import { logAdminLogin } from "@/lib/audit.functions";
+import { clearCareerPilotSession, getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
 
 
 export const Route = createFileRoute("/admin-login")({
@@ -32,8 +33,8 @@ function AdminLoginPage() {
   // If already signed in AND admin, jump straight in.
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) return;
+      const session = await getHydratedCareerPilotSession();
+      if (!session) return;
       try {
         const r = await checkRoles();
         if (r.isAdmin) navigate({ to: "/admin" });
@@ -46,10 +47,12 @@ function AdminLoginPage() {
     if (busy) return;
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      if (data.session) persistCareerPilotSession(data.session, { touchLastLogin: true });
       const r = await checkRoles();
       if (!r.isAdmin) {
+        clearCareerPilotSession();
         await supabase.auth.signOut();
         throw new Error("This account does not have admin access.");
       }
