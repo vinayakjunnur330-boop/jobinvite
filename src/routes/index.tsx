@@ -116,25 +116,40 @@ function Home() {
           title="Every industry. Every role. Mapped."
           subtitle="From neurosurgery to product design — 44 domains and thousands of role variants."
         />
-        <Reveal stagger staggerDelay={0.04} className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
+          className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5"
+        >
           {domains.map((d) => (
-            <RevealItem key={d} y={12}>
+            <motion.div
+              key={d}
+              variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.32, 0.72, 0, 1] } } }}
+            >
               <Link
                 to="/domain/$slug"
                 params={{ slug: slugifyDomain(d) }}
-                className="block border border-border bg-card rounded-lg px-3 py-2.5 text-sm text-center text-foreground/80 hover:text-foreground hover:border-foreground/30 transition-colors"
+                className="block bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 hover:border-cyan-400/50 rounded-full px-3 py-2.5 text-sm text-center text-white/80 hover:text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 hover:scale-105"
               >
                 {d}
               </Link>
-            </RevealItem>
+            </motion.div>
           ))}
-        </Reveal>
+        </motion.div>
       </ScrollReveal>
 
 
       {/* FEATURED DOMAINS + LIVE FEED */}
       <section className="max-w-6xl mx-auto px-6 pb-20 md:pb-24">
-        <div className="flex items-end justify-between mb-8 gap-6 flex-wrap">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+          className="flex items-end justify-between mb-8 gap-6 flex-wrap"
+        >
           <div className="max-w-xl">
             <div className="text-[11px] uppercase tracking-[0.18em] text-white/50 mb-2">Featured domains</div>
             <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
@@ -142,7 +157,7 @@ function Home() {
             </h2>
           </div>
           <LiveActivityFeed className="w-full md:w-[360px]" />
-        </div>
+        </motion.div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURED_DOMAINS.map((d) => (
             <DomainCard key={d.title} {...d} />
