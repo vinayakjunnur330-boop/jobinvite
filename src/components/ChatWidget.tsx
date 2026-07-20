@@ -194,13 +194,14 @@ export function ChatWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={{ transformOrigin: "bottom right" }}
-            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05),0_20px_60px_0_rgba(0,0,0,0.6)] flex flex-col overflow-hidden float-b"
+            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05),0_20px_60px_0_rgba(0,0,0,0.6)] flex flex-col overflow-hidden gpu"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.03]">
 
               <div className="flex items-center gap-2">
-                <div className="size-7 rounded-lg bg-primary/20 text-primary flex items-center justify-center">
-                  <Sparkles className="size-4" />
+                <div className="relative size-7 rounded-lg bg-gradient-to-br from-cyan-500/30 to-purple-600/40 border border-white/20 flex items-center justify-center">
+                  <Bot className="size-4 text-cyan-300" />
+                  <Sparkles className="absolute -top-1 -right-1 size-2.5 text-fuchsia-300" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-white">Pilot Assistant</div>
