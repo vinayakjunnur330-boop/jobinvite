@@ -115,7 +115,7 @@ function LoginPage() {
       <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
         <div className="bg-purple-600/15 blur-[150px] w-[800px] h-[800px] rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         <div className="bg-indigo-600/10 blur-[140px] w-[600px] h-[600px] rounded-full absolute top-1/4 -right-40" />
-        <div className="bg-crimson-600/10 blur-[140px] w-[600px] h-[600px] rounded-full absolute -bottom-40 left-1/4" />
+        <div className="bg-rose-600/10 blur-[140px] w-[600px] h-[600px] rounded-full absolute -bottom-40 left-1/4" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.7)_100%)]" />
       </div>
 
@@ -193,4 +193,138 @@ function LoginPage() {
             />
             <FloatField
               id="password"
-              type={showPw ?=
+              type={showPw ? "text" : "password"}
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              trailing={
+                <button
+                  type="button"
+                  onClick={() => setShowPw((s) => !s)}
+                  className="text-white/50 hover:text-white transition-colors"
+                  aria-label={showPw ? "Hide password" : "Show password"}
+                >
+                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              }
+              error={mode === "signup" && password.length > 0 && password.length < 8 ? "8+ characters required" : undefined}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={!canSubmit || busy}
+            className="group relative w-full h-12 rounded-xl font-semibold text-[14px] text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-[0_8px_32px_-8px_rgba(168,85,247,0.6)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              {busy ? <Loader2 className="size-4 animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
+              {!busy && <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />}
+            </span>
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 pt-2">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-[11px] uppercase tracking-[0.2em] text-white/40">Or continue with</span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          {/* Social grid - 3x2 square tiles */}
+          <div className="grid grid-cols-3 gap-4">
+            {socials.map(({ id, label, Icon }) => {
+              const loading = oauthBusy === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => oauth(id)}
+                  disabled={!!oauthBusy}
+                  aria-label={`Continue with ${label}`}
+                  title={`Continue with ${label}`}
+                  className="group relative aspect-square flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-white/80" />
+                  ) : (
+                    <Icon className="w-6 h-6 text-white" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-[11px] text-center text-white/40 pt-2">
+            By continuing you agree to our{" "}
+            <button type="button" onClick={() => toast.message("Terms of Service")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+              Terms
+            </button>{" "}
+            &{" "}
+            <button type="button" onClick={() => toast.message("Privacy Policy")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+              Privacy
+            </button>
+            .
+          </p>
+          <p className="text-[12px] text-center text-white/50">
+            Administrator?{" "}
+            <Link to="/admin-login" className="text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline">
+              Admin console
+            </Link>
+          </p>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
+// Floating-label input
+function FloatField({
+  id, label, value, onChange, type = "text", autoComplete, error, trailing,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  autoComplete?: string;
+  error?: string;
+  trailing?: React.ReactNode;
+}) {
+  const [focused, setFocused] = useState(false);
+  const active = focused || value.length > 0;
+  return (
+    <div>
+      <div
+        className={`relative rounded-xl bg-black/20 border transition-all duration-300 ${
+          error
+            ? "border-red-400/40 focus-within:ring-1 focus-within:ring-red-400/50"
+            : "border-white/10 focus-within:border-cyan-400/50 focus-within:ring-1 focus-within:ring-cyan-400/50"
+        }`}
+      >
+        <label
+          htmlFor={id}
+          className={`pointer-events-none absolute left-5 transition-all duration-200 ${
+            active
+              ? "top-2 text-[10px] uppercase tracking-[0.15em] text-white/50"
+              : "top-1/2 -translate-y-1/2 text-[14px] text-white/40"
+          }`}
+        >
+          {label}
+        </label>
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          autoComplete={autoComplete}
+          className="w-full bg-transparent px-5 pt-6 pb-2.5 pr-10 text-[14px] text-white placeholder-white/40 focus:outline-none"
+          placeholder={active ? label : undefined}
+        />
+        {trailing && <div className="absolute right-4 top-1/2 -translate-y-1/2">{trailing}</div>}
+      </div>
+      {error && <p className="mt-1.5 text-[12px] text-red-300/90">{error}</p>}
+    </div>
+  );
+}
