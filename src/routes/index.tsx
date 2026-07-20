@@ -5,18 +5,23 @@ import {
   ArrowRight, Brain, Compass, Rocket, TrendingUp, Zap, Star,
   ShieldCheck, Globe, CheckCircle2, Sparkles,
 } from "lucide-react";
-import medical from "@/assets/medical.jpg";
-import design from "@/assets/design.jpg";
-import aviation from "@/assets/aviation.jpg";
-import sports from "@/assets/sports.jpg";
-import business from "@/assets/business.jpg";
-import careersCollage from "@/assets/careers-collage.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
 import { Reveal, RevealItem } from "@/components/motion/Reveal";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { FuturisticHero } from "@/components/hero/FuturisticHero";
 import { DomainMarquee } from "@/components/DomainMarquee";
+import { DomainCard } from "@/components/DomainCard";
+import { LiveActivityFeed } from "@/components/LiveActivityFeed";
+
+const FEATURED_DOMAINS = [
+  { title: "Medical & Healthcare", roles: "180+ roles", slug: "medical", image: "https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=1200&q=80&auto=format&fit=crop" },
+  { title: "Design & Creative", roles: "240+ roles", slug: "design", image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&q=80&auto=format&fit=crop" },
+  { title: "Aviation & Defense", roles: "95+ roles", slug: "aviation", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80&auto=format&fit=crop" },
+  { title: "Business & Finance", roles: "320+ roles", slug: "finance", image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&q=80&auto=format&fit=crop" },
+  { title: "Engineering & Robotics", roles: "410+ roles", slug: "engineering", image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1200&q=80&auto=format&fit=crop" },
+  { title: "Sports & Performance", roles: "110+ roles", slug: "sports", image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&q=80&auto=format&fit=crop" },
+];
 
 
 export const Route = createFileRoute("/")({
@@ -127,15 +132,21 @@ function Home() {
       </ScrollReveal>
 
 
-      {/* CATEGORY CARDS */}
+      {/* FEATURED DOMAINS + LIVE FEED */}
       <section className="max-w-6xl mx-auto px-6 pb-20 md:pb-24">
-        <div className="grid md:grid-cols-3 gap-4">
-          <CategoryCard image={medical} title="Medical & Healthcare" count="180+ roles" />
-          <CategoryCard image={design} title="Design & Creative" count="240+ roles" />
-          <CategoryCard image={aviation} title="Aviation & Defense" count="95+ roles" />
-          <CategoryCard image={business} title="Business & Finance" count="320+ roles" />
-          <CategoryCard image={sports} title="Sports & Fitness" count="110+ roles" />
-          <CategoryCard image={careersCollage} title="Explore all 44 domains" count="2,400+ roles" highlight />
+        <div className="flex items-end justify-between mb-8 gap-6 flex-wrap">
+          <div className="max-w-xl">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/50 mb-2">Featured domains</div>
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
+              Pick a world. See the real people inside it.
+            </h2>
+          </div>
+          <LiveActivityFeed className="w-full md:w-[360px]" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {FEATURED_DOMAINS.map((d) => (
+            <DomainCard key={d.title} {...d} />
+          ))}
         </div>
       </section>
 
