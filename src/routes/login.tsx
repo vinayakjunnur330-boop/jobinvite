@@ -109,107 +109,77 @@ function LoginPage() {
   ];
 
   return (
-    <div className="fixed inset-0 z-[60] overflow-hidden text-white">
-      {/* Cinematic mesh gradient background */}
-      <div className="absolute inset-0 bg-[#050508]" aria-hidden />
-      <div className="absolute inset-0 overflow-hidden" aria-hidden>
-        <motion.div
-          className="absolute -top-40 -left-40 h-[70vw] w-[70vw] rounded-full blur-[140px] opacity-70"
-          style={{ background: "radial-gradient(circle at 30% 30%, #4c1d95 0%, transparent 60%)" }}
-          animate={{ x: [0, 80, -40, 0], y: [0, 60, -30, 0] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-1/3 -right-40 h-[60vw] w-[60vw] rounded-full blur-[140px] opacity-60"
-          style={{ background: "radial-gradient(circle at 50% 50%, #7c1d3f 0%, transparent 60%)" }}
-          animate={{ x: [0, -80, 40, 0], y: [0, -60, 30, 0] }}
-          transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute -bottom-40 left-1/4 h-[55vw] w-[55vw] rounded-full blur-[140px] opacity-50"
-          style={{ background: "radial-gradient(circle at 50% 50%, #1e1b4b 0%, transparent 60%)" }}
-          animate={{ x: [0, 40, -60, 0], y: [0, -40, 20, 0] }}
-          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)]" />
-        <div
-          className="absolute inset-0 opacity-[0.15] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")",
-          }}
-        />
+    <div className="min-h-screen w-full relative flex flex-col items-center justify-center bg-[#050505] overflow-hidden text-white">
+      {/* Cinematic full-screen background */}
+      <div className="absolute inset-0 z-0 bg-[#050505]" aria-hidden />
+      <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
+        <div className="bg-purple-600/15 blur-[150px] w-[800px] h-[800px] rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <div className="bg-indigo-600/10 blur-[140px] w-[600px] h-[600px] rounded-full absolute top-1/4 -right-40" />
+        <div className="bg-rose-600/10 blur-[140px] w-[600px] h-[600px] rounded-full absolute -bottom-40 left-1/4" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.7)_100%)]" />
       </div>
 
-      {/* Card */}
-      <div className="relative h-full w-full flex items-center justify-center overflow-y-auto p-4 sm:p-8">
-        {/* Ambient glow behind glass */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-purple-500/20 blur-[120px]"
-        />
-        <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full max-w-[540px] mx-auto rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] p-10 md:p-14 flex flex-col gap-8"
-        >
-          {/* Brand */}
-          <div className="flex items-center gap-3">
-            <span className="relative grid place-items-center size-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-[0_8px_24px_-8px_rgba(168,85,247,0.7)]">
-              <Sparkles className="size-5 text-white" />
-            </span>
-            <div>
-              <div className="text-[15px] font-semibold tracking-tight">CareerPilot AI</div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-white/40">Intelligent Careers</div>
-            </div>
+      {/* Desktop-proportioned glass card */}
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-full max-w-[480px] bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.6)] p-10 md:p-12 rounded-3xl flex flex-col gap-8"
+      >
+        {/* Brand */}
+        <div className="flex items-center gap-3">
+          <span className="relative grid place-items-center size-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-[0_8px_24px_-8px_rgba(168,85,247,0.7)]">
+            <Sparkles className="size-5 text-white" />
+          </span>
+          <div>
+            <div className="text-[15px] font-semibold tracking-tight">CareerPilot AI</div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-white/40">Intelligent Careers</div>
           </div>
+        </div>
 
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={mode}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h1 className="text-[26px] sm:text-[30px] font-semibold tracking-tight leading-tight">
+              {mode === "signin" ? "Welcome back" : "Create your account"}
+            </h1>
+            <p className="mt-2 text-[14px] text-white/50">
+              {mode === "signin" ? "Sign in to continue your journey." : "Start your personalized career path today."}
+            </p>
+          </motion.div>
+        </AnimatePresence>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mode}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
+        {/* Mode toggle */}
+        <div className="relative grid grid-cols-2 rounded-xl border border-white/10 bg-white/5 p-1">
+          {(["signin", "signup"] as Mode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`relative z-10 py-2.5 text-[13px] font-medium transition-colors ${
+                mode === m ? "text-white" : "text-white/50 hover:text-white/80"
+              }`}
             >
-              <h1 className="text-[26px] sm:text-[30px] font-semibold tracking-tight leading-tight">
-                {mode === "signin" ? "Welcome back" : "Create your account"}
-              </h1>
-              <p className="mt-2 text-[14px] text-white/50">
-                {mode === "signin" ? "Sign in to continue your journey." : "Start your personalized career path today."}
-              </p>
-            </motion.div>
-          </AnimatePresence>
+              {m === "signin" ? "Sign In" : "Sign Up"}
+            </button>
+          ))}
+          <motion.span
+            layout
+            transition={{ type: "spring", stiffness: 400, damping: 32 }}
+            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-white/10 border border-white/10 shadow-[0_4px_16px_rgba(139,92,246,0.3)]"
+            style={{ left: mode === "signin" ? 4 : "calc(50% + 0px)" }}
+            aria-hidden
+          />
+        </div>
 
-          {/* Mode toggle */}
-          <div className="relative mt-6 grid grid-cols-2 rounded-xl border border-white/10 bg-white/5 p-1">
-            {(["signin", "signup"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={`relative z-10 py-2.5 text-[13px] font-medium transition-colors ${
-                  mode === m ? "text-white" : "text-white/50 hover:text-white/80"
-                }`}
-              >
-                {m === "signin" ? "Sign In" : "Sign Up"}
-              </button>
-            ))}
-            <motion.span
-              layout
-              transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-white/10 border border-white/10 shadow-[0_4px_16px_rgba(139,92,246,0.3)]"
-              style={{ left: mode === "signin" ? 4 : "calc(50% + 0px)" }}
-              aria-hidden
-            />
-          </div>
-
-          <form onSubmit={submitAuth} className="flex flex-col gap-8" noValidate>
-            <div className="space-y-4">
-              {mode === "signup" && (
-
+        <form onSubmit={submitAuth} className="flex flex-col gap-8" noValidate>
+          <div className="space-y-4">
+            {mode === "signup" && (
               <FloatField id="fullName" label="Full name" value={fullName} onChange={setFullName} autoComplete="name" />
             )}
             <FloatField
@@ -240,77 +210,74 @@ function LoginPage() {
               }
               error={mode === "signup" && password.length > 0 && password.length < 8 ? "8+ characters required" : undefined}
             />
-            </div>
+          </div>
 
-            <button
+          <button
+            type="submit"
+            disabled={!canSubmit || busy}
+            className="group relative w-full h-12 rounded-xl font-semibold text-[14px] text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-[0_8px_32px_-8px_rgba(168,85,247,0.6)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              {busy ? <Loader2 className="size-4 animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
+              {!busy && <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />}
+            </span>
+          </button>
 
-              type="submit"
-              disabled={!canSubmit || busy}
-              className="group relative w-full h-12 rounded-xl font-semibold text-[14px] text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-[0_8px_32px_-8px_rgba(168,85,247,0.6)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="inline-flex items-center justify-center gap-2">
-                {busy ? <Loader2 className="size-4 animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
-                {!busy && <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />}
-              </span>
+          {/* Divider */}
+          <div className="flex items-center gap-3 pt-2">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-[11px] uppercase tracking-[0.2em] text-white/40">Or continue with</span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          {/* Social grid - 3x2 square tiles */}
+          <div className="grid grid-cols-3 gap-4">
+            {socials.map(({ id, label, Icon }) => {
+              const loading = oauthBusy === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => oauth(id)}
+                  disabled={!!oauthBusy}
+                  aria-label={`Continue with ${label}`}
+                  title={`Continue with ${label}`}
+                  className="group relative aspect-square flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-white/80" />
+                  ) : (
+                    <Icon className="w-6 h-6 text-white" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-[11px] text-center text-white/40 pt-2">
+            By continuing you agree to our{" "}
+            <button type="button" onClick={() => toast.message("Terms of Service")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+              Terms
+            </button>{" "}
+            &{" "}
+            <button type="button" onClick={() => toast.message("Privacy Policy")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+              Privacy
             </button>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 pt-2">
-              <div className="h-px flex-1 bg-white/10" />
-              <span className="text-[11px] uppercase tracking-[0.2em] text-white/40">Or continue with</span>
-              <div className="h-px flex-1 bg-white/10" />
-            </div>
-
-            {/* Social grid */}
-            <div className="grid grid-cols-3 gap-4">
-              {socials.map(({ id, label, Icon }) => {
-                const loading = oauthBusy === id;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => oauth(id)}
-                    disabled={!!oauthBusy}
-                    aria-label={`Continue with ${label}`}
-                    title={`Continue with ${label}`}
-                    className="group relative aspect-square flex items-center justify-center rounded-2xl bg-white/[0.02] hover:bg-white/[0.08] border border-white/5 hover:border-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-6 h-6 animate-spin text-white/80" />
-                    ) : (
-                      <Icon className="w-6 h-6 text-white" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-
-            <p className="text-[11px] text-center text-white/40 pt-2">
-              By continuing you agree to our{" "}
-              <button type="button" onClick={() => toast.message("Terms of Service")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
-                Terms
-              </button>{" "}
-              &{" "}
-              <button type="button" onClick={() => toast.message("Privacy Policy")} className="text-white/70 hover:text-white underline-offset-4 hover:underline">
-                Privacy
-              </button>
-              .
-            </p>
-            <p className="text-[12px] text-center text-white/50">
-              Administrator?{" "}
-              <Link to="/admin-login" className="text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline">
-                Admin console
-              </Link>
-            </p>
-          </form>
-        </motion.div>
-      </div>
+            .
+          </p>
+          <p className="text-[12px] text-center text-white/50">
+            Administrator?{" "}
+            <Link to="/admin-login" className="text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline">
+              Admin console
+            </Link>
+          </p>
+        </form>
+      </motion.div>
     </div>
   );
 }
 
-// ────────────────────────────── Floating-label input ──────────────────────────────
+// Floating-label input
 function FloatField({
   id, label, value, onChange, type = "text", autoComplete, error, trailing,
 }: {
