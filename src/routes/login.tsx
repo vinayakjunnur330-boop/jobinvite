@@ -143,14 +143,19 @@ function LoginPage() {
 
       {/* Card */}
       <div className="relative h-full w-full flex items-center justify-center overflow-y-auto p-4 sm:p-8">
+        {/* Ambient glow behind glass */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-purple-500/20 blur-[120px]"
+        />
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full max-w-md rounded-3xl border border-white/10 bg-black/30 backdrop-blur-3xl shadow-[0_24px_64px_rgba(0,0,0,0.5)] p-8 sm:p-10"
+          className="relative w-full max-w-[540px] mx-auto rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] p-10 md:p-14 flex flex-col gap-8"
         >
           {/* Brand */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3">
             <span className="relative grid place-items-center size-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-[0_8px_24px_-8px_rgba(168,85,247,0.7)]">
               <Sparkles className="size-5 text-white" />
             </span>
@@ -159,6 +164,7 @@ function LoginPage() {
               <div className="text-[11px] uppercase tracking-[0.2em] text-white/40">Intelligent Careers</div>
             </div>
           </div>
+
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -200,8 +206,10 @@ function LoginPage() {
             />
           </div>
 
-          <form onSubmit={submitAuth} className="mt-6 space-y-4" noValidate>
-            {mode === "signup" && (
+          <form onSubmit={submitAuth} className="flex flex-col gap-8" noValidate>
+            <div className="space-y-4">
+              {mode === "signup" && (
+
               <FloatField id="fullName" label="Full name" value={fullName} onChange={setFullName} autoComplete="name" />
             )}
             <FloatField
@@ -232,8 +240,10 @@ function LoginPage() {
               }
               error={mode === "signup" && password.length > 0 && password.length < 8 ? "8+ characters required" : undefined}
             />
+            </div>
 
             <button
+
               type="submit"
               disabled={!canSubmit || busy}
               className="group relative w-full h-12 rounded-xl font-semibold text-[14px] text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-[0_8px_32px_-8px_rgba(168,85,247,0.6)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -252,7 +262,7 @@ function LoginPage() {
             </div>
 
             {/* Social grid */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               {socials.map(({ id, label, Icon }) => {
                 const loading = oauthBusy === id;
                 return (
@@ -263,17 +273,18 @@ function LoginPage() {
                     disabled={!!oauthBusy}
                     aria-label={`Continue with ${label}`}
                     title={`Continue with ${label}`}
-                    className="group relative flex items-center justify-center h-12 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative aspect-square flex items-center justify-center rounded-2xl bg-white/[0.02] hover:bg-white/[0.08] border border-white/5 hover:border-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
-                      <Loader2 className="size-5 animate-spin text-white/80" />
+                      <Loader2 className="w-6 h-6 animate-spin text-white/80" />
                     ) : (
-                      <Icon className="size-5 text-white" />
+                      <Icon className="w-6 h-6 text-white" />
                     )}
                   </button>
                 );
               })}
             </div>
+
 
             <p className="text-[11px] text-center text-white/40 pt-2">
               By continuing you agree to our{" "}
@@ -317,19 +328,17 @@ function FloatField({
   return (
     <div>
       <div
-        className={`relative rounded-xl border bg-white/5 transition-all duration-200 ${
+        className={`relative rounded-xl bg-black/20 border transition-all duration-300 ${
           error
-            ? "border-red-400/40"
-            : focused
-              ? "border-white/20 ring-2 ring-white/20"
-              : "border-white/10"
+            ? "border-red-400/40 focus-within:ring-1 focus-within:ring-red-400/50"
+            : "border-white/10 focus-within:border-cyan-400/50 focus-within:ring-1 focus-within:ring-cyan-400/50"
         }`}
       >
         <label
           htmlFor={id}
-          className={`pointer-events-none absolute left-3 transition-all duration-200 ${
+          className={`pointer-events-none absolute left-5 transition-all duration-200 ${
             active
-              ? "top-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50"
+              ? "top-2 text-[10px] uppercase tracking-[0.15em] text-white/50"
               : "top-1/2 -translate-y-1/2 text-[14px] text-white/40"
           }`}
         >
@@ -343,9 +352,10 @@ function FloatField({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoComplete={autoComplete}
-          className="w-full h-14 bg-transparent px-3 pt-5 pb-1 pr-10 text-[14px] text-white placeholder-transparent focus:outline-none"
+          className="w-full bg-transparent px-5 pt-6 pb-2.5 pr-10 text-[14px] text-white placeholder-white/40 focus:outline-none"
+          placeholder={active ? label : undefined}
         />
-        {trailing && <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div>}
+        {trailing && <div className="absolute right-4 top-1/2 -translate-y-1/2">{trailing}</div>}
       </div>
       {error && <p className="mt-1.5 text-[12px] text-red-300/90">{error}</p>}
     </div>
