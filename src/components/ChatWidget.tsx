@@ -204,9 +204,9 @@ export function ChatWidget() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.03]">
 
               <div className="flex items-center gap-2">
-                <div className="relative size-7 rounded-lg bg-gradient-to-br from-cyan-500/30 to-purple-600/40 border border-white/20 flex items-center justify-center">
-                  <Bot className="size-4 text-cyan-300" />
-                  <Sparkles className="absolute -top-1 -right-1 size-2.5 text-fuchsia-300" />
+                <div className="relative size-7 rounded-lg overflow-hidden border border-white/20 bg-white/5 flex items-center justify-center">
+                  <img src={chatbotLogo} alt="" width={512} height={512} className="size-full object-contain" />
+                  <Sparkles className="absolute -top-1 -right-1 size-2.5 text-emerald-300" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-white">Pilot Assistant</div>
