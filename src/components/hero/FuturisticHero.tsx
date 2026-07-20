@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useMotionTemplate } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { Brain, Search, Sparkles, ArrowRight } from "lucide-react";
 
@@ -15,13 +15,16 @@ function MagneticButton({
   children,
   className = "",
   onClick,
+  strength = 0.35,
 }: {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  strength?: number;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const x = useSpring(0, { stiffness: 260, damping: 18, mass: 0.4 });
+  const y = useSpring(0, { stiffness: 260, damping: 18, mass: 0.4 });
 
   return (
     <motion.button
@@ -29,13 +32,17 @@ function MagneticButton({
       onClick={onClick}
       onMouseMove={(e) => {
         const r = ref.current!.getBoundingClientRect();
-        setPos({ x: (e.clientX - (r.left + r.width / 2)) * 0.35, y: (e.clientY - (r.top + r.height / 2)) * 0.35 });
+        x.set((e.clientX - (r.left + r.width / 2)) * strength);
+        y.set((e.clientY - (r.top + r.height / 2)) * strength);
       }}
-      onMouseLeave={() => setPos({ x: 0, y: 0 })}
-      animate={{ x: pos.x, y: pos.y }}
-      transition={{ type: "spring", stiffness: 260, damping: 18, mass: 0.4 }}
-      whileHover={{ scale: 1.04 }}
-      whileTap={{ scale: 0.97 }}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
+      style={{ x, y }}
+      whileHover={{ scale: 1.03, filter: "brightness(1.2)" }}
+      whileTap={{ scale: 0.96 }}
+      transition={{ type: "spring", stiffness: 400, damping: 22 }}
       className={className}
     >
       {children}
@@ -53,17 +60,15 @@ function FuturisticSearch() {
       }}
       className="group relative w-full"
     >
-      {/* animated conic glow border */}
       <div
         aria-hidden
         className="absolute -inset-[1.5px] rounded-2xl opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 blur-[2px] transition-opacity"
         style={{
-          background:
-            "conic-gradient(from 0deg, #8b5cf6, #22d3ee, #ec4899, #8b5cf6)",
+          background: "conic-gradient(from 0deg, #8b5cf6, #22d3ee, #ec4899, #8b5cf6)",
           animation: "spin 6s linear infinite",
         }}
       />
-      <div className="relative flex items-center gap-2 rounded-2xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-2 pl-5">
+      <div className="relative flex items-center gap-2 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] p-2 pl-5">
         <Search className="size-5 text-white/60 shrink-0" />
         <input
           value={q}
@@ -79,17 +84,94 @@ function FuturisticSearch() {
   );
 }
 
+/** Word-by-word cinematic reveal with blur-to-focus. */
+function CinematicHeadline({ lines }: { lines: Array<string | { text: string; gradient?: boolean }[]> }) {
+  let wordIndex = 0;
+  return (
+    <div>
+      {lines.map((line, li) => {
+        const segments = typeof line === "string" ? [{ text: line, gradient: false }] : line;
+        return (
+          <h1
+            key={li}
+            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.02] text-white"
+          >
+            {segments.map((seg, si) => {
+              const words = seg.text.split(" ");
+              return (
+                <span key={si} className={seg.gradient ? "bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-300 bg-clip-text text-transparent" : ""}>
+                  {words.map((w, wi) => {
+                    const idx = wordIndex++;
+                    return (
+                      <motion.span
+                        key={`${li}-${si}-${wi}`}
+                        className="inline-block will-change-transform"
+                        initial={{ opacity: 0, y: 40, filter: "blur(14px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        transition={{
+                          duration: 0.9,
+                          delay: 0.25 + idx * 0.08,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                      >
+                        {w}
+                        {wi < words.length - 1 || si < segments.length - 1 ? "\u00A0" : ""}
+                      </motion.span>
+                    );
+                  })}
+                </span>
+              );
+            })}
+          </h1>
+        );
+      })}
+    </div>
+  );
+}
+
 export function FuturisticHero() {
   const hydrated = useHydrated();
 
-  return (
-    <section className="relative overflow-hidden bg-[#05060d]">
-      {/* animated aurora orbs */}
-      <div aria-hidden className="absolute -top-40 -left-32 size-[560px] rounded-full bg-violet-600/25 blur-[140px] animate-pulse" />
-      <div aria-hidden className="absolute top-1/3 -right-40 size-[520px] rounded-full bg-cyan-400/20 blur-[140px] animate-pulse" style={{ animationDelay: "1.4s" }} />
-      <div aria-hidden className="absolute bottom-0 left-1/2 -translate-x-1/2 size-[480px] rounded-full bg-fuchsia-500/20 blur-[140px] animate-pulse" style={{ animationDelay: "2.6s" }} />
+  // Mouse-reactive radial glow behind primary glass content
+  const mx = useMotionValue(50);
+  const my = useMotionValue(30);
+  const sx = useSpring(mx, { stiffness: 60, damping: 20 });
+  const sy = useSpring(my, { stiffness: 60, damping: 20 });
+  const glow = useMotionTemplate`radial-gradient(600px circle at ${sx}% ${sy}%, rgba(139,92,246,0.22), rgba(34,211,238,0.08) 40%, transparent 70%)`;
 
-      {/* subtle grid overlay */}
+  return (
+    <section
+      className="relative overflow-hidden bg-[#0a0a0a]"
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        mx.set(((e.clientX - r.left) / r.width) * 100);
+        my.set(((e.clientY - r.top) / r.height) * 100);
+      }}
+    >
+      {/* Breathing aurora orbs */}
+      <motion.div
+        aria-hidden
+        className="absolute -top-40 -left-32 size-[560px] rounded-full bg-violet-600/25 blur-[140px]"
+        animate={{ scale: [1, 1.15, 1], opacity: [0.55, 0.9, 0.55] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute top-1/3 -right-40 size-[520px] rounded-full bg-cyan-400/20 blur-[140px]"
+        animate={{ scale: [1.1, 1, 1.1], opacity: [0.5, 0.85, 0.5] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 size-[480px] rounded-full bg-fuchsia-500/20 blur-[140px]"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.45, 0.8, 0.45] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2.4 }}
+      />
+
+      {/* Mouse-reactive radial glow */}
+      <motion.div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: glow }} />
+
+      {/* Subtle grid overlay */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.08] pointer-events-none"
@@ -110,51 +192,33 @@ export function FuturisticHero() {
         )}
       </div>
 
-      {/* vignette to seat text */}
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05060d]/40 to-[#05060d]" />
+      {/* Vignette to seat text */}
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/40 to-[#0a0a0a]" />
 
-      {/* content */}
+      {/* Content */}
       <div className="relative max-w-6xl mx-auto px-6 pt-28 pb-32 md:pt-36 md:pb-40">
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={{ show: { transition: { staggerChildren: 0.11, delayChildren: 0.1 } } }}
-          className="max-w-3xl"
-        >
+        <div className="max-w-3xl">
           <motion.div
-            variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-xl text-xs font-medium text-white/70 mb-8"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] text-xs font-medium text-white/70 mb-8"
           >
             <Sparkles className="size-3.5 text-cyan-300" />
             <span>Powered by a neural career engine · 44 industries</span>
           </motion.div>
 
-          {[
-            "Find the career",
-            <>
-              you were{" "}
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-300 bg-clip-text text-transparent">
-                built for.
-              </span>
-            </>,
-          ].map((line, i) => (
-            <motion.h1
-              key={i}
-              variants={{
-                hidden: { opacity: 0, y: 40, filter: "blur(12px)" },
-                show: { opacity: 1, y: 0, filter: "blur(0px)" },
-              }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.02] text-white"
-            >
-              {line}
-            </motion.h1>
-          ))}
+          <CinematicHeadline
+            lines={[
+              "Find the career",
+              [{ text: "you were " }, { text: "built for.", gradient: true }],
+            ]}
+          />
 
           <motion.p
-            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-            transition={{ duration: 0.7 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.4 }}
             className="mt-7 text-lg md:text-xl text-white/60 max-w-2xl leading-relaxed"
           >
             CareerPilot fuses verified labor data, resume intelligence, and a personalized
@@ -162,31 +226,47 @@ export function FuturisticHero() {
           </motion.p>
 
           <motion.div
-            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-            transition={{ duration: 0.7 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.6 }}
             className="mt-10 max-w-2xl"
           >
             <FuturisticSearch />
           </motion.div>
 
           <motion.div
-            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-            transition={{ duration: 0.7 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.8 }}
             className="mt-8 flex flex-wrap items-center gap-3"
           >
             <Link to="/assessment">
-              <MagneticButton className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-[#05060d] text-sm font-semibold shadow-[0_10px_40px_-10px_rgba(255,255,255,0.4)]">
-                <Brain className="size-4" /> Take the neural assessment
+              <MagneticButton className="relative overflow-hidden inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-[#05060d] text-sm font-semibold shadow-[0_10px_40px_-10px_rgba(255,255,255,0.4)]">
+                <span className="relative z-10 inline-flex items-center gap-2">
+                  <Brain className="size-4" /> Take the neural assessment
+                </span>
+                {/* Infinite sweeping shimmer */}
+                <motion.span
+                  aria-hidden
+                  className="absolute inset-y-0 -left-1/2 w-1/2 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(120deg, transparent 0%, rgba(139,92,246,0.35) 45%, rgba(34,211,238,0.35) 55%, transparent 100%)",
+                    mixBlendMode: "screen",
+                  }}
+                  animate={{ x: ["0%", "400%"] }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }}
+                />
               </MagneticButton>
             </Link>
             <Link
               to="/resume"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/15 bg-white/[0.03] backdrop-blur-xl text-white text-sm font-medium hover:bg-white/[0.08] hover:border-white/30 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] text-white text-sm font-medium hover:bg-white/10 hover:border-white/25 transition-all"
             >
               <Sparkles className="size-4 text-cyan-300" /> Analyze my resume
             </Link>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

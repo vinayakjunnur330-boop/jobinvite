@@ -14,6 +14,7 @@ import careersCollage from "@/assets/careers-collage.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
 import { Reveal, RevealItem } from "@/components/motion/Reveal";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { FuturisticHero } from "@/components/hero/FuturisticHero";
 import { DomainMarquee } from "@/components/DomainMarquee";
 
@@ -60,7 +61,7 @@ function Home() {
       <DomainMarquee />
 
       {/* Stats strip */}
-      <section className="bg-[#05060d] border-b border-white/5">
+      <ScrollReveal className="bg-[#0a0a0a] border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 gap-px bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
           {stats.map((s) => (
             <div key={s.label} className="bg-[#0a0b16] p-6">
@@ -71,11 +72,11 @@ function Home() {
             </div>
           ))}
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* HOW IT WORKS */}
-      <section className="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <ScrollReveal className="max-w-6xl mx-auto px-6 py-20 md:py-24">
         <SectionHeader
           eyebrow="How it works"
           title="From confused to confident in three steps."
@@ -100,11 +101,11 @@ function Home() {
             </RevealItem>
           ))}
         </Reveal>
-      </section>
+      </ScrollReveal>
 
 
       {/* DOMAINS */}
-      <section className="max-w-6xl mx-auto px-6 py-20 md:py-24 border-t border-border">
+      <ScrollReveal className="max-w-6xl mx-auto px-6 py-20 md:py-24 border-t border-white/10">
         <SectionHeader
           eyebrow="Coverage"
           title="Every industry. Every role. Mapped."
@@ -123,7 +124,7 @@ function Home() {
             </RevealItem>
           ))}
         </Reveal>
-      </section>
+      </ScrollReveal>
 
 
       {/* CATEGORY CARDS */}
