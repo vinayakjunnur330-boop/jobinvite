@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Send, X, Sparkles, RotateCcw, Mic, Volume2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,7 +17,6 @@ const seed: Msg[] = [
   { role: "assistant", content: "Hi — I'm **Pilot**, your AI career advisor. Ask me about any career, roadmap, skill gap, or interview prep." },
 ];
 
-// Light markdown for **bold**, `code`, and line breaks
 function renderMd(text: string) {
   const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return escape(text)
@@ -31,64 +31,26 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const stickToBottomRef = useRef(true);
-  const touchYRef = useRef(0);
+  const endRef = useRef<HTMLDivElement>(null);
 
+  // Body scroll lock when open
   useEffect(() => {
-    if (!stickToBottomRef.current) return;
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [msgs, streaming]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!open || !el) return;
-
-    const containScroll = (deltaY: number, event: WheelEvent | TouchEvent) => {
-      const canScroll = el.scrollHeight > el.clientHeight;
-      if (!canScroll) return;
-
-      const atTop = el.scrollTop <= 0;
-      const atBottom = Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
-
-      if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
-        event.preventDefault();
-      }
-
-      event.stopPropagation();
-    };
-
-    const onWheel = (event: WheelEvent) => containScroll(event.deltaY, event);
-    const onTouchStart = (event: TouchEvent) => {
-      touchYRef.current = event.touches[0]?.clientY ?? 0;
-    };
-    const onTouchMove = (event: TouchEvent) => {
-      const nextY = event.touches[0]?.clientY ?? touchYRef.current;
-      containScroll(touchYRef.current - nextY, event);
-      touchYRef.current = nextY;
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
-
-    return () => {
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-    };
+    if (typeof document === "undefined") return;
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev || "unset"; };
+    }
   }, [open]);
 
-  const handleMessagesScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
-  };
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [msgs, streaming, open]);
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || streaming) return;
-    stickToBottomRef.current = true;
     setInput("");
     const next: Msg[] = [...msgs, { role: "user", content }, { role: "assistant", content: "" }];
     setMsgs(next);
@@ -98,9 +60,7 @@ export function ChatWidget() {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
-      if (!token) {
-        throw new Error("Please sign in to chat with Pilot.");
-      }
+      if (!token) throw new Error("Please sign in to chat with Pilot.");
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -167,12 +127,10 @@ export function ChatWidget() {
   const retry = () => {
     const lastUser = [...msgs].reverse().find((m) => m.role === "user");
     if (!lastUser) return;
-    // drop last assistant
     setMsgs((cur) => cur.slice(0, -1));
     setTimeout(() => send(lastUser.content), 50);
   };
 
-  // Voice input (Web Speech API) — optional, gracefully unavailable
   const startVoice = () => {
     const w = window as unknown as { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown };
     const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
@@ -180,14 +138,12 @@ export function ChatWidget() {
     const r = new SR() as { lang: string; start: () => void; onresult: (e: { results: { 0: { transcript: string } }[] }) => void; onerror: () => void };
     r.lang = "en-US";
     r.onresult = (e: { results: { 0: { transcript: string } }[] }) => {
-      const t = e.results[0][0].transcript;
-      setInput(t);
+      setInput(e.results[0][0].transcript);
     };
     r.onerror = () => toast.error("Voice input failed");
     r.start();
   };
 
-  // Voice output
   const speak = (text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     const u = new SpeechSynthesisUtterance(text.replace(/[*`_#>-]/g, ""));
@@ -197,86 +153,123 @@ export function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100]">
-      {open ? (
-        <div className="w-[380px] max-w-[calc(100vw-3rem)] max-h-[calc(100dvh-3rem)] glass rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-entrance">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80">
-            <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
-                <Sparkles className="size-4" />
+    <div className="z-[9999]">
+      {/* Floating toggle button */}
+      <motion.button
+        onClick={() => setOpen((v) => !v)}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-[9999] size-14 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center shadow-lg"
+        style={{ boxShadow: "0 0 25px -2px var(--primary)" }}
+        aria-label={open ? "Close chat" : "Open chat"}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={open ? "close" : "open"}
+            initial={{ rotate: -90, opacity: 0, scale: 0.6 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: 90, opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center"
+          >
+            {open ? <X className="size-6" /> : <MessageSquare className="size-6" />}
+          </motion.span>
+        </AnimatePresence>
+      </motion.button>
+
+      {/* Chat window */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="chat-window"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            style={{ transformOrigin: "bottom right" }}
+            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
+              <div className="flex items-center gap-2">
+                <div className="size-7 rounded-lg bg-primary/20 text-primary flex items-center justify-center">
+                  <Sparkles className="size-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">Pilot Assistant</div>
+                  <div className="text-[10px] font-mono text-emerald-400">● {streaming ? "TYPING" : "ONLINE"}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm font-bold">Pilot Assistant</div>
-                <div className="text-[10px] font-mono text-success">● {streaming ? "TYPING" : "ONLINE"}</div>
-              </div>
+              <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white transition-colors" aria-label="Close">
+                <X className="size-4" />
+              </button>
             </div>
-            <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close">
-              <X className="size-4" />
-            </button>
-          </div>
 
-          <div ref={scrollRef} onScroll={handleMessagesScroll} className="flex-1 min-h-0 px-4 py-3 h-[min(20rem,calc(100dvh-12rem))] overflow-y-auto overscroll-contain space-y-3 bg-background/40 touch-pan-y">
-            {msgs.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}>
-                <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
-                  m.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-card text-foreground rounded-bl-sm border border-border"
-                }`}>
-                  <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
-                  {m.role === "assistant" && m.content && !streaming && (
-                    <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => speak(m.content)} className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"><Volume2 className="size-3"/> Speak</button>
-                      {i === msgs.length - 1 && (
-                        <button onClick={retry} className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"><RotateCcw className="size-3"/> Retry</button>
-                      )}
-                    </div>
-                  )}
+            <div
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 touch-pan-y"
+              style={{ overscrollBehavior: "contain" }}
+            >
+              {msgs.map((m, i) => (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}>
+                  <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
+                    m.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-sm"
+                      : "bg-white/5 text-white/90 rounded-bl-sm border border-white/10"
+                  }`}>
+                    <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
+                    {m.role === "assistant" && m.content && !streaming && (
+                      <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => speak(m.content)} className="text-[10px] text-white/50 hover:text-primary inline-flex items-center gap-1"><Volume2 className="size-3"/> Speak</button>
+                        {i === msgs.length - 1 && (
+                          <button onClick={retry} className="text-[10px] text-white/50 hover:text-primary inline-flex items-center gap-1"><RotateCcw className="size-3"/> Retry</button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {msgs.length <= 1 && (
-              <div className="pt-2">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Try asking</div>
-                <div className="flex flex-col gap-1.5">
-                  {SUGGESTED.map((s) => (
-                    <button key={s} onClick={() => send(s)} className="text-left text-[11px] px-3 py-2 rounded-lg bg-white/5 border border-border hover:border-primary/60 hover:bg-white/10 transition-colors">
-                      {s}
-                    </button>
-                  ))}
+              {msgs.length <= 1 && (
+                <div className="pt-2">
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-white/40 mb-2">Try asking</div>
+                  <div className="flex flex-col gap-1.5">
+                    {SUGGESTED.map((s) => (
+                      <button key={s} onClick={() => send(s)} className="text-left text-[11px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-primary/60 hover:bg-white/10 transition-colors text-white/80">
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
 
-          <div className="p-3 border-t border-border bg-card/80 flex gap-2">
-            <button onClick={startVoice} className="size-9 rounded-lg border border-border bg-white/5 hover:bg-white/10 flex items-center justify-center" aria-label="Voice input">
-              <Mic className="size-4" />
-            </button>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Ask about your future..."
-              className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
-              disabled={streaming}
-            />
-            <button onClick={() => send()} disabled={streaming || !input.trim()} className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100" aria-label="Send">
-              <Send className="size-4" />
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setOpen(true)}
-          className="size-14 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center hover:scale-105 transition-transform animate-float"
-          style={{ boxShadow: "0 0 25px -2px var(--primary)" }}
-          aria-label="Open chat"
-        >
-          <MessageSquare className="size-6" />
-        </button>
-      )}
+              <div ref={endRef} />
+            </div>
+
+            <div className="p-3 border-t border-white/10 bg-white/5 flex gap-2">
+              <button onClick={startVoice} className="size-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/70" aria-label="Voice input">
+                <Mic className="size-4" />
+              </button>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && send()}
+                placeholder="Ask about your future..."
+                className="flex-1 bg-slate-950/60 border border-white/10 text-white placeholder:text-white/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+                disabled={streaming}
+              />
+              <motion.button
+                onClick={() => send()}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                disabled={streaming || !input.trim()}
+                className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50"
+                aria-label="Send"
+              >
+                <Send className="size-4" />
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
