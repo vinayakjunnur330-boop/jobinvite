@@ -19,11 +19,17 @@ type AuthCtx = {
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(() => readCareerPilotSession()?.session ?? null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
+
+    const cachedSession = readCareerPilotSession()?.session ?? null;
+    if (cachedSession) {
+      setSession(cachedSession);
+      setLoading(false);
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
