@@ -13,9 +13,9 @@ import business from "@/assets/business.jpg";
 import careersCollage from "@/assets/careers-collage.jpg";
 import { careers, domains, futureJobs, testimonials, stats, trends } from "@/lib/careers";
 import { slugifyDomain } from "@/lib/domains";
-import { SmartSearch } from "@/components/SmartSearch";
 import { Reveal, RevealItem } from "@/components/motion/Reveal";
-import { MouseGlow } from "@/components/motion/MouseGlow";
+import { FuturisticHero } from "@/components/hero/FuturisticHero";
+import { DomainMarquee } from "@/components/DomainMarquee";
 
 
 export const Route = createFileRoute("/")({
@@ -60,101 +60,23 @@ const fadeUp = {
 function Home() {
   return (
     <div>
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div className="absolute inset-0 grid-bg radial-fade opacity-60 pointer-events-none" />
-        <div
-          aria-hidden
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at top, color-mix(in oklab, var(--primary) 12%, transparent), transparent 70%)",
-          }}
-        />
-        <MouseGlow size={520} color="color-mix(in oklab, var(--primary) 22%, transparent)" />
-        <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+      <FuturisticHero />
+      <DomainMarquee />
 
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-            className="max-w-3xl"
-          >
-            <motion.div
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground mb-6"
-            >
-              <span className="size-1.5 rounded-full bg-success" />
-              Trusted by 12,400+ professionals across 38 countries
-            </motion.div>
-
-            <motion.h1
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]"
-            >
-              Find the career
-              <br />
-              you were <span className="text-primary">built for.</span>
-            </motion.h1>
-
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed"
-            >
-              CareerPilot is an AI career counselor that combines verified labor data,
-              resume intelligence, and personalized assessments to help you build a path
-              that actually fits — across 44 industries.
-            </motion.p>
-
-            <motion.div variants={fadeUp} transition={{ duration: 0.5 }} className="mt-8 max-w-xl">
-              <SmartSearch />
-            </motion.div>
-
-            <motion.div variants={fadeUp} transition={{ duration: 0.5 }} className="mt-5 flex flex-wrap items-center gap-3">
-              <Link
-                to="/assessment"
-                className="btn-cta inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]"
-              >
-                <Brain className="size-4" /> Take the assessment
-              </Link>
-
-              <Link
-                to="/resume"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border bg-background text-sm font-medium hover:border-foreground/30 transition-colors"
-              >
-                <Sparkles className="size-4" /> Analyze my resume
-              </Link>
-            </motion.div>
-
-            <motion.ul
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground"
-            >
-              {["Free to start", "No credit card", "5-minute assessment"].map((t) => (
-                <li key={t} className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-4 text-success" /> {t}
-                </li>
-              ))}
-            </motion.ul>
-          </motion.div>
-
-          {/* Stats strip */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-2xl border border-border overflow-hidden">
-            {stats.map((s) => (
-              <div key={s.label} className="bg-card p-5 md:p-6">
-                <div className="text-2xl md:text-3xl font-bold tracking-tight">
-                  <Counter value={s.value} suffix={s.suffix} />
-                </div>
-                <div className="text-xs text-muted-foreground mt-1.5">{s.label}</div>
+      {/* Stats strip */}
+      <section className="bg-[#05060d] border-b border-white/5">
+        <div className="max-w-6xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 gap-px bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-[#0a0b16] p-6">
+              <div className="text-2xl md:text-3xl font-bold tracking-tight text-white">
+                <Counter value={s.value} suffix={s.suffix} />
               </div>
-            ))}
-          </div>
+              <div className="text-xs text-white/50 mt-1.5">{s.label}</div>
+            </div>
+          ))}
         </div>
       </section>
+
 
       {/* HOW IT WORKS */}
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-24">

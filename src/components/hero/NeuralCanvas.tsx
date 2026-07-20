@@ -14,7 +14,6 @@ function BrainMesh() {
   return (
     <mesh ref={ref} scale={1.55}>
       <icosahedronGeometry args={[1, 64]} />
-      {/* @ts-expect-error drei type */}
       <MeshDistortMaterial
         color="#8b5cf6"
         emissive="#3b1f9e"
