@@ -206,8 +206,10 @@ function LoginPage() {
             />
           </div>
 
-          <form onSubmit={submitAuth} className="mt-6 space-y-4" noValidate>
-            {mode === "signup" && (
+          <form onSubmit={submitAuth} className="flex flex-col gap-8" noValidate>
+            <div className="space-y-4">
+              {mode === "signup" && (
+
               <FloatField id="fullName" label="Full name" value={fullName} onChange={setFullName} autoComplete="name" />
             )}
             <FloatField
