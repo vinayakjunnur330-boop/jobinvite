@@ -48,6 +48,7 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendOk, setResendOk] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
