@@ -401,6 +401,57 @@ function LoginPage() {
                 </div>
               )}
 
+              <div className="flex justify-center gap-3 my-8">
+                {otp.map((d, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => { otpRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={d}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                    onPaste={handleOtpPaste}
+                    disabled={busy}
+                    aria-invalid={!!otpError}
+                    className={`w-12 h-14 text-center text-2xl font-semibold bg-black/5 dark:bg-white/5 border rounded-xl transition-all outline-none text-gray-900 dark:text-white disabled:opacity-50 focus:ring-1 ${
+                      otpError
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-400"
+                        : "border-gray-300 dark:border-white/20 focus:border-cyan-400 focus:ring-cyan-400"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {otpError && (
+                <motion.div
+                  role="alert"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-xl border border-red-400/40 dark:border-red-400/30 bg-red-500/5 dark:bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-600 dark:text-red-300 leading-relaxed text-center"
+                >
+                  {otpError}
+                </motion.div>
+              )}
+
+              {busy && (
+                <div className="flex items-center justify-center gap-2 text-[12.5px] text-gray-500 dark:text-white/50 mb-4">
+                  <Loader2 className="size-3.5 animate-spin" /> Verifying…
+                </div>
+              )}
+
+              {resendError && (
+                <motion.div
+                  role="alert"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-xl border border-amber-400/40 dark:border-amber-400/30 bg-amber-500/5 dark:bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-700 dark:text-amber-300 leading-relaxed text-center"
+                >
+                  Couldn't resend: {resendError}
+                </motion.div>
+              )}
+
               <div className="text-center">
                 <button
                   type="button"
