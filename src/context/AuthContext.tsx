@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,6 +18,14 @@ type AuthCtx = {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+function sameSession(a: Session | null, b: Session | null) {
+  return (
+    (a?.access_token ?? null) === (b?.access_token ?? null) &&
+    (a?.expires_at ?? null) === (b?.expires_at ?? null) &&
+    (a?.user?.id ?? null) === (b?.user?.id ?? null)
+  );
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,12 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const cachedSession = readCareerPilotSession()?.session ?? null;
     if (cachedSession) {
-      setSession(cachedSession);
+      setSession((current) => (sameSession(current, cachedSession) ? current : cachedSession));
       setLoading(false);
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
-      setSession(s);
+      setSession((current) => (sameSession(current, s) ? current : s));
       setLoading(false);
       if (s) persistCareerPilotSession(s, { touchLastLogin: event === "SIGNED_IN" });
       if (event === "SIGNED_OUT") clearCareerPilotSession();
@@ -40,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getHydratedCareerPilotSession().then((hydratedSession) => {
       if (!active) return;
-      setSession(hydratedSession);
+      setSession((current) => (sameSession(current, hydratedSession) ? current : hydratedSession));
       setLoading(false);
     });
 
@@ -50,17 +58,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value: AuthCtx = {
+  const signOut = useCallback(async () => {
+      clearCareerPilotSession();
+      setSession(null);
+      return supabase.auth.signOut();
+  }, []);
+
+  const value: AuthCtx = useMemo(() => ({
     session,
     user: session?.user ?? null,
     isAuthenticated: !!session?.user,
     loading,
-    signOut: async () => {
-      clearCareerPilotSession();
-      setSession(null);
-      return supabase.auth.signOut();
-    },
-  };
+    signOut,
+  }), [session, loading, signOut]);
+
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
