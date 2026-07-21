@@ -48,6 +48,7 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendOk, setResendOk] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -106,9 +107,21 @@ function LoginPage() {
   const humanizeAuthError = (raw: string): string => {
     const m = raw.toLowerCase();
     if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
-    if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
+    if (m.includes("network") || m.includes("fetch") || m.includes("failed to fetch")) return "Network issue. Check your connection and try again.";
     if (m.includes("not found") || m.includes("user")) return "We couldn't find that email. Try a different address.";
+    if (m.includes("popup") || m.includes("closed") || m.includes("window")) return "Sign-in window was closed before completing. Try again — or use email code sign-in below.";
+    if (m.includes("redirect") || m.includes("origin") || m.includes("uri")) return "Your browser blocked the Google redirect. Try again, or sign in with an email code below.";
+    if (m.includes("provider") || m.includes("oauth")) return "Google sign-in isn't responding right now. Try again, or use email code sign-in instead.";
     return raw || "Something went wrong. Please try again.";
+  };
+
+  const humanizeOtpError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes("expired")) return "This code has expired. Tap 'Resend code' below to get a new one.";
+    if (m.includes("invalid") || m.includes("incorrect") || m.includes("token") || m.includes("otp")) return "That code doesn't match. Double-check the 6 digits from your email, or resend a new code.";
+    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
+    if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
+    return raw || "We couldn't verify that code. Please try again.";
   };
 
   const formatRetry = (ms: number): string => {
@@ -118,6 +131,9 @@ function LoginPage() {
     if (m < 60) return `${m} min`;
     return `${Math.ceil(m / 60)}h`;
   };
+
+  const isMobileUA = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const isIOS = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   const sendLink = async (isResend = false) => {
     if (!emailOk) return;
@@ -184,7 +200,7 @@ function LoginPage() {
       await routeAfterAuth();
     } catch (err) {
       const raw = err instanceof Error ? err.message : "Invalid or expired code";
-      const msg = /expired|invalid/i.test(raw) ? "That code is invalid or expired. Request a new one." : humanizeAuthError(raw);
+      const msg = humanizeOtpError(raw);
       setOtpError(msg);
       toast.error(msg);
     } finally {
@@ -195,13 +211,29 @@ function LoginPage() {
   const oauth = async (provider: Provider) => {
     if (oauthBusy) return;
     setOauthBusy(provider);
+    setOauthError(null);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       });
       if (result.error) throw result.error;
+      // On mobile, if we didn't redirect within a moment, the popup likely was blocked.
+      if (isMobileUA && !result.redirected) {
+        window.setTimeout(() => {
+          if (!document.hidden) {
+            setOauthError(
+              isIOS
+                ? "iOS may have blocked the Google popup. Allow popups for this site in Settings → Safari, or sign in with an email code below."
+                : "Your browser may have blocked the Google popup. Allow popups for this site, or sign in with an email code below.",
+            );
+            setOauthBusy(null);
+          }
+        }, 2500);
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "OAuth failed");
+      const msg = humanizeAuthError(err instanceof Error ? err.message : "OAuth failed");
+      setOauthError(msg);
+      toast.error(msg);
       setOauthBusy(null);
     }
   };
@@ -343,25 +375,52 @@ function LoginPage() {
                   <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {([
-                    { id: "google" as Provider, label: "Google", Icon: FcGoogle },
-                    { id: "apple" as Provider, label: "Apple", Icon: FaApple },
-                  ]).map(({ id, label, Icon }) => {
-                    const loading = oauthBusy === id;
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => oauth(id)}
-                        disabled={!!oauthBusy}
-                        className="h-11 flex items-center justify-center gap-2 rounded-full bg-white dark:bg-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.1] border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 text-[12.5px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Icon className="w-[16px] h-[16px]" /> {label}</>}
-                      </button>
-                    );
-                  })}
-                </div>
+                {isMobileUA ? (
+                  <div className="flex flex-col gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => oauth("google")}
+                      disabled={!!oauthBusy}
+                      className="h-12 flex items-center justify-center gap-2.5 rounded-full bg-white dark:bg-white/[0.06] hover:bg-gray-50 dark:hover:bg-white/[0.12] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white text-[14px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.99]"
+                    >
+                      {oauthBusy === "google" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FcGoogle className="w-5 h-5" /> Continue with Google</>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => oauth("apple")}
+                      disabled={!!oauthBusy}
+                      className="h-11 flex items-center justify-center gap-2 rounded-full bg-white dark:bg-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.1] border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 text-[13px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.99]"
+                    >
+                      {oauthBusy === "apple" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FaApple className="w-4 h-4" /> Continue with Apple</>}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {([
+                      { id: "google" as Provider, label: "Google", Icon: FcGoogle },
+                      { id: "apple" as Provider, label: "Apple", Icon: FaApple },
+                    ]).map(({ id, label, Icon }) => {
+                      const loading = oauthBusy === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => oauth(id)}
+                          disabled={!!oauthBusy}
+                          className="h-11 flex items-center justify-center gap-2 rounded-full bg-white dark:bg-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.1] border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white/85 text-[12.5px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Icon className="w-[16px] h-[16px]" /> {label}</>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {oauthError && (
+                  <div role="alert" className="rounded-xl border border-amber-400/40 dark:border-amber-400/30 bg-amber-500/5 dark:bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                    {oauthError}
+                  </div>
+                )}
 
                 <p className="mt-2 text-[11px] text-center text-gray-500 dark:text-white/40 leading-relaxed">
                   By continuing you agree to our Terms & Privacy.
