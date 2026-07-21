@@ -53,6 +53,9 @@ function LoginPage() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number>(0);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [otpCode, setOtpCode] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
   const [theme, , toggleTheme] = useTheme();
 
   const checkRoles = useServerFn(getMyRoles);
