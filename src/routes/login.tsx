@@ -199,7 +199,7 @@ function LoginPage() {
       await routeAfterAuth();
     } catch (err) {
       const raw = err instanceof Error ? err.message : "Invalid or expired code";
-      const msg = /expired|invalid/i.test(raw) ? "That code is invalid or expired. Request a new one." : humanizeAuthError(raw);
+      const msg = humanizeOtpError(raw);
       setOtpError(msg);
       toast.error(msg);
     } finally {
