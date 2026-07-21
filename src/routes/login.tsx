@@ -377,29 +377,6 @@ function LoginPage() {
                 </p>
               </div>
 
-              <div className="flex justify-center gap-3 my-8">
-                {otp.map((d, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => { otpRefs.current[i] = el; }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={d}
-                    onChange={(e) => handleOtpChange(i, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                    onPaste={handleOtpPaste}
-                    disabled={busy}
-                    className="w-12 h-14 text-center text-2xl font-semibold bg-black/5 dark:bg-white/5 border border-gray-300 dark:border-white/20 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl transition-all outline-none text-gray-900 dark:text-white disabled:opacity-50"
-                  />
-                ))}
-              </div>
-
-              {busy && (
-                <div className="flex items-center justify-center gap-2 text-[12.5px] text-gray-500 dark:text-white/50 mb-4">
-                  <Loader2 className="size-3.5 animate-spin" /> Verifying…
-                </div>
-              )}
 
               <div className="flex justify-center gap-3 my-8">
                 {otp.map((d, i) => (
