@@ -128,6 +128,7 @@ function RootComponent() {
           <Footer />
           <ChatWidget />
           <GuestConcierge />
+          <ChatOpenGate />
           <Toaster />
         </div>
       </AuthProvider>

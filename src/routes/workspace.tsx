@@ -546,7 +546,7 @@ function FloatingChat({ userName, onJump }: { userName: string; onJump: (t: Tab)
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="ws-primary fixed bottom-6 right-6 z-[80] size-14 rounded-2xl grid place-items-center shadow-[0_20px_40px_-10px_rgba(var(--ac-glow),0.55)]" aria-label="Open Aether Concierge">
+      <button onClick={() => { void import("@/lib/chatGate").then(m => m.openChatGate()); setOpen(true); }} className="ws-primary fixed bottom-6 right-6 z-[80] size-14 rounded-2xl grid place-items-center shadow-[0_20px_40px_-10px_rgba(var(--ac-glow),0.55)]" aria-label="Open Aether Concierge">
         <Sparkles className="size-5" />
       </button>
     );
