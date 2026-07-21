@@ -469,7 +469,7 @@ function LoginPage() {
                   {cooldownMs > 0 ? (
                     <>Resend available in <span className="font-mono tabular-nums">{cooldownSec}s</span></>
                   ) : (
-                    <>Didn't receive it? <span className="underline underline-offset-2">Resend link</span></>
+                    <>Didn't receive it? <span className="underline underline-offset-2">Resend code</span></>
                   )}
                 </button>
               </div>
