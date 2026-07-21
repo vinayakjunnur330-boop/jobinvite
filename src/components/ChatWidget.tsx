@@ -170,6 +170,19 @@ export function ChatWidget() {
           }
         }
       }
+      // Persist completed exchange to DB for signed-in users
+      if (isAuthenticated && user && assistant) {
+        await supabase.from("chat_messages").insert([
+          { user_id: user.id, conversation_id: CONVERSATION_ID, role: "user", content },
+          { user_id: user.id, conversation_id: CONVERSATION_ID, role: "assistant", content: assistant },
+        ]);
+      } else if (!isAuthenticated) {
+        try {
+          const persisted = [...next.slice(1, -1), { role: "assistant" as const, content: assistant }];
+          localStorage.setItem("cp_guest_msgs", JSON.stringify(persisted));
+        } catch { /* ignore */ }
+      }
+
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       toast.error(msg);
