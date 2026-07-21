@@ -97,7 +97,7 @@ export function Navbar() {
               <button onClick={() => { setOpen(false); handleSignOut(); }} className="text-sm font-medium">Sign out</button>
             ) : (
               <>
-                <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-medium">Sign in</Link>
+                <Link to="/login" search={{ form: "1" }} onClick={() => setOpen(false)} className="text-sm font-medium">Sign in</Link>
                 <Link to="/assessment" onClick={() => setOpen(false)} className="ml-auto px-4 py-2 bg-foreground text-background rounded-lg text-sm font-medium">Get started</Link>
               </>
             )}
