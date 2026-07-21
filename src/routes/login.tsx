@@ -280,7 +280,7 @@ function LoginPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                       autoComplete="email"
                       autoFocus
                       placeholder="you@work.com"
