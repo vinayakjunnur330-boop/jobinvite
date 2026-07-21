@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Send, X, Eye, EyeOff, Loader2, RotateCcw, ThumbsUp, ThumbsDown } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
@@ -40,6 +40,18 @@ function renderMd(text: string) {
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-white/10 text-[11px] font-mono">$1</code>')
     .replace(/\n/g, "<br/>");
+}
+
+function SignInButton() {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate({ to: "/login" })}
+      className="absolute top-6 right-8 z-[100] px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] text-sm cursor-pointer"
+    >
+      Sign In / Sign Up
+    </button>
+  );
 }
 
 export function GuestConcierge() {
@@ -169,12 +181,7 @@ export function GuestConcierge() {
           />
 
           {/* Top-right Sign In / Sign Up */}
-          <Link
-            to="/login"
-            className="absolute top-6 right-8 z-[100] px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] text-sm"
-          >
-            Sign In / Sign Up
-          </Link>
+          <SignInButton />
 
           {/* Strict 50/50 flex split */}
           <div className="w-full max-w-7xl h-[85vh] flex flex-row items-center justify-center mx-auto relative">
