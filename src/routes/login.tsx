@@ -223,24 +223,24 @@ function LoginPage() {
         transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="absolute top-6 right-8 z-50 flex items-center gap-3">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-50 flex items-center gap-2 sm:gap-3">
         <button
           onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
+          className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
         >
           {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </button>
         <button
           onClick={() => navigate({ to: "/" })}
 
-          className="px-4 py-2 rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white text-xs font-medium hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white text-[11px] sm:text-xs font-medium hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
         >
-          ← Back to Zoiee
+          ← Back
         </button>
       </div>
 
-      <div className="relative w-full max-w-[440px] bg-white/70 dark:bg-black/40 backdrop-blur-3xl border border-gray-200 dark:border-white/10 p-10 rounded-3xl shadow-2xl">
+      <div className="relative w-full max-w-[440px] mt-16 sm:mt-0 bg-white/70 dark:bg-black/40 backdrop-blur-3xl border border-gray-200 dark:border-white/10 p-6 sm:p-10 rounded-3xl shadow-2xl">
         {authStep === "sent" && (
           <button
             onClick={() => {
@@ -297,9 +297,10 @@ function LoginPage() {
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                       autoComplete="email"
-                      autoFocus
+                      inputMode="email"
                       placeholder="you@work.com"
-                      className={`bg-transparent border-b py-3 w-full outline-none transition-all text-[14px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 ${
+                      style={{ fontSize: "16px" }}
+                      className={`bg-transparent border-b py-3 w-full outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 ${
                         email.length > 0 && !emailOk
                           ? "border-red-400 focus:border-red-500"
                           : "border-gray-300 dark:border-white/20 focus:border-blue-500"
