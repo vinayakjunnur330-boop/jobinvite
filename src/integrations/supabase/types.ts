@@ -251,6 +251,27 @@ export type Database = {
         }
         Relationships: []
       }
+      magic_link_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+          ip: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: number
+          ip?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: number
+          ip?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
