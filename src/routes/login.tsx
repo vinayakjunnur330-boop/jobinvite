@@ -49,6 +49,8 @@ function LoginPage() {
   const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [resendIn, setResendIn] = useState(0);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
+  const [success, setSuccess] = useState(false);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const checkRoles = useServerFn(getMyRoles);
