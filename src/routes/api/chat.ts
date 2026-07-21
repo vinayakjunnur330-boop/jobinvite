@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -14,6 +16,15 @@ Your style:
 - If the user is vague, ask ONE crisp clarifying question, then give a useful answer anyway.
 - Always end long answers with a "Next step" line the user can do today.`;
 
+// Server-enforced per-user daily quota (defense against abuse of the paid gateway).
+const DAILY_LIMIT = 60;
+
+const jsonError = (status: number, error: string) =>
+  new Response(JSON.stringify({ error }), {
+    status,
+    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+  });
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
@@ -28,25 +39,78 @@ export const Route = createFileRoute("/api/chat")({
         }),
       POST: async ({ request }) => {
         const apiKey = process.env.LOVABLE_API_KEY;
-        if (!apiKey) {
-          return new Response(JSON.stringify({ error: "AI gateway not configured" }), { status: 500 });
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+        if (!apiKey || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+          return jsonError(500, "AI gateway not configured");
         }
+
+        // ---- Require a valid Supabase session (server-side verification) ----
+        const authHeader = request.headers.get("authorization") ?? "";
+        if (!authHeader.toLowerCase().startsWith("bearer ")) {
+          return jsonError(401, "Authentication required. Please sign in to use the AI assistant.");
+        }
+        const token = authHeader.slice(7).trim();
+        if (!token) return jsonError(401, "Authentication required.");
+
+        const supabaseAuth = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+          auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+        });
+        const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+        const userId = claimsData?.claims?.sub;
+        if (claimsError || !userId) {
+          return jsonError(401, "Invalid or expired session. Please sign in again.");
+        }
+
+        // ---- Parse and validate body ----
         let body: { messages?: Msg[] };
         try {
           body = await request.json();
         } catch {
-          return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+          return jsonError(400, "Invalid JSON");
         }
         const raw = Array.isArray(body.messages) ? body.messages.slice(-20) : [];
-        // Filter out client-supplied system messages; enforce content length
         const messages = raw
           .filter((m): m is Msg => !!m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
           .map((m) => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
         if (messages.length === 0) {
-          return new Response(JSON.stringify({ error: "No messages provided" }), { status: 400 });
+          return jsonError(400, "No messages provided");
         }
 
+        // ---- Enforce server-side per-user daily quota via service role ----
+        // (RLS on public.chat_usage is enabled; only service_role writes.)
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const today = new Date().toISOString().slice(0, 10); // UTC yyyy-mm-dd
+        const { data: usageRow, error: usageErr } = await supabaseAdmin
+          .from("chat_usage")
+          .select("count")
+          .eq("user_id", userId)
+          .eq("day", today)
+          .maybeSingle();
+        if (usageErr) {
+          console.error("chat_usage read failed", usageErr);
+          return jsonError(500, "Usage check failed");
+        }
+        const current = usageRow?.count ?? 0;
+        if (current >= DAILY_LIMIT) {
+          return jsonError(
+            429,
+            `Daily limit reached (${DAILY_LIMIT} messages). Please try again tomorrow.`,
+          );
+        }
+        // Reserve one request BEFORE calling the paid gateway.
+        const { error: upsertErr } = await supabaseAdmin
+          .from("chat_usage")
+          .upsert(
+            { user_id: userId, day: today, count: current + 1, updated_at: new Date().toISOString() },
+            { onConflict: "user_id,day" },
+          );
+        if (upsertErr) {
+          console.error("chat_usage upsert failed", upsertErr);
+          return jsonError(500, "Usage recording failed");
+        }
 
+        // ---- Forward to Lovable AI gateway (streaming) ----
         const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -62,20 +126,14 @@ export const Route = createFileRoute("/api/chat")({
 
         if (!upstream.ok) {
           if (upstream.status === 429) {
-            return new Response(
-              JSON.stringify({ error: "Rate limit reached. Please wait a moment and try again." }),
-              { status: 429, headers: { "Content-Type": "application/json" } },
-            );
+            return jsonError(429, "Rate limit reached. Please wait a moment and try again.");
           }
           if (upstream.status === 402) {
-            return new Response(
-              JSON.stringify({ error: "AI credits exhausted. Please top up your Lovable workspace." }),
-              { status: 402, headers: { "Content-Type": "application/json" } },
-            );
+            return jsonError(402, "AI credits exhausted. Please top up your Lovable workspace.");
           }
           const t = await upstream.text().catch(() => "");
           console.error("AI gateway error", upstream.status, t);
-          return new Response(JSON.stringify({ error: "AI gateway error" }), { status: 502 });
+          return jsonError(502, "AI gateway error");
         }
 
         return new Response(upstream.body, {
