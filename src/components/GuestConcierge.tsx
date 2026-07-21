@@ -101,7 +101,7 @@ export function GuestConcierge() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs, streaming]);
+  }, [msgs.length]);
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
@@ -209,7 +209,7 @@ export function GuestConcierge() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[90] bg-[#0a0f1c]/70 backdrop-blur-3xl w-full h-[100dvh] flex flex-col md:flex-row"
+          className="fixed inset-0 z-[90] bg-[#0a0f1c]/70 backdrop-blur-3xl w-full min-h-screen flex flex-col md:flex-row"
         >
           {/* Ambient glow */}
           <div
