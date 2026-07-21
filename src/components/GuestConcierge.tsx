@@ -120,12 +120,30 @@ export function GuestConcierge() {
     setStreaming(true);
 
     try {
+      const { data: sessionData } = await supabase.auth
+        .getSession()
+        .catch(() => ({ data: { session: null } as { session: null } }));
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        // Server now requires auth for the paid AI gateway. Prompt sign-in.
+        setMsgs(history);
+        setStreaming(false);
+        toast.info("Sign in to chat with Zoiee — it keeps our AI free of abuse.");
+        setShowAuthModal(true);
+        return;
+      }
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ messages: history }),
       });
-      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok || !res.body) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = ""; let assistant = ""; let done = false;
