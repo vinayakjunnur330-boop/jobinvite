@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://odstccsbdlyeqbcsucqj.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "careerpilot-ai-mcp",
+      "version": "0.1.0",
+      "title": "CareerPilot AI"
+    },
+    "tools": [
+      {
+        "name": "list_domains",
+        "title": "List career domains",
+        "description": "List all career domains (categories) CareerPilot AI covers, e.g. Technology, Medical, Finance.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_careers",
+        "title": "Search careers",
+        "description": "Search CareerPilot AI's career catalog by free-text query and/or category (domain). Returns matching careers with match score, salary range, growth, demand, and key skills.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "description": "Free-text search over title, skills, industry, or summary.",
+              "type": "string",
+              "maxLength": 120
+            },
+            "category": {
+              "description": "Optional domain to filter by (e.g. Technology, Medical).",
+              "type": "string",
+              "maxLength": 60
+            },
+            "limit": {
+              "description": "Maximum results to return. Default 10.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_career",
+        "title": "Get career details",
+        "description": "Get the full details of a single career by its slug (e.g. 'ai-engineer').",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "description": "Career slug returned by search_careers."
+            }
+          },
+          "required": [
+            "slug"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_saved_careers",
+        "title": "List my saved careers",
+        "description": "List the careers the signed-in CareerPilot AI user has saved to their dashboard.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "save_career",
+        "title": "Save a career",
+        "description": "Save a career from the CareerPilot AI catalog to the signed-in user's dashboard.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "description": "Career slug from search_careers or get_career."
+            },
+            "notes": {
+              "description": "Optional personal note about why this career interests you.",
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "slug"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
