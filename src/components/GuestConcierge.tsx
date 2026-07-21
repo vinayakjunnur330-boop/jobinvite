@@ -250,7 +250,7 @@ export function GuestConcierge() {
   return (
     <>
       {showLoadingGate && (
-        <div className="fixed inset-0 z-[9999] min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center">
           <Loader2 className="size-6 animate-spin text-white/60" />
         </div>
       )}
