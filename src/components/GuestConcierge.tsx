@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, X, Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
+import { Send, X, Eye, EyeOff, Loader2, Sparkles, Mic } from "lucide-react";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
@@ -16,8 +16,13 @@ const GUEST_LIMIT = 3;
 const KEY_MSGS = "cp_guest_msgs";
 const KEY_COUNT = "guest_chat_count";
 const KEY_DISMISSED = "cp_guest_dismissed";
-const DEFAULT_BUBBLE =
-  "Hey! Welcome to CareerPilot AI 👋 Ask me 3 free career questions to test my intelligence.";
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
 
 function readMsgs(): Msg[] {
   if (typeof window === "undefined") return [];
@@ -43,12 +48,14 @@ export function GuestConcierge() {
   const [dismissed, setDismissed] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [count, setCount] = useState(0);
-  const [bubble, setBubble] = useState<string>(DEFAULT_BUBBLE);
-  const [bubbleKey, setBubbleKey] = useState(0);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [listening, setListening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const openingMsg = `${greeting()}! Welcome to CareerPilot AI 👋 Ask me 3 free career questions.`;
 
   useEffect(() => {
     const priorMsgs = readMsgs();
@@ -56,8 +63,6 @@ export function GuestConcierge() {
     setMsgs(priorMsgs);
     setCount(priorCount);
     setDismissed(sessionStorage.getItem(KEY_DISMISSED) === "1");
-    const lastAssistant = [...priorMsgs].reverse().find((m) => m.role === "assistant" && m.content);
-    if (lastAssistant) setBubble(lastAssistant.content);
     setHydrated(true);
   }, []);
 
@@ -71,11 +76,14 @@ export function GuestConcierge() {
     return () => { document.body.style.overflow = prev; };
   }, [active]);
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, streaming]);
+
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || streaming) return;
 
-    // The gatekeeper: 4th attempt is blocked.
     if (count >= GUEST_LIMIT) {
       toast.info("You've used your 3 free guest questions! Sign in now to unlock your full career dashboard.");
       setShowAuthModal(true);
@@ -89,8 +97,6 @@ export function GuestConcierge() {
     setCount(nextCount);
     localStorage.setItem(KEY_COUNT, String(nextCount));
     setStreaming(true);
-    setBubble("");
-    setBubbleKey((k) => k + 1);
 
     try {
       const res = await fetch("/api/chat", {
@@ -118,7 +124,6 @@ export function GuestConcierge() {
             const delta = p.choices?.[0]?.delta?.content as string | undefined;
             if (delta) {
               assistant += delta;
-              setBubble(assistant);
               setMsgs((cur) => {
                 const c = cur.slice();
                 c[c.length - 1] = { role: "assistant", content: assistant };
@@ -137,11 +142,16 @@ export function GuestConcierge() {
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
-      setBubble(msg);
       toast.error(msg);
     } finally {
       setStreaming(false);
     }
+  };
+
+  const toggleMic = () => {
+    setListening((v) => !v);
+    toast.info("Voice input is coming soon.");
+    setTimeout(() => setListening(false), 800);
   };
 
   const dismiss = () => {
@@ -149,130 +159,157 @@ export function GuestConcierge() {
     setDismissed(true);
   };
 
-  if (!active) return null;
-
   const remaining = Math.max(0, GUEST_LIMIT - count);
   const locked = count >= GUEST_LIMIT;
 
   return (
-    <div className="fixed inset-0 z-[9990] bg-black/80 backdrop-blur-3xl flex flex-col items-center justify-center p-6">
-      {/* ambient color wash */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at 25% 30%, rgba(34,211,238,0.18), transparent 55%), radial-gradient(ellipse at 75% 75%, rgba(139,92,246,0.20), transparent 55%)",
-        }}
-      />
-
-      <button
-        onClick={dismiss}
-        className="absolute top-5 right-5 text-xs text-white/60 hover:text-white transition-colors inline-flex items-center gap-1.5 z-10"
-      >
-        Explore first <X className="size-3.5" />
-      </button>
-
-      <div className="relative w-full max-w-xl flex flex-col items-center">
-        {/* Speech bubble ABOVE robot */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={bubbleKey}
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl max-w-md text-center text-white shadow-2xl relative"
-          >
-            <div
-              className="text-sm leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: renderMd(bubble || (streaming ? "Thinking…" : DEFAULT_BUBBLE)),
-              }}
-            />
-            {/* tail */}
-            <div
-              aria-hidden
-              className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 rotate-45 bg-white/10 backdrop-blur-xl border-b border-r border-white/20"
-            />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Floating 3D-ish AI robot mascot */}
+    <AnimatePresence>
+      {active && (
         <motion.div
-          animate={{ y: [-10, 10, -10] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="relative mt-10 mb-10"
+          key="guest-overlay"
+          initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
+          transition={{ duration: 0.5, type: "spring" }}
+          className="fixed inset-0 z-[9990] bg-black/80 backdrop-blur-3xl flex flex-col items-center justify-center p-4 md:p-6"
         >
           <div
-            className="absolute inset-0 rounded-full blur-3xl -z-10"
-            style={{ background: "radial-gradient(circle, rgba(16,185,129,0.55), transparent 65%)" }}
-          />
-          <div className="size-40 rounded-full overflow-hidden border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center shadow-[0_20px_80px_rgba(16,185,129,0.5)]">
-            <img
-              src={chatbotLogo}
-              alt="Pilot AI"
-              width={320}
-              height={320}
-              className="size-32 object-contain drop-shadow-[0_0_18px_rgba(16,185,129,0.8)]"
-            />
-          </div>
-          <Sparkles className="absolute -top-1 -right-1 size-5 text-emerald-300" />
-          {/* shadow */}
-          <motion.div
             aria-hidden
-            animate={{ scaleX: [1, 0.85, 1], opacity: [0.5, 0.35, 0.5] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="mx-auto mt-2 h-3 w-24 rounded-full bg-black/60 blur-md"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse at 25% 30%, rgba(34,211,238,0.18), transparent 55%), radial-gradient(ellipse at 75% 75%, rgba(139,92,246,0.20), transparent 55%)",
+            }}
           />
-        </motion.div>
 
-        {/* Glass input pill */}
-        <form
-          onSubmit={(e) => { e.preventDefault(); send(); }}
-          className="w-full max-w-xl bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-6 py-4 flex items-center gap-3 shadow-2xl"
-        >
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask CareerPilot AI anything..."
-            disabled={streaming}
-            className="flex-1 bg-transparent text-sm md:text-[15px] text-white placeholder:text-white/50 focus:outline-none"
-          />
-          <motion.button
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            type="submit"
-            disabled={streaming || !input.trim()}
-            className="size-11 rounded-full flex items-center justify-center text-white disabled:opacity-50 border border-white/25 shadow-[0_8px_24px_rgba(34,211,238,0.35)]"
-            style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.85), rgba(139,92,246,0.85))" }}
-            aria-label="Send"
+          <button
+            onClick={dismiss}
+            className="absolute top-5 right-5 text-xs text-white/60 hover:text-white transition-colors inline-flex items-center gap-1.5 z-10"
           >
-            {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-          </motion.button>
-        </form>
+            Explore first <X className="size-3.5" />
+          </button>
 
-        {/* Remaining pill */}
-        <motion.div
-          key={`pill-${count}`}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-widest border ${
-            locked
-              ? "bg-red-500/10 border-red-400/30 text-red-200"
-              : "bg-white/10 border-white/20 text-white/80"
-          }`}
-        >
-          <span className={`size-1.5 rounded-full ${locked ? "bg-red-400" : "bg-emerald-400 animate-pulse"}`} />
-          {locked
-            ? "Free trial used — sign in to continue"
-            : <>Free Questions Remaining: <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span></>}
+          <div className="relative w-full max-w-2xl flex flex-col items-center">
+            {/* Floating avatar */}
+            <motion.div
+              animate={{ y: [-5, 5, -5] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="relative mb-4"
+            >
+              <div
+                className="absolute inset-0 rounded-full blur-3xl -z-10"
+                style={{ background: "radial-gradient(circle, rgba(16,185,129,0.55), transparent 65%)" }}
+              />
+              <div className="size-20 md:size-24 rounded-full overflow-hidden border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center shadow-[0_20px_60px_rgba(16,185,129,0.5)]">
+                <img
+                  src={chatbotLogo}
+                  alt="Pilot AI"
+                  width={192}
+                  height={192}
+                  className="size-16 md:size-20 object-contain drop-shadow-[0_0_18px_rgba(16,185,129,0.8)]"
+                />
+              </div>
+              <Sparkles className="absolute -top-1 -right-1 size-4 text-emerald-300" />
+            </motion.div>
+
+            {/* Scrollable chat history */}
+            <div
+              ref={scrollRef}
+              className="flex flex-col gap-4 w-full max-w-2xl h-[400px] overflow-y-auto scrollbar-hide px-4 pb-4"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {/* opening greeting */}
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="self-start max-w-[85%] bg-white/10 backdrop-blur-md rounded-2xl rounded-tl-sm p-4 text-white text-sm leading-relaxed border border-white/10"
+              >
+                {openingMsg}
+              </motion.div>
+
+              {msgs.map((m, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className={
+                    m.role === "user"
+                      ? "self-end max-w-[85%] bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl rounded-tr-sm p-4 text-white shadow-lg text-sm leading-relaxed"
+                      : "self-start max-w-[85%] bg-white/10 backdrop-blur-md rounded-2xl rounded-tl-sm p-4 text-white text-sm leading-relaxed border border-white/10"
+                  }
+                >
+                  {m.role === "assistant" ? (
+                    <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || "Thinking…") }} />
+                  ) : (
+                    m.content
+                  )}
+                </motion.div>
+              ))}
+              <div ref={bottomRef} />
+            </div>
+
+            {/* Glass input pill */}
+            <form
+              onSubmit={(e) => { e.preventDefault(); send(); }}
+              className="w-full max-w-2xl bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-4 md:px-6 py-3 flex items-center gap-2 shadow-2xl"
+            >
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask CareerPilot AI anything..."
+                disabled={streaming}
+                className="flex-1 bg-transparent text-sm md:text-[15px] text-white placeholder:text-white/50 focus:outline-none px-2"
+              />
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleMic}
+                className={`p-2 rounded-full transition-all ${
+                  listening
+                    ? "text-cyan-400 bg-white/10"
+                    : "text-white/50 hover:text-cyan-400 hover:bg-white/10"
+                }`}
+                aria-label="Voice input"
+              >
+                <Mic className="size-4" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                type="submit"
+                disabled={streaming || !input.trim()}
+                className="size-10 rounded-full flex items-center justify-center text-white disabled:opacity-50 border border-white/25 shadow-[0_8px_24px_rgba(34,211,238,0.35)]"
+                style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.85), rgba(139,92,246,0.85))" }}
+                aria-label="Send"
+              >
+                {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+              </motion.button>
+            </form>
+
+            {/* Remaining pill */}
+            <motion.div
+              key={`pill-${count}`}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-widest border ${
+                locked
+                  ? "bg-red-500/10 border-red-400/30 text-red-200"
+                  : "bg-white/10 border-white/20 text-white/80"
+              }`}
+            >
+              <span className={`size-1.5 rounded-full ${locked ? "bg-red-400" : "bg-emerald-400 animate-pulse"}`} />
+              {locked
+                ? "Free trial used — sign in to continue"
+                : <>Free Questions Remaining: <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span></>}
+            </motion.div>
+          </div>
+
+          <AuthGateModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
         </motion.div>
-      </div>
-
-      <AuthGateModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
-    </div>
+      )}
+    </AnimatePresence>
   );
 }
 
