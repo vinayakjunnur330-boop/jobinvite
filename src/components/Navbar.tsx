@@ -4,6 +4,7 @@ import { Menu, X, LogOut, Compass, Sparkles, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
+import { showPageLoader } from "@/lib/nav-loader";
 
 function ThemeToggle({ className = "" }: { className?: string }) {
   const [theme, , toggle] = useTheme();
