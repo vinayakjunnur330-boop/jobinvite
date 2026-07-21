@@ -8,7 +8,7 @@ import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-ic
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import chatbotLogo from "@/assets/chatbot-logo.png";
+
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Provider = "google" | "apple" | "github" | "facebook" | "instagram" | "twitter";
