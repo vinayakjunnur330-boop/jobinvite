@@ -13,11 +13,17 @@ import { checkMagicLinkQuota } from "@/lib/auth-security.functions";
 import { getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
 import { useTheme } from "@/lib/theme";
 
-type LoginSearch = { form?: "1" };
+type LoginSearch = { form?: "1"; next?: string };
+
+function sanitizeNext(v: unknown): string | undefined {
+  if (typeof v !== "string" || !v.startsWith("/") || v.startsWith("//")) return undefined;
+  return v;
+}
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>): LoginSearch => ({
     form: s.form === "1" ? "1" : undefined,
+    next: sanitizeNext(s.next),
   }),
   head: () => ({
     meta: [
@@ -35,7 +41,7 @@ const SESSION_KEY = "user_session";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { form } = Route.useSearch();
+  const { form, next } = Route.useSearch();
   const showLoginForm = form === "1";
 
   const [authStep, setAuthStep] = useState<AuthStep>("email");
@@ -53,6 +59,10 @@ function LoginPage() {
   const checkRoles = useServerFn(getMyRoles);
   const checkQuota = useServerFn(checkMagicLinkQuota);
   const routeAfterAuth = async () => {
+    if (next) {
+      window.location.assign(next);
+      return;
+    }
     try {
       const r = await checkRoles();
       navigate({ to: r.isAdmin ? "/admin" : "/dashboard" });
@@ -65,7 +75,8 @@ function LoginPage() {
     if (typeof window === "undefined") return;
     const stored = localStorage.getItem(SESSION_KEY);
     if (stored) {
-      navigate({ to: "/dashboard" });
+      if (next) window.location.assign(next);
+      else navigate({ to: "/dashboard" });
       return;
     }
     getHydratedCareerPilotSession().then((s) => {
@@ -128,11 +139,12 @@ function LoginPage() {
         return;
       }
 
+      const callback = `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: callback,
         },
       });
       if (error) throw error;
@@ -160,7 +172,7 @@ function LoginPage() {
     setOauthBusy(provider);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: `${window.location.origin}/auth/callback`,
+        redirect_uri: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       });
       if (result.error) throw result.error;
     } catch (err) {
