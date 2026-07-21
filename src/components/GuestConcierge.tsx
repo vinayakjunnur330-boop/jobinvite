@@ -195,15 +195,21 @@ export function GuestConcierge() {
   const remaining = Math.max(0, GUEST_LIMIT - count);
 
   return (
-    <AnimatePresence>
-      {active && (
+    <>
+      {showLoadingGate && (
+        <div className="fixed inset-0 z-[9999] min-h-screen bg-[#050505] flex items-center justify-center">
+          <Loader2 className="size-6 animate-spin text-white/60" />
+        </div>
+      )}
+      <AnimatePresence>
+        {active && (
         <motion.div
           key="guest-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[90] bg-[#0a0f1c]/70 backdrop-blur-3xl w-full h-screen flex items-center justify-center p-4 md:p-8"
+          className="fixed inset-0 z-[90] bg-[#0a0f1c]/70 backdrop-blur-3xl w-full h-[100dvh] flex flex-col md:flex-row"
         >
           {/* Ambient glow */}
           <div
@@ -218,42 +224,36 @@ export function GuestConcierge() {
           {/* Top-right controls */}
           <TopRightControls />
 
-          {/* Strict 50/50 flex split */}
-          <div className="w-full max-w-7xl h-[85vh] flex flex-row items-center justify-center mx-auto relative">
-            {/* LEFT — mascot column (50%) */}
-            <div className="w-1/2 h-full flex flex-col items-center justify-center relative">
-              <motion.img
-                src="/robot-avatar.png"
-                alt="CareerPilot AI Mascot"
-                className="w-72 h-72 object-contain drop-shadow-[0_0_40px_rgba(6,182,212,0.3)] z-10"
-                animate={{ y: [-15, 15, -15] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.7, 0.3] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="w-32 h-4 bg-black/40 blur-md rounded-[100%] mt-6"
-              />
-              <div className="mt-8 text-center px-6">
-                <div className="text-[11px] uppercase tracking-[0.28em] text-cyan-300/80">Zoiee · AI counselor</div>
-                <div className="mt-2 text-white/70 text-sm">
-                  Free Questions Remaining:{" "}
-                  <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span>
-                </div>
+          {/* LEFT — mascot column (stacked on mobile, side on md+) */}
+          <div className="w-full h-1/3 md:w-1/2 md:h-full shrink-0 flex flex-col items-center justify-center pt-8 md:pt-0 relative">
+            <motion.img
+              src="/robot-avatar.png"
+              alt="CareerPilot AI Mascot"
+              className="w-40 h-40 md:w-72 md:h-72 object-contain drop-shadow-[0_0_30px_rgba(6,182,212,0.4)] z-10"
+              animate={{ y: [-10, 10, -10] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <div className="w-24 md:w-32 h-3 md:h-4 bg-black/40 blur-md rounded-[100%] mt-4 md:mt-6" />
+            <div className="mt-4 md:mt-8 text-center px-6">
+              <div className="text-[10px] md:text-[11px] uppercase tracking-[0.28em] text-cyan-300/80">Zoiee · AI counselor</div>
+              <div className="mt-2 text-white/70 text-xs md:text-sm">
+                Free Questions Remaining:{" "}
+                <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span>
               </div>
             </div>
+          </div>
 
-            {/* RIGHT — chat column (50%) */}
-            <div className="w-1/2 h-full flex flex-col relative px-8 pb-4 pt-16">
+          {/* RIGHT — chat column */}
+          <div className="w-full flex-1 md:w-1/2 md:h-full flex flex-col relative px-4 md:px-8 pb-4 pt-4 md:pt-16 min-h-0">
               {/* Chat history */}
               <div
-                className="flex-1 w-full overflow-y-auto flex flex-col gap-4"
+                className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col gap-4"
                 style={{ scrollbarWidth: "none" }}
               >
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[85%] text-sm leading-relaxed"
+                  className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[90%] md:max-w-[85%] text-sm leading-relaxed"
                 >
                   {openingMsg}
                   <div className="mt-2 flex items-center gap-3 text-white/40">
@@ -270,8 +270,8 @@ export function GuestConcierge() {
                     transition={{ duration: 0.25 }}
                     className={
                       m.role === "user"
-                        ? "self-end bg-white text-gray-900 p-3 rounded-2xl rounded-tr-sm shadow-md max-w-[75%] text-sm leading-relaxed"
-                        : "self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[85%] text-sm leading-relaxed"
+                        ? "self-end bg-white text-gray-900 p-3 rounded-2xl rounded-tr-sm shadow-md max-w-[90%] md:max-w-[75%] text-sm leading-relaxed"
+                        : "self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[90%] md:max-w-[85%] text-sm leading-relaxed"
                     }
                   >
                     {m.role === "assistant" ? (
@@ -304,12 +304,12 @@ export function GuestConcierge() {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask Zoiee..."
                     disabled={streaming}
-                    className="flex-1 bg-transparent border-none text-gray-900 px-4 py-3 focus:outline-none focus:ring-0 text-sm placeholder-gray-500"
+                    className="flex-1 min-w-0 bg-transparent border-none text-gray-900 px-3 md:px-4 py-3 focus:outline-none focus:ring-0 text-sm placeholder-gray-500"
                   />
                   <button
                     type="submit"
                     disabled={streaming || !input.trim()}
-                    className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-60"
+                    className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-60 shrink-0"
                     aria-label="Send"
                   >
                     {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
@@ -317,7 +317,7 @@ export function GuestConcierge() {
                   <button
                     type="button"
                     onClick={resetChat}
-                    className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer"
+                    className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer shrink-0"
                     aria-label="Restart"
                   >
                     <RotateCcw className="size-4" />
@@ -325,13 +325,12 @@ export function GuestConcierge() {
                 </form>
               </div>
             </div>
-          </div>
-
 
           <AuthGateModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
         </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
