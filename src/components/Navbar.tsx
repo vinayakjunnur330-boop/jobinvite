@@ -84,7 +84,7 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/login" search={{ form: "1" }} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/login" search={{ form: "1" }} onClick={() => showPageLoader()} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Sign in
               </Link>
               <Link
@@ -117,7 +117,7 @@ export function Navbar() {
               <button onClick={() => { setOpen(false); handleSignOut(); }} className="text-sm font-medium">Sign out</button>
             ) : (
               <>
-                <Link to="/login" search={{ form: "1" }} onClick={() => setOpen(false)} className="text-sm font-medium">Sign in</Link>
+                <Link to="/login" search={{ form: "1" }} onClick={() => { setOpen(false); showPageLoader(); }} className="text-sm font-medium">Sign in</Link>
                 <Link to="/assessment" onClick={() => setOpen(false)} className="ml-auto px-4 py-2 bg-foreground text-background rounded-lg text-sm font-medium">Get started</Link>
               </>
             )}

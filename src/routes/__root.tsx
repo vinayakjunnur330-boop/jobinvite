@@ -17,6 +17,7 @@ import { ChatOpenGate } from "@/components/ChatOpenGate";
 import { SessionManager } from "@/components/SessionManager";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
+import { PageLoaderHost } from "@/components/PageLoaderHost";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 
@@ -168,6 +169,7 @@ function RootAppContent() {
           <ChatOpenGate />
           <SessionManager />
           <Toaster />
+          <PageLoaderHost />
         </div>
     </>
   );
