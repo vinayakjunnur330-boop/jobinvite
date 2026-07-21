@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, X, Eye, EyeOff, Loader2, Lock, Sparkles } from "lucide-react";
+import { Send, X, Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
@@ -14,8 +14,10 @@ type Provider = "google" | "apple" | "github" | "facebook" | "instagram" | "twit
 
 const GUEST_LIMIT = 3;
 const KEY_MSGS = "cp_guest_msgs";
-const KEY_COUNT = "cp_guest_count";
-const KEY_DISMISSED = "cp_guest_dismissed"; // session-only
+const KEY_COUNT = "guest_chat_count";
+const KEY_DISMISSED = "cp_guest_dismissed";
+const DEFAULT_BUBBLE =
+  "Hey! Welcome to CareerPilot AI 👋 Ask me 3 free career questions to test my intelligence.";
 
 function readMsgs(): Msg[] {
   if (typeof window === "undefined") return [];
@@ -41,21 +43,23 @@ export function GuestConcierge() {
   const [dismissed, setDismissed] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [count, setCount] = useState(0);
+  const [bubble, setBubble] = useState<string>(DEFAULT_BUBBLE);
+  const [bubbleKey, setBubbleKey] = useState(0);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
-  const [gateOpen, setGateOpen] = useState(false);
-  const endRef = useRef<HTMLDivElement>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setMsgs(readMsgs());
-    setCount(readCount());
+    const priorMsgs = readMsgs();
+    const priorCount = readCount();
+    setMsgs(priorMsgs);
+    setCount(priorCount);
     setDismissed(sessionStorage.getItem(KEY_DISMISSED) === "1");
+    const lastAssistant = [...priorMsgs].reverse().find((m) => m.role === "assistant" && m.content);
+    if (lastAssistant) setBubble(lastAssistant.content);
     setHydrated(true);
   }, []);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [msgs, streaming]);
 
   const active = hydrated && !loading && !isAuthenticated && !dismissed;
 
@@ -63,29 +67,36 @@ export function GuestConcierge() {
     if (!active) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    inputRef.current?.focus();
     return () => { document.body.style.overflow = prev; };
   }, [active]);
-
-  const persist = (next: Msg[], nextCount: number) => {
-    localStorage.setItem(KEY_MSGS, JSON.stringify(next));
-    localStorage.setItem(KEY_COUNT, String(nextCount));
-  };
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || streaming) return;
-    if (count >= GUEST_LIMIT) { setGateOpen(true); return; }
+
+    // The gatekeeper: 4th attempt is blocked.
+    if (count >= GUEST_LIMIT) {
+      toast.info("You've used your 3 free guest questions! Sign in now to unlock your full career dashboard.");
+      setShowAuthModal(true);
+      return;
+    }
+
     setInput("");
     const nextCount = count + 1;
-    const next: Msg[] = [...msgs, { role: "user", content }, { role: "assistant", content: "" }];
-    setMsgs(next);
+    const history: Msg[] = [...msgs, { role: "user", content }];
+    setMsgs([...history, { role: "assistant", content: "" }]);
     setCount(nextCount);
+    localStorage.setItem(KEY_COUNT, String(nextCount));
     setStreaming(true);
+    setBubble("");
+    setBubbleKey((k) => k + 1);
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next.slice(0, -1) }),
+        body: JSON.stringify({ messages: history }),
       });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
       const reader = res.body.getReader();
@@ -107,6 +118,7 @@ export function GuestConcierge() {
             const delta = p.choices?.[0]?.delta?.content as string | undefined;
             if (delta) {
               assistant += delta;
+              setBubble(assistant);
               setMsgs((cur) => {
                 const c = cur.slice();
                 c[c.length - 1] = { role: "assistant", content: assistant };
@@ -116,13 +128,17 @@ export function GuestConcierge() {
           } catch { buf = line + "\n" + buf; break; }
         }
       }
-      const final: Msg[] = [...next.slice(0, -1), { role: "assistant", content: assistant }];
-      persist(final, nextCount);
+      const final: Msg[] = [...history, { role: "assistant", content: assistant }];
+      localStorage.setItem(KEY_MSGS, JSON.stringify(final));
       if (nextCount >= GUEST_LIMIT) {
-        setTimeout(() => setGateOpen(true), 900);
+        setTimeout(() => {
+          toast.info("That was your last free question. Sign in to keep exploring.");
+        }, 800);
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
+      const msg = e instanceof Error ? e.message : "Something went wrong";
+      setBubble(msg);
+      toast.error(msg);
     } finally {
       setStreaming(false);
     }
@@ -136,112 +152,126 @@ export function GuestConcierge() {
   if (!active) return null;
 
   const remaining = Math.max(0, GUEST_LIMIT - count);
+  const locked = count >= GUEST_LIMIT;
 
   return (
-    <div className="fixed inset-0 z-[10000]">
-      {/* blurred teaser backdrop */}
-      <div className="absolute inset-0 backdrop-blur-2xl bg-black/80" />
+    <div className="fixed inset-0 z-[9990] bg-black/80 backdrop-blur-3xl flex flex-col items-center justify-center p-6">
+      {/* ambient color wash */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-70"
+        className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at 20% 30%, rgba(34,211,238,0.18), transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(139,92,246,0.20), transparent 55%)",
+            "radial-gradient(ellipse at 25% 30%, rgba(34,211,238,0.18), transparent 55%), radial-gradient(ellipse at 75% 75%, rgba(139,92,246,0.20), transparent 55%)",
         }}
       />
 
-      {/* dismiss */}
       <button
         onClick={dismiss}
-        className="absolute top-5 right-5 text-xs text-white/50 hover:text-white transition-colors inline-flex items-center gap-1.5"
+        className="absolute top-5 right-5 text-xs text-white/60 hover:text-white transition-colors inline-flex items-center gap-1.5 z-10"
       >
         Explore first <X className="size-3.5" />
       </button>
 
-      <div className="relative h-full w-full flex flex-col items-center justify-center px-6">
-        {/* Mascot + speech */}
-        <div className="w-full max-w-[560px] flex flex-col items-center">
-          <AnimatePresence>
-            {msgs.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                className="mb-4 max-w-[440px] rounded-2xl px-5 py-3.5 bg-white/[0.06] backdrop-blur-xl border border-white/10 text-center text-sm text-white/85 shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
-              >
-                Hey, welcome to <strong className="text-white">CareerPilot AI</strong>! Ask me{" "}
-                <span className="text-cyan-300 font-semibold">3 free career questions</span> to discover your path.
-              </motion.div>
-            )}
-          </AnimatePresence>
-
+      <div className="relative w-full max-w-xl flex flex-col items-center">
+        {/* Speech bubble ABOVE robot */}
+        <AnimatePresence mode="wait">
           <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
-            className="relative size-28 rounded-full flex items-center justify-center mb-2"
-            style={{
-              background: "radial-gradient(circle, rgba(16,185,129,0.35), transparent 70%)",
-            }}
+            key={bubbleKey}
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl max-w-md text-center text-white shadow-2xl relative"
           >
-            <div className="size-24 rounded-full overflow-hidden border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.45)]">
-              <img src={chatbotLogo} alt="Pilot AI" width={256} height={256} className="size-20 object-contain drop-shadow-[0_0_12px_rgba(16,185,129,0.7)]" />
-            </div>
-            <Sparkles className="absolute -top-1 -right-1 size-4 text-emerald-300" />
-          </motion.div>
-          <div className="text-[11px] font-mono uppercase tracking-widest text-white/50 mb-6">
-            Pilot · AI Concierge
-          </div>
-
-          {/* Conversation */}
-          {msgs.length > 0 && (
-            <div className="w-full max-h-[38vh] overflow-y-auto overscroll-contain space-y-2.5 mb-4 pr-1">
-              {msgs.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] text-sm leading-relaxed px-4 py-2.5 rounded-2xl ${
-                    m.role === "user"
-                      ? "bg-white text-black rounded-br-sm"
-                      : "bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/90 rounded-bl-sm"
-                  }`}>
-                    <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
-                  </div>
-                </div>
-              ))}
-              <div ref={endRef} />
-            </div>
-          )}
-
-          {/* Input */}
-          <form
-            onSubmit={(e) => { e.preventDefault(); send(); }}
-            className="w-full flex items-center gap-2 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.35)] px-4 py-2.5"
-          >
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={count >= GUEST_LIMIT ? "Sign in to keep chatting…" : "Ask about your future career…"}
-              disabled={streaming || count >= GUEST_LIMIT}
-              className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            <div
+              className="text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: renderMd(bubble || (streaming ? "Thinking…" : DEFAULT_BUBBLE)),
+              }}
             />
-            <button
-              type="submit"
-              disabled={streaming || !input.trim()}
-              className="size-9 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 disabled:opacity-50 transition-colors"
-              aria-label="Send"
-            >
-              {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-            </button>
-          </form>
+            {/* tail */}
+            <div
+              aria-hidden
+              className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 rotate-45 bg-white/10 backdrop-blur-xl border-b border-r border-white/20"
+            />
+          </motion.div>
+        </AnimatePresence>
 
-          <div className="mt-3 text-[11px] font-mono text-white/50 flex items-center gap-2">
-            <Lock className="size-3" />
-            {remaining > 0
-              ? <>You have <span className="text-cyan-300 font-semibold">{remaining}</span> free question{remaining === 1 ? "" : "s"} left</>
-              : <>Free trial used — sign in to continue</>}
+        {/* Floating 3D-ish AI robot mascot */}
+        <motion.div
+          animate={{ y: [-10, 10, -10] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="relative mt-10 mb-10"
+        >
+          <div
+            className="absolute inset-0 rounded-full blur-3xl -z-10"
+            style={{ background: "radial-gradient(circle, rgba(16,185,129,0.55), transparent 65%)" }}
+          />
+          <div className="size-40 rounded-full overflow-hidden border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center shadow-[0_20px_80px_rgba(16,185,129,0.5)]">
+            <img
+              src={chatbotLogo}
+              alt="Pilot AI"
+              width={320}
+              height={320}
+              className="size-32 object-contain drop-shadow-[0_0_18px_rgba(16,185,129,0.8)]"
+            />
           </div>
-        </div>
+          <Sparkles className="absolute -top-1 -right-1 size-5 text-emerald-300" />
+          {/* shadow */}
+          <motion.div
+            aria-hidden
+            animate={{ scaleX: [1, 0.85, 1], opacity: [0.5, 0.35, 0.5] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="mx-auto mt-2 h-3 w-24 rounded-full bg-black/60 blur-md"
+          />
+        </motion.div>
+
+        {/* Glass input pill */}
+        <form
+          onSubmit={(e) => { e.preventDefault(); send(); }}
+          className="w-full max-w-xl bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-6 py-4 flex items-center gap-3 shadow-2xl"
+        >
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask CareerPilot AI anything..."
+            disabled={streaming}
+            className="flex-1 bg-transparent text-sm md:text-[15px] text-white placeholder:text-white/50 focus:outline-none"
+          />
+          <motion.button
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            type="submit"
+            disabled={streaming || !input.trim()}
+            className="size-11 rounded-full flex items-center justify-center text-white disabled:opacity-50 border border-white/25 shadow-[0_8px_24px_rgba(34,211,238,0.35)]"
+            style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.85), rgba(139,92,246,0.85))" }}
+            aria-label="Send"
+          >
+            {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+          </motion.button>
+        </form>
+
+        {/* Remaining pill */}
+        <motion.div
+          key={`pill-${count}`}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-widest border ${
+            locked
+              ? "bg-red-500/10 border-red-400/30 text-red-200"
+              : "bg-white/10 border-white/20 text-white/80"
+          }`}
+        >
+          <span className={`size-1.5 rounded-full ${locked ? "bg-red-400" : "bg-emerald-400 animate-pulse"}`} />
+          {locked
+            ? "Free trial used — sign in to continue"
+            : <>Free Questions Remaining: <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span></>}
+        </motion.div>
       </div>
 
-      <AuthGateModal open={gateOpen} onClose={() => setGateOpen(false)} />
+      <AuthGateModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }
@@ -315,7 +345,7 @@ function AuthGateModal({ open, onClose }: { open: boolean; onClose: () => void }
       {open && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[10001] flex items-center justify-center px-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
         >
           <div className="absolute inset-0 bg-black/70 backdrop-blur-2xl" onClick={onClose} />
           <motion.div
@@ -323,7 +353,7 @@ function AuthGateModal({ open, onClose }: { open: boolean; onClose: () => void }
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="relative w-full max-w-[460px] rounded-3xl bg-white/[0.04] backdrop-blur-3xl border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] p-8 md:p-10 text-white overflow-y-auto max-h-[92vh]"
+            className="relative w-full max-w-[460px] rounded-3xl bg-white/[0.05] backdrop-blur-3xl border border-white/15 shadow-[0_32px_80px_rgba(0,0,0,0.6)] p-8 md:p-10 text-white overflow-y-auto max-h-[92vh]"
           >
             <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white" aria-label="Close">
               <X className="size-4" />
@@ -333,7 +363,7 @@ function AuthGateModal({ open, onClose }: { open: boolean; onClose: () => void }
             <h3 className="text-[22px] md:text-2xl font-semibold tracking-tight leading-tight">
               Unlock Your Full Career Roadmap & Intelligence Dashboard
             </h3>
-            <p className="mt-2 text-[13px] text-white/55 leading-relaxed">
+            <p className="mt-2 text-[13px] text-white/60 leading-relaxed">
               You've used your 3 free guest questions. Sign in to save your conversation, analyze your
               resume, and access 44+ career domains.
             </p>
