@@ -11,14 +11,7 @@ const WARN_MS = 60 * 1000;
 const REFRESH_LEAD_MS = 5 * 60 * 1000;
 const IDLE_KEY = "cp_last_activity";
 
-const ACTIVITY_EVENTS: Array<keyof WindowEventMap> = [
-  "mousemove",
-  "mousedown",
-  "keydown",
-  "touchstart",
-  "scroll",
-  "visibilitychange",
-];
+const ACTIVITY_EVENTS = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"] as const;
 
 export function SessionManager() {
   const { session, signOut } = useAuth();
