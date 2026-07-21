@@ -211,13 +211,29 @@ function LoginPage() {
   const oauth = async (provider: Provider) => {
     if (oauthBusy) return;
     setOauthBusy(provider);
+    setOauthError(null);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       });
       if (result.error) throw result.error;
+      // On mobile, if we didn't redirect within a moment, the popup likely was blocked.
+      if (isMobileUA && !result.redirected) {
+        window.setTimeout(() => {
+          if (!document.hidden) {
+            setOauthError(
+              isIOS
+                ? "iOS may have blocked the Google popup. Allow popups for this site in Settings → Safari, or sign in with an email code below."
+                : "Your browser may have blocked the Google popup. Allow popups for this site, or sign in with an email code below.",
+            );
+            setOauthBusy(null);
+          }
+        }, 2500);
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "OAuth failed");
+      const msg = humanizeAuthError(err instanceof Error ? err.message : "OAuth failed");
+      setOauthError(msg);
+      toast.error(msg);
       setOauthBusy(null);
     }
   };
