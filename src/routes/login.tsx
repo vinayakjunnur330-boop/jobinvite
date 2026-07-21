@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Loader2, ArrowRight, Sun, Moon, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
