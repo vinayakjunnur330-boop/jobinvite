@@ -4,10 +4,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -118,23 +119,57 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <RootAppContent />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  return isMobile;
+}
+
+function RootAppContent() {
+  const { loading, isAuthenticated } = useAuth();
+  const isMobile = useIsMobileViewport();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const formParam = useRouterState({ select: (s) => (s.location.search as Record<string, unknown>)?.form ?? null });
+  const loginShowingForm = pathname === "/login" && formParam === "1";
+  const onAuthRoute = pathname === "/admin-login" || pathname.startsWith("/auth") || loginShowingForm;
+  const suspendMobileUnderlay = isMobile && !loading && !isAuthenticated && !onAuthRoute;
+
+  return (
+    <>
         <AuthSync />
         <SplashHider />
-        <AmbientBackground />
+        {!suspendMobileUnderlay && <AmbientBackground />}
         <div className="relative min-h-screen flex flex-col text-foreground">
-          <Navbar />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <Footer />
-          <ChatWidget />
+          {!suspendMobileUnderlay && (
+            <>
+              <Navbar />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <Footer />
+              <ChatWidget />
+            </>
+          )}
           <GuestConcierge />
           <ChatOpenGate />
           <SessionManager />
           <Toaster />
         </div>
-      </AuthProvider>
-    </QueryClientProvider>
+    </>
   );
 }
 
