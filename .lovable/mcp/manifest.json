@@ -138,6 +138,116 @@
           ]
         },
         "outputSchema": null
+      },
+      {
+        "name": "get_job_trends",
+        "title": "Get job trends & future demand",
+        "description": "Return current hiring trends, growth outlook, and future industry demand for one or more careers by slug.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slugs": {
+              "minItems": 1,
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "description": "Career slugs to analyze."
+            }
+          },
+          "required": [
+            "slugs"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "generate_career_roadmap",
+        "title": "Generate personalized career roadmap",
+        "description": "Build a personalized, milestone-based career roadmap from assessment inputs (interests, current skills, target career, and timeframe).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "targetSlug": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "description": "Career slug the roadmap should target."
+            },
+            "currentSkills": {
+              "description": "Skills the user already has.",
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "interests": {
+              "description": "Interests or focus areas.",
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "experienceYears": {
+              "description": "Years of professional experience.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "timeframeMonths": {
+              "default": 24,
+              "description": "Target timeframe in months.",
+              "type": "integer",
+              "minimum": 3,
+              "maximum": 120
+            }
+          },
+          "required": [
+            "targetSlug"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "export_career_report_pdf",
+        "title": "Export career report (PDF)",
+        "description": "Generate a downloadable PDF report of the signed-in user's saved careers, profile summary, and recommendations.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "includeNotes": {
+              "default": true,
+              "description": "Include personal notes on each saved career.",
+              "type": "boolean"
+            }
+          }
+        },
+        "outputSchema": null
       }
     ]
   }
