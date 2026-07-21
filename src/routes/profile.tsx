@@ -103,6 +103,7 @@ function ProfilePage() {
               <Link to="/dashboard" className="block p-3 rounded-lg bg-white/5 border border-border hover:bg-white/10 text-sm">→ Open dashboard</Link>
             </div>
           </div>
+          <AccountSecurityCard />
         </div>
       </div>
     </div>
