@@ -176,10 +176,10 @@ export function GuestConcierge() {
             Sign In / Sign Up
           </Link>
 
-          {/* Two-column grid */}
-          <div className="w-full max-w-6xl h-[80vh] grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative">
-            {/* LEFT — floating mascot */}
-            <div className="flex flex-col items-center justify-center w-full h-full relative">
+          {/* Strict 50/50 flex split */}
+          <div className="w-full max-w-7xl h-[85vh] flex flex-row items-center justify-center mx-auto relative">
+            {/* LEFT — mascot column (50%) */}
+            <div className="w-1/2 h-full flex flex-col items-center justify-center relative">
               <motion.div
                 animate={{ y: [-15, 15, -15] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -197,30 +197,27 @@ export function GuestConcierge() {
                   />
                 </div>
               </motion.div>
-              {/* Dynamic drop shadow */}
               <motion.div
                 animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.7, 0.3] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                 className="w-32 h-4 bg-black/40 blur-md rounded-[100%] mt-6"
               />
-
               <div className="mt-8 text-center px-6">
                 <div className="text-[11px] uppercase tracking-[0.28em] text-cyan-300/80">Pilot · AI counselor</div>
-                <div className="mt-2 text-white/70 text-sm max-w-xs">
+                <div className="mt-2 text-white/70 text-sm">
                   Free Questions Remaining:{" "}
                   <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span>
                 </div>
               </div>
             </div>
 
-            {/* RIGHT — chat interface */}
-            <div className="flex flex-col h-full w-full max-w-lg mx-auto relative">
-              {/* Scrollable history */}
+            {/* RIGHT — chat column (50%) */}
+            <div className="w-1/2 h-full flex flex-col relative px-8 pb-4 pt-16">
+              {/* Chat history */}
               <div
-                className="flex-1 overflow-y-auto flex flex-col gap-4 pb-6 w-full px-2"
+                className="flex-1 w-full overflow-y-auto flex flex-col gap-4"
                 style={{ scrollbarWidth: "none" }}
               >
-                {/* opening bot bubble */}
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -263,38 +260,41 @@ export function GuestConcierge() {
                 <div ref={bottomRef} />
               </div>
 
-              {/* Bottom input bar */}
-              <form
-                onSubmit={(e) => { e.preventDefault(); send(); }}
-                className="w-full flex items-center gap-2 bg-white rounded-lg p-1 shadow-2xl relative mt-4"
-              >
-                <input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask CareerPilot AI…"
-                  disabled={streaming}
-                  className="flex-1 bg-transparent border-none text-gray-900 px-4 py-3 focus:outline-none focus:ring-0 text-sm placeholder-gray-500"
-                />
-                <button
-                  type="submit"
-                  disabled={streaming || !input.trim()}
-                  className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-60"
-                  aria-label="Send"
+              {/* Input bar wrapper */}
+              <div className="w-full mt-4 shrink-0">
+                <form
+                  onSubmit={(e) => { e.preventDefault(); send(); }}
+                  className="w-full flex items-center gap-2 bg-white rounded-lg p-1 shadow-2xl"
                 >
-                  {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={resetChat}
-                  className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer"
-                  aria-label="Restart"
-                >
-                  <RotateCcw className="size-4" />
-                </button>
-              </form>
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask CareerPilot AI…"
+                    disabled={streaming}
+                    className="flex-1 bg-transparent border-none text-gray-900 px-4 py-3 focus:outline-none focus:ring-0 text-sm placeholder-gray-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={streaming || !input.trim()}
+                    className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-60"
+                    aria-label="Send"
+                  >
+                    {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetChat}
+                    className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer"
+                    aria-label="Restart"
+                  >
+                    <RotateCcw className="size-4" />
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
+
 
           <AuthGateModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
         </motion.div>
