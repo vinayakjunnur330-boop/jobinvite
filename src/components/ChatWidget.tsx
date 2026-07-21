@@ -323,7 +323,7 @@ export function ChatWidget() {
                   <Sparkles className="absolute -top-1 -right-1 size-2.5 text-emerald-300" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white">Pilot Assistant</div>
+                  <div className="text-sm font-bold text-white">Zoiee Assistant</div>
                   <div className="text-[10px] font-mono text-emerald-400">● {streaming ? "TYPING" : "ONLINE"}</div>
                 </div>
               </div>
