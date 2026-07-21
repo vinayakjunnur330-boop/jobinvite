@@ -117,6 +117,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AuthSync />
+        <SplashHider />
         <AmbientBackground />
         <div className="relative min-h-screen flex flex-col text-foreground">
           <Navbar />
@@ -132,6 +133,20 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
+function SplashHider() {
+  const { loading } = useAuth();
+  useEffect(() => {
+    if (loading) return;
+    const el = document.getElementById("cp-splash");
+    if (!el) return;
+    el.classList.add("cp-hide");
+    const t = window.setTimeout(() => el.remove(), 400);
+    return () => window.clearTimeout(t);
+  }, [loading]);
+  return null;
+}
+
 
 
 function AuthSync() {
