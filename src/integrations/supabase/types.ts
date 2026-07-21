@@ -68,6 +68,27 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_usage: {
+        Row: {
+          count: number
+          day: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_alert_preferences: {
         Row: {
           arrangements: string[]
