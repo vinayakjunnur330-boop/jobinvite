@@ -306,10 +306,6 @@ export function GuestConcierge() {
     ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 1 }, transition: { duration: 0 } }
     : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.4 } };
 
-  const messageMotionProps = isMobile
-    ? { initial: false, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } }
-    : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.25 } };
-
   return (
     <>
       {showLoadingGate && (
@@ -371,21 +367,17 @@ export function GuestConcierge() {
                 className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col gap-4"
                 style={{ scrollbarWidth: "none" }}
               >
-                <motion.div
-                  {...messageMotionProps}
-                  className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[90%] md:max-w-[85%] text-sm leading-relaxed"
-                >
+                <div className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[90%] md:max-w-[85%] text-sm leading-relaxed">
                   {openingMsg}
                   <div className="mt-2 flex items-center gap-3 text-white/40">
                     <button className="hover:text-cyan-300 transition-colors" aria-label="Like"><ThumbsUp className="size-3.5" /></button>
                     <button className="hover:text-red-300 transition-colors" aria-label="Dislike"><ThumbsDown className="size-3.5" /></button>
                   </div>
-                </motion.div>
+                </div>
 
                 {msgs.map((m, i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    {...messageMotionProps}
                     className={
                       m.role === "user"
                         ? "self-end bg-white text-gray-900 p-3 rounded-2xl rounded-tr-sm shadow-md max-w-[90%] md:max-w-[75%] text-sm leading-relaxed"
@@ -405,7 +397,7 @@ export function GuestConcierge() {
                     ) : (
                       m.content
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
