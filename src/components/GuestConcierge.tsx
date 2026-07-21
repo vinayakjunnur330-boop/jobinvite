@@ -52,7 +52,7 @@ export function GuestConcierge() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const openingMsg = `${greeting()}! Welcome to CareerPilot AI 👋 Ask me 3 free career questions to discover your path.`;
+  const openingMsg = `${greeting()}! Hey! I'm Zoiee, your friendly learning buddy. Ready to discover your perfect career today? 🤩`;
 
   useEffect(() => {
     setMsgs(readMsgs());
@@ -203,7 +203,7 @@ export function GuestConcierge() {
                 className="w-32 h-4 bg-black/40 blur-md rounded-[100%] mt-6"
               />
               <div className="mt-8 text-center px-6">
-                <div className="text-[11px] uppercase tracking-[0.28em] text-cyan-300/80">Pilot · AI counselor</div>
+                <div className="text-[11px] uppercase tracking-[0.28em] text-cyan-300/80">Zoiee · AI counselor</div>
                 <div className="mt-2 text-white/70 text-sm">
                   Free Questions Remaining:{" "}
                   <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span>
@@ -270,7 +270,7 @@ export function GuestConcierge() {
                     ref={inputRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask CareerPilot AI…"
+                    placeholder="Ask Zoiee..."
                     disabled={streaming}
                     className="flex-1 bg-transparent border-none text-gray-900 px-4 py-3 focus:outline-none focus:ring-0 text-sm placeholder-gray-500"
                   />
