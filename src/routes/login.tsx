@@ -456,13 +456,6 @@ function LoginPage() {
             </button>
           </div>
         )}
-      </div>
-
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-        <Link to="/admin-login" className="text-white/70 text-[12px] hover:text-white transition-colors">
-          Admin Console
-        </Link>
-      </div>
         {view === "otp_verify" && (
           <div>
             <button
