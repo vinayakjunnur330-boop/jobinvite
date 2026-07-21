@@ -87,7 +87,9 @@ export function GuestConcierge() {
     setHydrated(true);
   }, []);
 
+  const authResolving = !hydrated || loading;
   const active = hydrated && !loading && !isAuthenticated && !onAuthRoute;
+  const showLoadingGate = authResolving && !onAuthRoute;
 
   useEffect(() => {
     if (!active) return;
