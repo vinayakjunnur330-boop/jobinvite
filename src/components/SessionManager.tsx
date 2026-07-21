@@ -7,7 +7,6 @@ import { toast } from "sonner";
 // Sign out after 30 minutes of inactivity; warn 60s before.
 const IDLE_MS = 30 * 60 * 1000;
 const WARN_MS = 60 * 1000;
-// Proactively refresh the access token when it's within this window of expiring.
 const REFRESH_LEAD_MS = 5 * 60 * 1000;
 const IDLE_KEY = "cp_last_activity";
 
@@ -16,7 +15,8 @@ const ACTIVITY_EVENTS = ["mousemove", "mousedown", "keydown", "touchstart", "scr
 export function SessionManager() {
   const { session, signOut } = useAuth();
   const [warnOpen, setWarnOpen] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(WARN_MS / 1000);
+  const [warnDeadline, setWarnDeadline] = useState<number>(0);
+  const [msLeft, setMsLeft] = useState(WARN_MS);
   const idleTimerRef = useRef<number | null>(null);
   const warnTimerRef = useRef<number | null>(null);
   const refreshTimerRef = useRef<number | null>(null);
@@ -48,23 +48,35 @@ export function SessionManager() {
     if (!isAuthed) return;
     try { localStorage.setItem(IDLE_KEY, String(Date.now())); } catch { /* ignore */ }
     warnTimerRef.current = window.setTimeout(() => {
-      setSecondsLeft(WARN_MS / 1000);
+      const deadline = Date.now() + WARN_MS;
+      setWarnDeadline(deadline);
+      setMsLeft(WARN_MS);
       setWarnOpen(true);
       countdownRef.current = window.setInterval(() => {
-        setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
-      }, 1000);
+        setMsLeft(Math.max(0, deadline - Date.now()));
+      }, 200);
     }, IDLE_MS - WARN_MS);
     idleTimerRef.current = window.setTimeout(() => {
       doSignOut("idle");
     }, IDLE_MS);
   }, [clearTimers, doSignOut, isAuthed]);
 
-  // Activity listeners → reset idle timer.
+  const stay = useCallback(async () => {
+    setWarnOpen(false);
+    try {
+      const { data } = await supabase.auth.refreshSession();
+      if (data.session) persistCareerPilotSession(data.session);
+    } catch { /* ignore */ }
+    scheduleIdle();
+  }, [scheduleIdle]);
+
+  // Activity listeners → reset idle timer. When the warning is showing,
+  // any user activity auto-dismisses it and refreshes the session.
   useEffect(() => {
     if (!isAuthed) return;
     scheduleIdle();
     const onActivity = () => {
-      if (warnOpen) return; // require explicit "Stay signed in" once warned
+      if (warnOpen) { stay(); return; }
       scheduleIdle();
     };
     ACTIVITY_EVENTS.forEach((ev) => window.addEventListener(ev, onActivity, { passive: true }));
@@ -75,34 +87,24 @@ export function SessionManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthed, warnOpen]);
 
-  // Proactive token refresh: schedule based on session.expires_at, and refresh on focus/online.
+  // Proactive token refresh.
   useEffect(() => {
     if (!isAuthed || !session) return;
-
     const scheduleRefresh = () => {
       if (refreshTimerRef.current) window.clearTimeout(refreshTimerRef.current);
       const expiresAtMs = (session.expires_at ?? 0) * 1000;
       const delay = Math.max(0, expiresAtMs - Date.now() - REFRESH_LEAD_MS);
       refreshTimerRef.current = window.setTimeout(refreshNow, delay || 5_000);
     };
-
     const refreshNow = async () => {
       try {
         const { data, error } = await supabase.auth.refreshSession();
-        if (error || !data.session) {
-          // Refresh token invalid/expired → sign out cleanly.
-          await doSignOut("expired");
-          return;
-        }
+        if (error || !data.session) { await doSignOut("expired"); return; }
         persistCareerPilotSession(data.session);
-      } catch {
-        // network hiccup — try again on next focus/online
-      }
+      } catch { /* retry on next focus/online */ }
     };
-
     const onFocus = () => { refreshNow(); };
     const onOnline = () => { refreshNow(); };
-
     scheduleRefresh();
     window.addEventListener("focus", onFocus);
     window.addEventListener("online", onOnline);
@@ -113,23 +115,16 @@ export function SessionManager() {
     };
   }, [isAuthed, session, doSignOut]);
 
-  // Cross-tab sync: react to storage changes so sign-in/out propagates instantly.
+  // Cross-tab sync.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (!e.key) return;
-      // Supabase writes its session under a key like sb-<ref>-auth-token
       const isSupabaseKey = e.key.startsWith("sb-") && e.key.endsWith("-auth-token");
       if (isSupabaseKey || e.key === CAREERPILOT_SESSION_KEY) {
-        if (!e.newValue) {
-          // Session cleared elsewhere → mirror sign-out in this tab.
-          if (isAuthed) doSignOut("manual");
-        } else {
-          // Session updated elsewhere → pick it up.
-          supabase.auth.getSession();
-        }
+        if (!e.newValue) { if (isAuthed) doSignOut("manual"); }
+        else { supabase.auth.getSession(); }
       }
       if (e.key === IDLE_KEY && e.newValue) {
-        // Another tab saw activity — reset our idle timer too.
         if (isAuthed && !warnOpen) scheduleIdle();
       }
     };
@@ -137,24 +132,38 @@ export function SessionManager() {
     return () => window.removeEventListener("storage", onStorage);
   }, [isAuthed, warnOpen, doSignOut, scheduleIdle]);
 
-  const stay = async () => {
-    setWarnOpen(false);
-    try {
-      const { data } = await supabase.auth.refreshSession();
-      if (data.session) persistCareerPilotSession(data.session);
-    } catch { /* ignore */ }
-    scheduleIdle();
-  };
-
   if (!warnOpen) return null;
+
+  const secondsLeft = Math.ceil(msLeft / 1000);
+  const totalMs = Math.max(1, warnDeadline - (warnDeadline - WARN_MS));
+  const pct = Math.max(0, Math.min(100, (msLeft / totalMs) * 100));
 
   return (
     <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="w-full max-w-sm rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0b0b0f] p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Still there?</h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-white/60">
-          You'll be signed out in <span className="font-medium text-gray-900 dark:text-white">{secondsLeft}s</span> due to inactivity.
+          Signing you out in{" "}
+          <span className="font-mono font-medium text-gray-900 dark:text-white tabular-nums">
+            {secondsLeft}s
+          </span>{" "}
+          due to inactivity. Move your mouse or press any key to stay signed in.
         </p>
+        <div className="mt-4 h-1.5 w-full rounded-full bg-gray-100 dark:bg-white/5 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-[width] duration-200 ease-linear"
+            style={{ width: `${pct}%` }}
+            aria-hidden
+          />
+        </div>
+        <div
+          role="timer"
+          aria-live="polite"
+          aria-label={`Auto sign-out in ${secondsLeft} seconds`}
+          className="sr-only"
+        >
+          {secondsLeft} seconds remaining
+        </div>
         <div className="mt-5 flex gap-2">
           <button
             onClick={() => doSignOut("manual")}
