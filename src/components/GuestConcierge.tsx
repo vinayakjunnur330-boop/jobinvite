@@ -180,23 +180,13 @@ export function GuestConcierge() {
           <div className="w-full max-w-7xl h-[85vh] flex flex-row items-center justify-center mx-auto relative">
             {/* LEFT — mascot column (50%) */}
             <div className="w-1/2 h-full flex flex-col items-center justify-center relative">
-              <motion.div
+              <motion.img
+                src="/robot-avatar.png"
+                alt="CareerPilot AI Mascot"
+                className="w-72 h-72 object-contain drop-shadow-[0_0_40px_rgba(6,182,212,0.3)] z-10"
                 animate={{ y: [-15, 15, -15] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative z-10"
-              >
-                <div
-                  className="absolute inset-0 rounded-full blur-3xl -z-10"
-                  style={{ background: "radial-gradient(circle, rgba(34,211,238,0.55), transparent 65%)" }}
-                />
-                <div className="size-56 md:size-72 rounded-full overflow-hidden border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center shadow-[0_30px_80px_rgba(34,211,238,0.45)]">
-                  <img
-                    src={chatbotLogo}
-                    alt="CareerPilot AI"
-                    className="size-44 md:size-56 object-contain drop-shadow-[0_0_28px_rgba(34,211,238,0.9)]"
-                  />
-                </div>
-              </motion.div>
+              />
               <motion.div
                 animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.7, 0.3] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
