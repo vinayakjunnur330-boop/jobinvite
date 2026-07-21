@@ -53,6 +53,9 @@ function LoginPage() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number>(0);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [otpCode, setOtpCode] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
   const [theme, , toggleTheme] = useTheme();
 
   const checkRoles = useServerFn(getMyRoles);
@@ -166,6 +169,30 @@ function LoginPage() {
     }
   };
 
+  const verifyCode = async () => {
+    const token = otpCode.replace(/\D/g, "");
+    if (token.length !== 6 || verifying) return;
+    setVerifying(true);
+    setOtpError(null);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+      if (error) throw error;
+      if (data.session) {
+        persistCareerPilotSession(data.session, { touchLastLogin: true });
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
+      }
+      toast.success("Signed in");
+      await routeAfterAuth();
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : "Invalid or expired code";
+      const msg = /expired|invalid/i.test(raw) ? "That code is invalid or expired. Request a new one." : humanizeAuthError(raw);
+      setOtpError(msg);
+      toast.error(msg);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const oauth = async (provider: Provider) => {
     if (oauthBusy) return;
     setOauthBusy(provider);
@@ -221,6 +248,8 @@ function LoginPage() {
               setAuthStep("email");
               setResendError(null);
               setResendOk(false);
+              setOtpCode("");
+              setOtpError(null);
             }}
             className="absolute top-5 left-5 inline-flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
           >
@@ -359,19 +388,52 @@ function LoginPage() {
                   Check your email
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 px-2">
-                  We sent a secure sign-in link to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
-                  Click the link on this device to continue.
+                  We sent a secure sign-in link and a 6-digit code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
+                  Click the link or enter the code below.
                 </p>
               </div>
 
-              <div className="my-8 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed">
-                <p className="mb-2 font-medium text-gray-900 dark:text-white">Tips</p>
+              <form
+                onSubmit={(e) => { e.preventDefault(); verifyCode(); }}
+                className="mt-6 mb-4"
+              >
+                <label className="block text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-white/50 mb-2 text-center">
+                  Enter 6-digit code
+                </label>
+                <input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setOtpCode(v);
+                    if (otpError) setOtpError(null);
+                  }}
+                  placeholder="••••••"
+                  className="w-full text-center tracking-[0.6em] font-mono text-[22px] py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white outline-none focus:border-blue-500 transition-all"
+                />
+                {otpError && (
+                  <p role="alert" className="mt-2 text-[12px] text-red-500 dark:text-red-300 text-center">{otpError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={otpCode.length !== 6 || verifying}
+                  className="mt-4 h-11 w-full rounded-full font-medium text-[13.5px] bg-blue-500 hover:bg-blue-600 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                >
+                  {verifying ? <Loader2 className="size-4 animate-spin" /> : <>Verify & Sign in <ArrowRight className="size-4" /></>}
+                </button>
+              </form>
+
+              <div className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
+                <p className="mb-1.5 font-medium text-gray-900 dark:text-white">Tips</p>
                 <ul className="space-y-1 list-disc pl-4">
-                  <li>The link expires in 60 minutes.</li>
+                  <li>The code and link expire in 60 minutes.</li>
                   <li>Check spam or promotions if it hasn't arrived.</li>
-                  <li>Open the link in this browser to keep your session.</li>
                 </ul>
               </div>
+
 
               {resendOk && (
                 <motion.div
