@@ -141,12 +141,10 @@ function LoginPage() {
         return;
       }
 
-      const callback = `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: callback,
         },
       });
       if (error) throw error;
@@ -154,11 +152,12 @@ function LoginPage() {
       setCooldownUntil(Date.now() + 30_000);
       if (isResend) {
         setResendOk(true);
-        toast.success("New link sent");
+        toast.success("New code sent");
       } else {
         setAuthStep("sent");
-        toast.success("Magic link sent");
+        toast.success("Verification code sent");
       }
+
     } catch (err) {
       const msg = humanizeAuthError(err instanceof Error ? err.message : "Failed to send link");
       if (isResend) setResendError(msg);
