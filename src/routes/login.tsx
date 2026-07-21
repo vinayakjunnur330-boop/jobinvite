@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Loader2, ArrowRight, Sun, Moon, ArrowLeft, Mail } from "lucide-react";
+import { Loader2, ArrowRight, Sun, Moon, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa6";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/login")({
 });
 
 type Provider = "google" | "apple";
-type AuthStep = "email" | "otp";
+type AuthStep = "email" | "sent";
 
 const SESSION_KEY = "user_session";
 
@@ -39,16 +39,13 @@ function LoginPage() {
 
   const [authStep, setAuthStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
-  const [otpError, setOtpError] = useState<string | null>(null);
   const [resendError, setResendError] = useState<string | null>(null);
+  const [resendOk, setResendOk] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [theme, , toggleTheme] = useTheme();
-
-  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const checkRoles = useServerFn(getMyRoles);
   const routeAfterAuth = async () => {
@@ -76,43 +73,41 @@ function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (authStep === "otp") {
-      setTimeout(() => otpRefs.current[0]?.focus(), 120);
-    }
-  }, [authStep]);
-
   if (!showLoginForm) return null;
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const humanizeAuthError = (raw: string): string => {
     const m = raw.toLowerCase();
-    if (m.includes("expired")) return "This code has expired. Request a new one below.";
-    if (m.includes("invalid") && m.includes("token")) return "That code doesn't match. Double-check the 6 digits and try again.";
-    if (m.includes("otp") && m.includes("invalid")) return "Invalid code. Please re-enter the 6 digits from your email.";
     if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
     if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
     if (m.includes("not found") || m.includes("user")) return "We couldn't find that email. Try a different address.";
     return raw || "Something went wrong. Please try again.";
   };
 
-  const sendCode = async (isResend = false) => {
+  const sendLink = async (isResend = false) => {
     if (!emailOk) return;
     isResend ? setResending(true) : setBusy(true);
-    if (isResend) setResendError(null);
+    if (isResend) { setResendError(null); setResendOk(false); }
     else setEmailError(null);
-    setOtpError(null);
     try {
-      const { error } = await supabase.auth.signInWithOtp({ email });
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
       if (error) throw error;
-      toast.success(isResend ? "New code sent" : "Verification code sent");
-      if (!isResend) {
-        setOtp(["", "", "", "", "", ""]);
-        setAuthStep("otp");
+      if (isResend) {
+        setResendOk(true);
+        toast.success("New link sent");
+      } else {
+        setAuthStep("sent");
+        toast.success("Magic link sent");
       }
     } catch (err) {
-      const msg = humanizeAuthError(err instanceof Error ? err.message : "Failed to send code");
+      const msg = humanizeAuthError(err instanceof Error ? err.message : "Failed to send link");
       if (isResend) setResendError(msg);
       else setEmailError(msg);
       toast.error(msg);
@@ -121,68 +116,12 @@ function LoginPage() {
     }
   };
 
-  const verifyCode = async (code: string) => {
-    if (code.length !== 6 || busy) return;
-    setBusy(true);
-    setOtpError(null);
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: code,
-        type: "email",
-      });
-      if (error) throw error;
-      if (data.session) {
-        persistCareerPilotSession(data.session, { touchLastLogin: true });
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
-      }
-      toast.success("Welcome back.");
-      await routeAfterAuth();
-    } catch (err) {
-      const msg = humanizeAuthError(err instanceof Error ? err.message : "Invalid or expired code");
-      setOtpError(msg);
-      toast.error(msg);
-      setOtp(["", "", "", "", "", ""]);
-      otpRefs.current[0]?.focus();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleOtpChange = (i: number, val: string) => {
-    if (otpError) setOtpError(null);
-    const digit = val.replace(/\D/g, "").slice(-1);
-    const next = [...otp];
-    next[i] = digit;
-    setOtp(next);
-    if (digit && i < 5) otpRefs.current[i + 1]?.focus();
-    if (next.every((d) => d.length === 1)) verifyCode(next.join(""));
-  };
-
-  const handleOtpKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
-    if (e.key === "ArrowLeft" && i > 0) otpRefs.current[i - 1]?.focus();
-    if (e.key === "ArrowRight" && i < 5) otpRefs.current[i + 1]?.focus();
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (!pasted) return;
-    const next = ["", "", "", "", "", ""];
-    for (let i = 0; i < pasted.length; i++) next[i] = pasted[i];
-    setOtp(next);
-    const focusIndex = Math.min(pasted.length, 5);
-    otpRefs.current[focusIndex]?.focus();
-    if (pasted.length === 6) verifyCode(pasted);
-  };
-
   const oauth = async (provider: Provider) => {
     if (oauthBusy) return;
     setOauthBusy(provider);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: `${window.location.origin}/dashboard`,
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
       if (result.error) throw result.error;
     } catch (err) {
@@ -225,17 +164,16 @@ function LoginPage() {
       </div>
 
       <div className="relative w-full max-w-[440px] bg-white/70 dark:bg-black/40 backdrop-blur-3xl border border-gray-200 dark:border-white/10 p-10 rounded-3xl shadow-2xl">
-        {authStep === "otp" && (
+        {authStep === "sent" && (
           <button
             onClick={() => {
               setAuthStep("email");
-              setOtp(["", "", "", "", "", ""]);
-              setOtpError(null);
               setResendError(null);
+              setResendOk(false);
             }}
             className="absolute top-5 left-5 inline-flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
           >
-            <ArrowLeft className="size-3.5" /> Back to email
+            <ArrowLeft className="size-3.5" /> Use a different email
           </button>
         )}
 
@@ -256,14 +194,14 @@ function LoginPage() {
                   Sign in to CareerPilot
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50">
-                  Enter your email — we'll send a 6-digit code.
+                  Enter your email — we'll send you a secure sign-in link.
                 </p>
               </div>
 
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  sendCode(false);
+                  sendLink(false);
                 }}
                 className="flex flex-col gap-5"
                 noValidate
@@ -311,7 +249,7 @@ function LoginPage() {
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <>
-                      Send Verification Code
+                      Send Magic Link
                       <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                     </>
                   )}
@@ -356,63 +294,42 @@ function LoginPage() {
             </motion.div>
           ) : (
             <motion.div
-              key="otp"
+              key="sent"
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 16 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="text-center mb-2 mt-4">
-                <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 dark:border-blue-400/20 flex items-center justify-center mb-4">
-                  <Mail className="size-5 text-blue-500 dark:text-blue-300" />
+                <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 dark:border-blue-400/20 flex items-center justify-center mb-4">
+                  <Mail className="size-6 text-blue-500 dark:text-blue-300" />
                 </div>
                 <h1 className="text-[24px] font-semibold tracking-tight text-gray-900 dark:text-white">
                   Check your email
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 px-2">
-                  We sent a 6-digit code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>
+                  We sent a secure sign-in link to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
+                  Click the link on this device to continue.
                 </p>
               </div>
 
-
-              <div className="flex justify-center gap-3 my-8">
-                {otp.map((d, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => { otpRefs.current[i] = el; }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={d}
-                    onChange={(e) => handleOtpChange(i, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                    onPaste={handleOtpPaste}
-                    disabled={busy}
-                    aria-invalid={!!otpError}
-                    className={`w-12 h-14 text-center text-2xl font-semibold bg-black/5 dark:bg-white/5 border rounded-xl transition-all outline-none text-gray-900 dark:text-white disabled:opacity-50 focus:ring-1 ${
-                      otpError
-                        ? "border-red-400 focus:border-red-500 focus:ring-red-400"
-                        : "border-gray-300 dark:border-white/20 focus:border-cyan-400 focus:ring-cyan-400"
-                    }`}
-                  />
-                ))}
+              <div className="my-8 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed">
+                <p className="mb-2 font-medium text-gray-900 dark:text-white">Tips</p>
+                <ul className="space-y-1 list-disc pl-4">
+                  <li>The link expires in 60 minutes.</li>
+                  <li>Check spam or promotions if it hasn't arrived.</li>
+                  <li>Open the link in this browser to keep your session.</li>
+                </ul>
               </div>
 
-              {otpError && (
+              {resendOk && (
                 <motion.div
-                  role="alert"
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 rounded-xl border border-red-400/40 dark:border-red-400/30 bg-red-500/5 dark:bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-600 dark:text-red-300 leading-relaxed text-center"
+                  className="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/5 px-3.5 py-2.5 text-[12.5px] text-emerald-600 dark:text-emerald-300"
                 >
-                  {otpError}
+                  <CheckCircle2 className="size-4" /> New link on the way
                 </motion.div>
-              )}
-
-              {busy && (
-                <div className="flex items-center justify-center gap-2 text-[12.5px] text-gray-500 dark:text-white/50 mb-4">
-                  <Loader2 className="size-3.5 animate-spin" /> Verifying…
-                </div>
               )}
 
               {resendError && (
@@ -429,12 +346,12 @@ function LoginPage() {
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={() => sendCode(true)}
+                  onClick={() => sendLink(true)}
                   disabled={resending || busy}
                   className="text-sm text-gray-500 hover:text-cyan-500 dark:hover:text-cyan-300 cursor-pointer transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
                   {resending ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                  Didn't receive a code? <span className="underline underline-offset-2">Resend</span>
+                  Didn't receive it? <span className="underline underline-offset-2">Resend link</span>
                 </button>
               </div>
             </motion.div>

@@ -35,6 +35,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DomainSlugRouteImport } from './routes/domain.$slug'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApplyJobIdRouteImport } from './routes/apply.$jobId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -169,6 +170,11 @@ const DomainSlugRoute = DomainSlugRouteImport.update({
   path: '/domain/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApplyJobIdRoute = ApplyJobIdRouteImport.update({
   id: '/apply/$jobId',
   path: '/apply/$jobId',
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$jobId': typeof ApplyJobIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/domain/$slug': typeof DomainSlugRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$jobId': typeof ApplyJobIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/domain/$slug': typeof DomainSlugRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/workspace': typeof WorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$jobId': typeof ApplyJobIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/domain/$slug': typeof DomainSlugRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -310,6 +319,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/api/chat'
     | '/apply/$jobId'
+    | '/auth/callback'
     | '/domain/$slug'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/api/chat'
     | '/apply/$jobId'
+    | '/auth/callback'
     | '/domain/$slug'
     | '/lovable/email/queue/process'
   id:
@@ -372,6 +383,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/api/chat'
     | '/apply/$jobId'
+    | '/auth/callback'
     | '/domain/$slug'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
@@ -404,6 +416,7 @@ export interface RootRouteChildren {
   WorkspaceRoute: typeof WorkspaceRoute
   ApiChatRoute: typeof ApiChatRoute
   ApplyJobIdRoute: typeof ApplyJobIdRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   DomainSlugRoute: typeof DomainSlugRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
@@ -592,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DomainSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apply/$jobId': {
       id: '/apply/$jobId'
       path: '/apply/$jobId'
@@ -644,6 +664,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkspaceRoute: WorkspaceRoute,
   ApiChatRoute: ApiChatRoute,
   ApplyJobIdRoute: ApplyJobIdRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   DomainSlugRoute: DomainSlugRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
