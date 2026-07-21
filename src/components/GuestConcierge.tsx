@@ -101,7 +101,7 @@ export function GuestConcierge() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs, streaming]);
+  }, [msgs.length]);
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
