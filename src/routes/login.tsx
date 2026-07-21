@@ -137,7 +137,9 @@ function LoginPage() {
 
   const sendOtp = async (isResend = false) => {
     if (!emailOk || busy) return;
+    if (isResend && resendIn > 0) return;
     setBusy(true); setError(null);
+    if (isResend) setResendState("sending");
     try {
       const { error: err } = await supabase.auth.signInWithOtp({
         email,
@@ -147,12 +149,29 @@ function LoginPage() {
       setOtp(["", "", "", "", "", ""]);
       setResendIn(RESEND_SECONDS);
       setView("otp_verify");
-      toast.success(isResend ? "New code sent" : "Verification code sent");
+      if (isResend) {
+        setResendState("sent");
+        toast.success("New code sent to your email");
+        window.setTimeout(() => setResendState("idle"), 4000);
+      } else {
+        toast.success("Verification code sent");
+      }
       setTimeout(() => otpRefs.current[0]?.focus(), 60);
     } catch (err) {
       const msg = humanize(err instanceof Error ? err.message : "Couldn't send code");
       setError(msg); toast.error(msg);
+      if (isResend) setResendState("idle");
     } finally { setBusy(false); }
+  };
+
+  const fireConfetti = () => {
+    if (typeof window === "undefined") return;
+    const opts = { spread: 70, startVelocity: 45, ticks: 200, zIndex: 100 };
+    confetti({ ...opts, particleCount: 90, origin: { x: 0.5, y: 0.6 } });
+    window.setTimeout(() => {
+      confetti({ ...opts, particleCount: 60, angle: 60, origin: { x: 0, y: 0.7 } });
+      confetti({ ...opts, particleCount: 60, angle: 120, origin: { x: 1, y: 0.7 } });
+    }, 200);
   };
 
   const verifyOtp = async (codeOverride?: string) => {
@@ -166,8 +185,10 @@ function LoginPage() {
         persistCareerPilotSession(data.session, { touchLastLogin: true });
         localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
       }
+      setSuccess(true);
+      fireConfetti();
       toast.success("Signed in");
-      await routeAfterAuth();
+      window.setTimeout(() => { routeAfterAuth(); }, 1500);
     } catch (err) {
       const raw = err instanceof Error ? err.message.toLowerCase() : "";
       const msg = raw.includes("expired") ? "That code expired. Request a new one."
@@ -176,7 +197,9 @@ function LoginPage() {
       setError(msg); toast.error(msg);
       setOtp(["", "", "", "", "", ""]);
       setTimeout(() => otpRefs.current[0]?.focus(), 30);
-    } finally { setBusy(false); }
+      setBusy(false);
+      return;
+    }
   };
 
   const onOtpChange = (i: number, raw: string) => {
