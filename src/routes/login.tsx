@@ -233,6 +233,8 @@ function LoginPage() {
             onClick={() => {
               setAuthStep("email");
               setOtp(["", "", "", "", "", ""]);
+              setOtpError(null);
+              setResendError(null);
             }}
             className="absolute top-5 left-5 inline-flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
           >
