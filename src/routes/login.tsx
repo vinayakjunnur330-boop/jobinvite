@@ -77,9 +77,18 @@ function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Cooldown ticker (drives the "Resend in Ns" label)
+  useEffect(() => {
+    if (cooldownUntil <= Date.now()) return;
+    const id = window.setInterval(() => setNowTick(Date.now()), 500);
+    return () => window.clearInterval(id);
+  }, [cooldownUntil]);
+
   if (!showLoginForm) return null;
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const cooldownMs = Math.max(0, cooldownUntil - nowTick);
+  const cooldownSec = Math.ceil(cooldownMs / 1000);
 
   const humanizeAuthError = (raw: string): string => {
     const m = raw.toLowerCase();
@@ -89,12 +98,36 @@ function LoginPage() {
     return raw || "Something went wrong. Please try again.";
   };
 
+  const formatRetry = (ms: number): string => {
+    const s = Math.ceil(ms / 1000);
+    if (s < 60) return `${s}s`;
+    const m = Math.ceil(s / 60);
+    if (m < 60) return `${m} min`;
+    return `${Math.ceil(m / 60)}h`;
+  };
+
   const sendLink = async (isResend = false) => {
     if (!emailOk) return;
+    if (cooldownMs > 0) return;
     isResend ? setResending(true) : setBusy(true);
     if (isResend) { setResendError(null); setResendOk(false); }
     else setEmailError(null);
     try {
+      // Server-side per-email + per-IP throttle before we touch Supabase Auth.
+      const quota = await checkQuota({ data: { email } });
+      if (!quota.allowed) {
+        setCooldownUntil(Date.now() + quota.retryAfterMs);
+        const msg =
+          quota.reason === "cooldown"
+            ? `Please wait ${formatRetry(quota.retryAfterMs)} before requesting another link.`
+            : quota.reason === "ip"
+              ? `Too many requests from your network. Try again in ${formatRetry(quota.retryAfterMs)}.`
+              : `Too many requests for this email. Try again in ${formatRetry(quota.retryAfterMs)}.`;
+        if (isResend) setResendError(msg); else setEmailError(msg);
+        toast.error(msg);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -103,6 +136,8 @@ function LoginPage() {
         },
       });
       if (error) throw error;
+      // Client-side cooldown mirrors the server minimum spacing.
+      setCooldownUntil(Date.now() + 30_000);
       if (isResend) {
         setResendOk(true);
         toast.success("New link sent");
