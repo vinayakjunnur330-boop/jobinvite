@@ -331,13 +331,22 @@ function LoginPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => { setView("forgot"); setError(null); }}
-                className="text-white/95 text-[13px] hover:underline cursor-pointer -mt-1"
-              >
-                Forgot Password?
-              </button>
+              <div className="flex items-center justify-between -mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setView("forgot"); setError(null); }}
+                  className="text-white/95 text-[13px] hover:underline cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setError(null); if (emailOk) sendOtp(false); else { setError("Enter your email first"); } }}
+                  className="inline-flex items-center gap-1 text-white/95 text-[13px] hover:underline cursor-pointer"
+                >
+                  <KeyRound className="size-3.5" /> Use code instead
+                </button>
+              </div>
 
               {error && (
                 <div role="alert" className="rounded-lg border border-red-300/50 bg-red-500/20 px-3.5 py-2.5 text-[12.5px] text-white">
