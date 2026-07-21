@@ -43,6 +43,9 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [resendError, setResendError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [theme, , toggleTheme] = useTheme();
 
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -83,9 +86,23 @@ function LoginPage() {
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+  const humanizeAuthError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes("expired")) return "This code has expired. Request a new one below.";
+    if (m.includes("invalid") && m.includes("token")) return "That code doesn't match. Double-check the 6 digits and try again.";
+    if (m.includes("otp") && m.includes("invalid")) return "Invalid code. Please re-enter the 6 digits from your email.";
+    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
+    if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
+    if (m.includes("not found") || m.includes("user")) return "We couldn't find that email. Try a different address.";
+    return raw || "Something went wrong. Please try again.";
+  };
+
   const sendCode = async (isResend = false) => {
     if (!emailOk) return;
     isResend ? setResending(true) : setBusy(true);
+    if (isResend) setResendError(null);
+    else setEmailError(null);
+    setOtpError(null);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -98,7 +115,10 @@ function LoginPage() {
         setAuthStep("otp");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send code");
+      const msg = humanizeAuthError(err instanceof Error ? err.message : "Failed to send code");
+      if (isResend) setResendError(msg);
+      else setEmailError(msg);
+      toast.error(msg);
     } finally {
       isResend ? setResending(false) : setBusy(false);
     }
@@ -107,6 +127,7 @@ function LoginPage() {
   const verifyCode = async (code: string) => {
     if (code.length !== 6 || busy) return;
     setBusy(true);
+    setOtpError(null);
     try {
       const { data, error } = await supabase.auth.verifyOtp({
         email,
@@ -121,7 +142,9 @@ function LoginPage() {
       toast.success("Welcome back.");
       await routeAfterAuth();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Invalid or expired code");
+      const msg = humanizeAuthError(err instanceof Error ? err.message : "Invalid or expired code");
+      setOtpError(msg);
+      toast.error(msg);
       setOtp(["", "", "", "", "", ""]);
       otpRefs.current[0]?.focus();
     } finally {
@@ -130,6 +153,7 @@ function LoginPage() {
   };
 
   const handleOtpChange = (i: number, val: string) => {
+    if (otpError) setOtpError(null);
     const digit = val.replace(/\D/g, "").slice(-1);
     const next = [...otp];
     next[i] = digit;
@@ -209,6 +233,8 @@ function LoginPage() {
             onClick={() => {
               setAuthStep("email");
               setOtp(["", "", "", "", "", ""]);
+              setOtpError(null);
+              setResendError(null);
             }}
             className="absolute top-5 left-5 inline-flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
           >
@@ -254,7 +280,7 @@ function LoginPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                       autoComplete="email"
                       autoFocus
                       placeholder="you@work.com"
@@ -269,6 +295,15 @@ function LoginPage() {
                     <p className="mt-1 text-[11.5px] text-red-500 dark:text-red-300/90">Enter a valid email</p>
                   )}
                 </div>
+
+                {emailError && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-red-400/40 dark:border-red-400/30 bg-red-500/5 dark:bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-600 dark:text-red-300 leading-relaxed"
+                  >
+                    {emailError}
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -342,6 +377,7 @@ function LoginPage() {
                 </p>
               </div>
 
+
               <div className="flex justify-center gap-3 my-8">
                 {otp.map((d, i) => (
                   <input
@@ -355,15 +391,42 @@ function LoginPage() {
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                     onPaste={handleOtpPaste}
                     disabled={busy}
-                    className="w-12 h-14 text-center text-2xl font-semibold bg-black/5 dark:bg-white/5 border border-gray-300 dark:border-white/20 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl transition-all outline-none text-gray-900 dark:text-white disabled:opacity-50"
+                    aria-invalid={!!otpError}
+                    className={`w-12 h-14 text-center text-2xl font-semibold bg-black/5 dark:bg-white/5 border rounded-xl transition-all outline-none text-gray-900 dark:text-white disabled:opacity-50 focus:ring-1 ${
+                      otpError
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-400"
+                        : "border-gray-300 dark:border-white/20 focus:border-cyan-400 focus:ring-cyan-400"
+                    }`}
                   />
                 ))}
               </div>
+
+              {otpError && (
+                <motion.div
+                  role="alert"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-xl border border-red-400/40 dark:border-red-400/30 bg-red-500/5 dark:bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-600 dark:text-red-300 leading-relaxed text-center"
+                >
+                  {otpError}
+                </motion.div>
+              )}
 
               {busy && (
                 <div className="flex items-center justify-center gap-2 text-[12.5px] text-gray-500 dark:text-white/50 mb-4">
                   <Loader2 className="size-3.5 animate-spin" /> Verifying…
                 </div>
+              )}
+
+              {resendError && (
+                <motion.div
+                  role="alert"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-xl border border-amber-400/40 dark:border-amber-400/30 bg-amber-500/5 dark:bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-700 dark:text-amber-300 leading-relaxed text-center"
+                >
+                  Couldn't resend: {resendError}
+                </motion.div>
               )}
 
               <div className="text-center">
