@@ -34,6 +34,21 @@ export function ChatWidget() {
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
+  // Hydrate guest conversation once, so post-login context isn't lost.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("cp_guest_msgs");
+      if (!raw) return;
+      const prior = JSON.parse(raw) as Msg[];
+      if (Array.isArray(prior) && prior.length > 0) {
+        setMsgs([...seed, ...prior]);
+        localStorage.removeItem("cp_guest_msgs");
+        localStorage.removeItem("cp_guest_count");
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   // Body scroll lock when open
   useEffect(() => {
     if (typeof document === "undefined") return;
