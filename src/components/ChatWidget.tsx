@@ -41,6 +41,9 @@ export function ChatWidget() {
   const loadedForUserRef = useRef<string | null>(null);
   const guestHydratedRef = useRef(false);
   const userId = user?.id ?? null;
+  // Hide the floating chat while the guest concierge overlay owns the screen.
+  // Concierge shows for unauthenticated visitors once auth has resolved.
+  const hidden = !isAuthLoading && !isAuthenticated;
   const messageSignature = useMemo(() => {
     const last = msgs[msgs.length - 1];
     return `${msgs.length}:${last?.role ?? "none"}:${last?.content.length ?? 0}:${streaming ? 1 : 0}`;
