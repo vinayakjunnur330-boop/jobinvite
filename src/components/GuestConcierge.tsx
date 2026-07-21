@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useTheme } from "@/lib/theme";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -67,6 +68,7 @@ function TopRightControls() {
 
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
+  const isMobile = useIsMobile();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const formParam = useRouterState({ select: (s) => (s.location.search as Record<string, unknown>)?.form ?? null });
   const loginShowingForm = pathname === "/login" && formParam === "1";
@@ -81,20 +83,61 @@ export function GuestConcierge() {
   const chatScrollerRef = useRef<HTMLDivElement>(null);
   const hydrationStartedRef = useRef(false);
   const scrollRafRef = useRef<number | null>(null);
+  const lastScrollSignatureRef = useRef<string>("");
   const openingMsg = useMemo(
     () => `${greeting()}! Hey! I'm Zoiee, your friendly learning buddy. Ready to discover your perfect career today? 🤩`,
     [],
   );
 
+  // ✅ Corrected mobile viewport effect: no React state updates here.
+  // It freezes the overlay to a stable height on phones, so iOS/Android URL-bar
+  // resize events cannot repeatedly re-layout the chat and look like flicker.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const root = document.documentElement;
+    const desktopQuery = window.matchMedia("(min-width: 768px)");
+    let orientationTimer: number | null = null;
+
+    const writeViewportHeight = () => {
+      root.style.setProperty("--zoiee-vh", `${window.innerHeight}px`);
+    };
+
+    const onResize = () => {
+      // Mobile browser chrome fires resize while scrolling; ignore those.
+      if (desktopQuery.matches) writeViewportHeight();
+    };
+
+    const onOrientationChange = () => {
+      if (orientationTimer !== null) window.clearTimeout(orientationTimer);
+      orientationTimer = window.setTimeout(writeViewportHeight, 250);
+    };
+
+    writeViewportHeight();
+    window.addEventListener("resize", onResize, { passive: true });
+    window.addEventListener("orientationchange", onOrientationChange);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onOrientationChange);
+      if (orientationTimer !== null) window.clearTimeout(orientationTimer);
+      root.style.removeProperty("--zoiee-vh");
+    };
+  }, []);
+
+  // ✅ Corrected one-shot hydration effect: guarded by a ref and never depends
+  // on auth/loading, so it cannot bounce with auth checks on mobile.
   useEffect(() => {
     if (hydrationStartedRef.current) return;
     hydrationStartedRef.current = true;
 
     const storedMsgs = readMsgs();
     const storedCount = readCount();
-    setMsgs(Array.isArray(storedMsgs) ? storedMsgs : []);
-    setCount(Number.isFinite(storedCount) ? storedCount : 0);
-    setHydrated(true);
+    const safeMsgs = Array.isArray(storedMsgs) ? storedMsgs : [];
+    const safeCount = Number.isFinite(storedCount) ? storedCount : 0;
+    setMsgs((current) => (current.length === safeMsgs.length ? current : safeMsgs));
+    setCount((current) => (current === safeCount ? current : safeCount));
+    setHydrated((current) => current || true);
 
     return () => {
       if (scrollRafRef.current !== null) {
@@ -108,14 +151,17 @@ export function GuestConcierge() {
   const active = hydrated && !loading && !isAuthenticated && !onAuthRoute;
   const showLoadingGate = authResolving && !onAuthRoute;
 
+  // ✅ Corrected overlay body lock: reversible DOM writes only; no state updates.
   useEffect(() => {
     if (typeof document === "undefined") return;
     if (!active) return;
     const { body } = document;
+    const root = document.documentElement;
     const prevOverflow = body.style.overflow;
-    const prevTouchAction = body.style.touchAction;
+    const prevOverscroll = body.style.overscrollBehavior;
     body.style.overflow = "hidden";
-    body.style.touchAction = "none";
+    body.style.overscrollBehavior = "none";
+    root.classList.add("zoiee-overlay-active");
 
     const focusTimer = window.setTimeout(() => {
       const canAutofocus = window.matchMedia("(min-width: 768px)").matches;
@@ -125,7 +171,8 @@ export function GuestConcierge() {
     return () => {
       window.clearTimeout(focusTimer);
       body.style.overflow = prevOverflow;
-      body.style.touchAction = prevTouchAction;
+      body.style.overscrollBehavior = prevOverscroll;
+      root.classList.remove("zoiee-overlay-active");
     };
   }, [active]);
 
@@ -134,8 +181,13 @@ export function GuestConcierge() {
     return `${msgs.length}:${last?.content.length ?? 0}:${streaming ? 1 : 0}`;
   }, [msgs, streaming]);
 
+  // ✅ Corrected auto-scroll effect: it is keyed by a stable signature, cancels
+  // stale RAF work, and never writes React state from inside the effect.
   useEffect(() => {
     if (!active) return;
+    if (lastScrollSignatureRef.current === scrollSignature) return;
+    lastScrollSignatureRef.current = scrollSignature;
+
     const scroller = chatScrollerRef.current;
     if (!scroller) return;
 
@@ -144,7 +196,10 @@ export function GuestConcierge() {
     }
 
     scrollRafRef.current = window.requestAnimationFrame(() => {
-      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "auto" });
+      const bottom = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+      if (Math.abs(scroller.scrollTop - bottom) > 2) {
+        scroller.scrollTop = bottom;
+      }
       scrollRafRef.current = null;
     });
 
@@ -247,6 +302,10 @@ export function GuestConcierge() {
 
   const remaining = Math.max(0, GUEST_LIMIT - count);
 
+  const overlayMotionProps = isMobile
+    ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 1 }, transition: { duration: 0 } }
+    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.4 } };
+
   return (
     <>
       {showLoadingGate && (
@@ -257,14 +316,18 @@ export function GuestConcierge() {
       <AnimatePresence>
         {active && (
         <motion.div
+          data-zoiee-overlay="true"
           key="guest-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[9998] bg-[#050b18] w-full h-full flex flex-col md:flex-row overflow-hidden"
-          style={{ height: "100dvh" }}
+          {...overlayMotionProps}
+          className="fixed inset-0 z-[9998] bg-[#050b18] w-full flex flex-col md:flex-row overflow-hidden"
+          style={{ height: "var(--zoiee-vh, 100svh)" }}
         >
+          <style>{`
+            @keyframes zoieeFloatStable {
+              0%, 100% { transform: translate3d(0, -10px, 0); }
+              50% { transform: translate3d(0, 10px, 0); }
+            }
+          `}</style>
           {/* Ambient glow */}
           <div
             aria-hidden
@@ -280,12 +343,11 @@ export function GuestConcierge() {
 
           {/* LEFT — mascot column (stacked on mobile, side on md+) */}
           <div className="w-full h-1/3 md:w-1/2 md:h-full shrink-0 flex flex-col items-center justify-center pt-8 md:pt-0 relative">
-            <motion.img
+            <img
               src="/robot-avatar.png"
               alt="CareerPilot AI Mascot"
               className="w-40 h-40 md:w-72 md:h-72 object-contain drop-shadow-[0_0_30px_rgba(6,182,212,0.4)] z-10"
-              animate={{ y: [-10, 10, -10] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              style={{ animation: "zoieeFloatStable 5s ease-in-out infinite", willChange: "transform" }}
             />
             <div className="w-24 md:w-32 h-3 md:h-4 bg-black/40 blur-md rounded-[100%] mt-4 md:mt-6" />
             <div className="mt-4 md:mt-8 text-center px-6">
@@ -305,24 +367,17 @@ export function GuestConcierge() {
                 className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col gap-4"
                 style={{ scrollbarWidth: "none" }}
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[90%] md:max-w-[85%] text-sm leading-relaxed"
-                >
+                <div className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[90%] md:max-w-[85%] text-sm leading-relaxed">
                   {openingMsg}
                   <div className="mt-2 flex items-center gap-3 text-white/40">
                     <button className="hover:text-cyan-300 transition-colors" aria-label="Like"><ThumbsUp className="size-3.5" /></button>
                     <button className="hover:text-red-300 transition-colors" aria-label="Dislike"><ThumbsDown className="size-3.5" /></button>
                   </div>
-                </motion.div>
+                </div>
 
                 {msgs.map((m, i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25 }}
                     className={
                       m.role === "user"
                         ? "self-end bg-white text-gray-900 p-3 rounded-2xl rounded-tr-sm shadow-md max-w-[90%] md:max-w-[75%] text-sm leading-relaxed"
@@ -342,7 +397,7 @@ export function GuestConcierge() {
                     ) : (
                       m.content
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 

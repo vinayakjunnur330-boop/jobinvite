@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ParticleField } from "@/components/motion/ParticleField";
 
@@ -8,7 +8,40 @@ import { ParticleField } from "@/components/motion/ParticleField";
  * Also installs a single global mouse tracker that exposes
  * `--mx` / `--my` on <html> for any `.glass-deep` spotlight.
  */
+function usePauseForMobileZoieeOverlay() {
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const root = document.documentElement;
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    const sync = () => {
+      setPaused(mobileQuery.matches && root.classList.contains("zoiee-overlay-active"));
+    };
+
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    mobileQuery.addEventListener("change", sync);
+
+    return () => {
+      observer.disconnect();
+      mobileQuery.removeEventListener("change", sync);
+    };
+  }, []);
+
+  return paused;
+}
+
 export function AmbientBackground() {
+  const pausedForZoiee = usePauseForMobileZoieeOverlay();
+  if (pausedForZoiee) return null;
+
+  return <AmbientBackgroundVisuals />;
+}
+
+function AmbientBackgroundVisuals() {
   const { scrollY } = useScroll();
   const orbY1 = useTransform(scrollY, [0, 2000], [0, -240]);
   const orbY2 = useTransform(scrollY, [0, 2000], [0, -140]);
@@ -56,7 +89,7 @@ export function AmbientBackground() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden gpu"
+      className="ambient-background pointer-events-none fixed inset-0 -z-10 overflow-hidden gpu"
       style={{ transform: "translateZ(0)", willChange: "transform" }}
     >
       <div className="absolute inset-0 bg-[#05060d]" />
