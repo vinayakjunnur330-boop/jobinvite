@@ -31,8 +31,9 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-type View = "login" | "forgot" | "forgot_sent";
+type View = "login" | "forgot" | "forgot_sent" | "otp_email" | "otp_verify";
 const SESSION_KEY = "user_session";
+const RESEND_SECONDS = 30;
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -45,6 +46,9 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [resendIn, setResendIn] = useState(0);
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const checkRoles = useServerFn(getMyRoles);
 
