@@ -443,7 +443,7 @@ function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/5 px-3.5 py-2.5 text-[12.5px] text-emerald-600 dark:text-emerald-300"
                 >
-                  <CheckCircle2 className="size-4" /> New link on the way
+                  <CheckCircle2 className="size-4" /> New code on the way
                 </motion.div>
               )}
 
