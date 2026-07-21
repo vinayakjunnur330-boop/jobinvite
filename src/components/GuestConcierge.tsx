@@ -68,8 +68,8 @@ function TopRightControls() {
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.search as Record<string, unknown> });
-  const loginShowingForm = pathname === "/login" && search?.form === "1";
+  const formParam = useRouterState({ select: (s) => (s.location.search as Record<string, unknown>)?.form ?? null });
+  const loginShowingForm = pathname === "/login" && formParam === "1";
   const onAuthRoute = pathname === "/admin-login" || pathname.startsWith("/auth") || loginShowingForm;
   const [hydrated, setHydrated] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
