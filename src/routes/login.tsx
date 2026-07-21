@@ -169,6 +169,30 @@ function LoginPage() {
     }
   };
 
+  const verifyCode = async () => {
+    const token = otpCode.replace(/\D/g, "");
+    if (token.length !== 6 || verifying) return;
+    setVerifying(true);
+    setOtpError(null);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+      if (error) throw error;
+      if (data.session) {
+        persistCareerPilotSession(data.session, { touchLastLogin: true });
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
+      }
+      toast.success("Signed in");
+      await routeAfterAuth();
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : "Invalid or expired code";
+      const msg = /expired|invalid/i.test(raw) ? "That code is invalid or expired. Request a new one." : humanizeAuthError(raw);
+      setOtpError(msg);
+      toast.error(msg);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const oauth = async (provider: Provider) => {
     if (oauthBusy) return;
     setOauthBusy(provider);
