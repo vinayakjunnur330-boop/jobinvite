@@ -141,40 +141,40 @@ export function FuturisticHero() {
 
   return (
     <section
-      className="relative overflow-hidden bg-[#0a0a0a]"
+      className="relative isolate overflow-hidden bg-[#0a0a0a]"
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         mx.set(((e.clientX - r.left) / r.width) * 100);
         my.set(((e.clientY - r.top) / r.height) * 100);
       }}
     >
-      {/* Breathing aurora orbs */}
+      {/* Breathing aurora orbs — constrained & responsive */}
       <motion.div
         aria-hidden
-        className="absolute -top-40 -left-32 size-[560px] rounded-full bg-violet-600/25 blur-[140px]"
+        className="pointer-events-none absolute -top-24 -left-16 z-0 size-[280px] md:size-[440px] lg:size-[560px] rounded-full bg-violet-600/25 blur-[100px] md:blur-[140px]"
         animate={{ scale: [1, 1.15, 1], opacity: [0.55, 0.9, 0.55] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         aria-hidden
-        className="absolute top-1/3 -right-40 size-[520px] rounded-full bg-cyan-400/20 blur-[140px]"
+        className="pointer-events-none absolute top-1/3 -right-20 z-0 size-[260px] md:size-[420px] lg:size-[520px] rounded-full bg-cyan-400/20 blur-[100px] md:blur-[140px]"
         animate={{ scale: [1.1, 1, 1.1], opacity: [0.5, 0.85, 0.5] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
       />
       <motion.div
         aria-hidden
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 size-[480px] rounded-full bg-fuchsia-500/20 blur-[140px]"
+        className="pointer-events-none absolute -bottom-20 left-1/2 -translate-x-1/2 z-0 size-[240px] md:size-[380px] lg:size-[480px] rounded-full bg-fuchsia-500/20 blur-[100px] md:blur-[140px]"
         animate={{ scale: [1, 1.2, 1], opacity: [0.45, 0.8, 0.45] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2.4 }}
       />
 
       {/* Mouse-reactive radial glow */}
-      <motion.div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: glow }} />
+      <motion.div aria-hidden className="pointer-events-none absolute inset-0 z-0" style={{ background: glow }} />
 
       {/* Subtle grid overlay */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        className="pointer-events-none absolute inset-0 z-0 opacity-[0.08]"
         style={{
           backgroundImage:
             "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)",
@@ -183,8 +183,8 @@ export function FuturisticHero() {
         }}
       />
 
-      {/* 3D canvas */}
-      <div className="absolute inset-0">
+      {/* 3D canvas — desktop only; too heavy & visually noisy on mobile */}
+      <div className="pointer-events-none absolute inset-0 z-0 hidden md:block">
         {hydrated && (
           <Suspense fallback={null}>
             <NeuralCanvas />
@@ -193,10 +193,11 @@ export function FuturisticHero() {
       </div>
 
       {/* Vignette to seat text */}
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/40 to-[#0a0a0a]" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/40 to-[#0a0a0a]" />
 
       {/* Content */}
-      <div className="relative max-w-6xl mx-auto px-6 pt-28 pb-32 md:pt-36 md:pb-40">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 pt-28 pb-32 md:pt-36 md:pb-40">
+
         <div className="max-w-3xl">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
