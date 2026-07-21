@@ -297,9 +297,10 @@ function LoginPage() {
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                       autoComplete="email"
-                      autoFocus
+                      inputMode="email"
                       placeholder="you@work.com"
-                      className={`bg-transparent border-b py-3 w-full outline-none transition-all text-[14px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 ${
+                      style={{ fontSize: "16px" }}
+                      className={`bg-transparent border-b py-3 w-full outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 ${
                         email.length > 0 && !emailOk
                           ? "border-red-400 focus:border-red-500"
                           : "border-gray-300 dark:border-white/20 focus:border-blue-500"
