@@ -13,6 +13,11 @@ export const Route = createFileRoute("/auth/callback")({
   component: AuthCallbackPage,
 });
 
+function sanitizeNext(v: string | null): string | null {
+  if (!v || !v.startsWith("/") || v.startsWith("//")) return null;
+  return v;
+}
+
 function AuthCallbackPage() {
   const navigate = useNavigate();
   const checkRoles = useServerFn(getMyRoles);
@@ -31,6 +36,8 @@ function AuthCallbackPage() {
         return;
       }
 
+      const next = sanitizeNext(url.searchParams.get("next"));
+
       // supabase-js auto-detects session from the URL hash. Poll briefly.
       for (let i = 0; i < 30; i++) {
         const { data } = await supabase.auth.getSession();
@@ -38,6 +45,10 @@ function AuthCallbackPage() {
         if (data.session) {
           persistCareerPilotSession(data.session, { touchLastLogin: true });
           localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
+          if (next) {
+            window.location.replace(next);
+            return;
+          }
           try {
             const r = await checkRoles();
             navigate({ to: r.isAdmin ? "/admin" : "/dashboard", replace: true });
