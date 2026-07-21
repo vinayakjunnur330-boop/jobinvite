@@ -13,6 +13,7 @@ import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
 import { GuestConcierge } from "@/components/GuestConcierge";
 import { ChatOpenGate } from "@/components/ChatOpenGate";
+import { SessionManager } from "@/components/SessionManager";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,6 +130,7 @@ function RootComponent() {
           <ChatWidget />
           <GuestConcierge />
           <ChatOpenGate />
+          <SessionManager />
           <Toaster />
         </div>
       </AuthProvider>
