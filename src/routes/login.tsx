@@ -386,19 +386,52 @@ function LoginPage() {
                   Check your email
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 px-2">
-                  We sent a secure sign-in link to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
-                  Click the link on this device to continue.
+                  We sent a secure sign-in link and a 6-digit code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
+                  Click the link or enter the code below.
                 </p>
               </div>
 
-              <div className="my-8 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed">
-                <p className="mb-2 font-medium text-gray-900 dark:text-white">Tips</p>
+              <form
+                onSubmit={(e) => { e.preventDefault(); verifyCode(); }}
+                className="mt-6 mb-4"
+              >
+                <label className="block text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-white/50 mb-2 text-center">
+                  Enter 6-digit code
+                </label>
+                <input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setOtpCode(v);
+                    if (otpError) setOtpError(null);
+                  }}
+                  placeholder="••••••"
+                  className="w-full text-center tracking-[0.6em] font-mono text-[22px] py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white outline-none focus:border-blue-500 transition-all"
+                />
+                {otpError && (
+                  <p role="alert" className="mt-2 text-[12px] text-red-500 dark:text-red-300 text-center">{otpError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={otpCode.length !== 6 || verifying}
+                  className="mt-4 h-11 w-full rounded-full font-medium text-[13.5px] bg-blue-500 hover:bg-blue-600 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                >
+                  {verifying ? <Loader2 className="size-4 animate-spin" /> : <>Verify & Sign in <ArrowRight className="size-4" /></>}
+                </button>
+              </form>
+
+              <div className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
+                <p className="mb-1.5 font-medium text-gray-900 dark:text-white">Tips</p>
                 <ul className="space-y-1 list-disc pl-4">
-                  <li>The link expires in 60 minutes.</li>
+                  <li>The code and link expire in 60 minutes.</li>
                   <li>Check spam or promotions if it hasn't arrived.</li>
-                  <li>Open the link in this browser to keep your session.</li>
                 </ul>
               </div>
+
 
               {resendOk && (
                 <motion.div
