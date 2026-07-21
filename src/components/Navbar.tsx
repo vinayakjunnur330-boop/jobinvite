@@ -67,7 +67,7 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/login" search={{ form: "1" }} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Sign in
               </Link>
               <Link
