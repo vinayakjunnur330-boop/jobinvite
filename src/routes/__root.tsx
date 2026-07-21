@@ -15,7 +15,7 @@ import { GuestConcierge } from "@/components/GuestConcierge";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 
 import appCss from "../styles.css?url";
