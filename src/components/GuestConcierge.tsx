@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, X, Eye, EyeOff, Loader2, RotateCcw, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Send, X, Eye, EyeOff, Loader2, RotateCcw, ThumbsUp, ThumbsDown, Sun, Moon } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
@@ -8,6 +8,7 @@ import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-ic
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { useTheme } from "@/lib/theme";
 
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -42,22 +43,34 @@ function renderMd(text: string) {
     .replace(/\n/g, "<br/>");
 }
 
-function SignInButton() {
+function TopRightControls() {
   const navigate = useNavigate();
+  const [theme, , toggle] = useTheme();
   return (
-    <button
-      onClick={() => navigate({ to: "/login" })}
-      className="absolute top-6 right-8 z-[100] px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] text-sm cursor-pointer"
-    >
-      Sign In / Sign Up
-    </button>
+    <div className="absolute top-6 right-8 z-[100] flex items-center gap-3">
+      <button
+        onClick={toggle}
+        aria-label="Toggle theme"
+        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white transition-all duration-300 cursor-pointer"
+      >
+        {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      </button>
+      <button
+        onClick={() => navigate({ to: "/login", search: { form: "1" } })}
+        className="px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] text-sm cursor-pointer"
+      >
+        Sign In / Sign Up
+      </button>
+    </div>
   );
 }
 
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const onAuthRoute = pathname === "/login" || pathname === "/admin-login" || pathname.startsWith("/auth");
+  const search = useRouterState({ select: (s) => s.location.search as Record<string, unknown> });
+  const loginShowingForm = pathname === "/login" && search?.form === "1";
+  const onAuthRoute = pathname === "/admin-login" || pathname.startsWith("/auth") || loginShowingForm;
   const [hydrated, setHydrated] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [count, setCount] = useState(0);
@@ -182,8 +195,8 @@ export function GuestConcierge() {
             }}
           />
 
-          {/* Top-right Sign In / Sign Up */}
-          <SignInButton />
+          {/* Top-right controls */}
+          <TopRightControls />
 
           {/* Strict 50/50 flex split */}
           <div className="w-full max-w-7xl h-[85vh] flex flex-row items-center justify-center mx-auto relative">
