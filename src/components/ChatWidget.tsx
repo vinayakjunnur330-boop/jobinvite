@@ -231,7 +231,7 @@ export function ChatWidget() {
     <div className="z-[9999]">
       {/* Floating toggle button — living AI orb */}
       <motion.button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => { if (!open) { void import("@/lib/chatGate").then(m => m.openChatGate()); } setOpen((v) => !v); }}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.92 }}
         animate={{ scale: [1, 1.04, 1] }}
