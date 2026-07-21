@@ -273,8 +273,9 @@ function LoginPage() {
                   Sign in to CareerPilot
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50">
-                  Enter your email — we'll send you a secure sign-in link.
+                  Enter your email — we'll send you a 6-digit verification code.
                 </p>
+
               </div>
 
               <form
