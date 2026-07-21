@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Send, X, Eye, EyeOff, Loader2, RotateCcw, ThumbsUp, ThumbsDown } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
@@ -56,6 +56,8 @@ function SignInButton() {
 
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const onAuthRoute = pathname === "/login" || pathname === "/admin-login" || pathname.startsWith("/auth");
   const [hydrated, setHydrated] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [count, setCount] = useState(0);
@@ -72,7 +74,7 @@ export function GuestConcierge() {
     setHydrated(true);
   }, []);
 
-  const active = hydrated && !loading && !isAuthenticated;
+  const active = hydrated && !loading && !isAuthenticated && !onAuthRoute;
 
   useEffect(() => {
     if (!active) return;
