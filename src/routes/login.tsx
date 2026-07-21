@@ -386,11 +386,15 @@ function LoginPage() {
                 <button
                   type="button"
                   onClick={() => sendLink(true)}
-                  disabled={resending || busy}
-                  className="text-sm text-gray-500 hover:text-cyan-500 dark:hover:text-cyan-300 cursor-pointer transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
+                  disabled={resending || busy || cooldownMs > 0}
+                  className="text-sm text-gray-500 hover:text-cyan-500 dark:hover:text-cyan-300 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                 >
                   {resending ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                  Didn't receive it? <span className="underline underline-offset-2">Resend link</span>
+                  {cooldownMs > 0 ? (
+                    <>Resend available in <span className="font-mono tabular-nums">{cooldownSec}s</span></>
+                  ) : (
+                    <>Didn't receive it? <span className="underline underline-offset-2">Resend link</span></>
+                  )}
                 </button>
               </div>
             </motion.div>
