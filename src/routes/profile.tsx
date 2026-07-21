@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Award, Bell, Download, Settings } from "lucide-react";
+import { AccountSecurityCard } from "@/components/AccountSecurityCard";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
