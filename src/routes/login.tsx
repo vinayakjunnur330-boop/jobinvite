@@ -104,10 +104,7 @@ function LoginPage() {
     else setEmailError(null);
     setOtpError(null);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
-      });
+      const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) throw error;
       toast.success(isResend ? "New code sent" : "Verification code sent");
       if (!isResend) {
