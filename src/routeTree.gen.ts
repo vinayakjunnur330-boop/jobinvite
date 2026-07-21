@@ -42,6 +42,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
@@ -212,6 +213,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/apply/$jobId': typeof ApplyJobIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/domain/$slug': typeof DomainSlugRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -288,6 +295,7 @@ export interface FileRoutesByTo {
   '/apply/$jobId': typeof ApplyJobIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/domain/$slug': typeof DomainSlugRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -325,6 +333,7 @@ export interface FileRoutesById {
   '/apply/$jobId': typeof ApplyJobIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/domain/$slug': typeof DomainSlugRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/apply/$jobId'
     | '/auth/callback'
     | '/domain/$slug'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/apply/$jobId'
     | '/auth/callback'
     | '/domain/$slug'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/lovable/email/queue/process'
   id:
@@ -435,6 +446,7 @@ export interface FileRouteTypes {
     | '/apply/$jobId'
     | '/auth/callback'
     | '/domain/$slug'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
@@ -472,6 +484,7 @@ export interface RootRouteChildren {
   ApplyJobIdRoute: typeof ApplyJobIdRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   DomainSlugRoute: typeof DomainSlugRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
@@ -709,6 +722,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
       path: '/lovable/email/queue/process'
@@ -753,6 +773,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplyJobIdRoute: ApplyJobIdRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   DomainSlugRoute: DomainSlugRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
