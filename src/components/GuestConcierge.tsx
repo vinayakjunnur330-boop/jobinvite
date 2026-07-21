@@ -68,8 +68,8 @@ function TopRightControls() {
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.search as Record<string, unknown> });
-  const loginShowingForm = pathname === "/login" && search?.form === "1";
+  const formParam = useRouterState({ select: (s) => (s.location.search as Record<string, unknown>)?.form ?? null });
+  const loginShowingForm = pathname === "/login" && formParam === "1";
   const onAuthRoute = pathname === "/admin-login" || pathname.startsWith("/auth") || loginShowingForm;
   const [hydrated, setHydrated] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -250,7 +250,7 @@ export function GuestConcierge() {
   return (
     <>
       {showLoadingGate && (
-        <div className="fixed inset-0 z-[9999] min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center">
           <Loader2 className="size-6 animate-spin text-white/60" />
         </div>
       )}
@@ -262,7 +262,8 @@ export function GuestConcierge() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[9998] bg-[#050b18] w-full min-h-screen flex flex-col md:flex-row overflow-hidden"
+          className="fixed inset-0 z-[9998] bg-[#050b18] w-full h-full flex flex-col md:flex-row overflow-hidden"
+          style={{ height: "100dvh" }}
         >
           {/* Ambient glow */}
           <div
