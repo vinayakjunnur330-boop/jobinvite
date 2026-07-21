@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Loader2, ArrowRight, Sun, Moon, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
@@ -239,24 +239,27 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-slate-950 dark:to-black transition-colors duration-500 relative overflow-hidden p-4">
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden p-4"
+      style={{ background: "radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%)" }}
+    >
+      {/* Animated ambient orbs */}
       <motion.div
         aria-hidden
-        className="absolute -top-1/4 -left-1/4 w-[720px] h-[720px] rounded-full blur-[160px] opacity-30 dark:opacity-50 pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(56,189,248,0.6), transparent 60%)" }}
+        className="absolute -top-1/4 -left-1/4 w-[720px] h-[720px] rounded-full blur-[160px] opacity-60 pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(139,92,246,0.55), transparent 60%)" }}
         animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
         transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         aria-hidden
-        className="absolute -bottom-1/4 -right-1/4 w-[720px] h-[720px] rounded-full blur-[160px] opacity-30 dark:opacity-50 pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(139,92,246,0.5), transparent 60%)" }}
+        className="absolute -bottom-1/4 -right-1/4 w-[720px] h-[720px] rounded-full blur-[160px] opacity-60 pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(34,211,238,0.5), transparent 60%)" }}
         animate={{ x: [0, -50, 0], y: [0, -30, 0] }}
         transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
       />
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.035] dark:opacity-[0.06] pointer-events-none"
+        className="absolute inset-0 opacity-[0.05] pointer-events-none"
         style={{
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
@@ -270,103 +273,135 @@ function LoginPage() {
         <button
           onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
+          className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer"
         >
           {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </button>
         <button
           onClick={() => navigate({ to: "/" })}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white text-[11px] sm:text-xs font-medium hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-medium hover:bg-white/20 transition-all cursor-pointer"
         >
           ← Back
         </button>
       </div>
 
-      <div className="relative w-full max-w-[440px] mt-16 sm:mt-0 bg-white/80 dark:bg-white/[0.03] backdrop-blur-3xl border border-gray-200/80 dark:border-white/10 p-6 sm:p-10 rounded-[28px] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.25)] dark:shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)] ring-1 ring-black/[0.02] dark:ring-white/[0.04]">
-        {authStep === "sent" && (
-          <button
-            onClick={() => {
-              setAuthStep("email");
-              setResendError(null);
-              setResendOk(false);
-              setOtpCode("");
-              setOtpError(null);
-            }}
-            className="absolute top-5 left-5 inline-flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="size-3.5" /> Use a different email
-          </button>
-        )}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+        className="relative w-full max-w-[440px] mt-16 sm:mt-0 rounded-[28px] overflow-hidden border border-white/10 backdrop-blur-3xl shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)]"
+        style={{ background: "rgba(255,255,255,0.04)" }}
+      >
+        {authStep === "email" ? (
+          <>
+            {/* Creative gradient header with floating robot */}
+            <div className="relative h-52 flex items-center justify-center overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 55%, #2563eb 100%)" }}
+            >
+              <div
+                aria-hidden
+                className="absolute inset-0 opacity-30"
+                style={{
+                  backgroundImage: "radial-gradient(circle, #ffffff33 1px, transparent 1px)",
+                  backgroundSize: "30px 30px",
+                }}
+              />
+              <motion.div
+                animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="relative z-10 w-28 h-28 bg-white rounded-3xl flex items-center justify-center shadow-2xl"
+                style={{ boxShadow: "0 0 40px rgba(34, 211, 238, 0.6)" }}
+              >
+                <span className="text-6xl">🤖</span>
+              </motion.div>
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/90 text-[11px] tracking-[0.3em] font-medium">
+                CAREERPILOT • ZOIEE
+              </div>
+            </div>
 
-        <AnimatePresence mode="wait">
-          {authStep === "email" ? (
             <motion.div
               key="email"
+              className="p-7 sm:p-8 -mt-6 relative bg-zinc-950 rounded-t-[28px]"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="text-center mb-8">
-                <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-cyan-400 to-violet-500 flex items-center justify-center mb-5 shadow-lg shadow-blue-500/30 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
-                  <span className="relative text-2xl">🤖</span>
-                </div>
-                <div className="text-[10px] uppercase tracking-[0.32em] text-gray-500 dark:text-white/40 mb-2">
-                  CareerPilot • Zoiee
-                </div>
-                <h1 className="text-[28px] font-semibold tracking-tight text-gray-900 dark:text-white">
-                  Unlock Full Access
-                </h1>
-                <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 leading-relaxed px-2">
-                  Sign in to save conversations, analyze your resume, and explore 44+ career domains.
-                </p>
-              </div>
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, duration: 0.5 }}
+                className="text-[30px] font-bold tracking-tight text-white text-center mb-2"
+              >
+                Unlock the Future
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.5 }}
+                className="text-center text-white/50 text-[13px] leading-relaxed px-2"
+              >
+                Sign in to save your journey, analyze your resume,<br className="hidden sm:block" />
+                and discover your dream career path ✨
+              </motion.p>
 
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  sendLink(false);
-                }}
-                className="flex flex-col gap-4"
+                onSubmit={(e) => { e.preventDefault(); sendLink(false); }}
+                className="mt-8 flex flex-col gap-3"
                 noValidate
               >
-                {/* Social first (Apple-style) */}
-                <div className="flex flex-col gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => oauth("google")}
-                    disabled={!!oauthBusy}
-                    className="group h-12 flex items-center justify-center gap-2.5 rounded-2xl bg-white dark:bg-white/[0.06] hover:bg-gray-50 dark:hover:bg-white/[0.12] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white text-[14px] font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]"
-                  >
-                    {oauthBusy === "google" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FcGoogle className="w-5 h-5" /> Continue with Google</>}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => oauth("apple")}
-                    disabled={!!oauthBusy}
-                    className="group h-12 flex items-center justify-center gap-2.5 rounded-2xl bg-black dark:bg-white text-white dark:text-black text-[14px] font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]"
-                  >
-                    {oauthBusy === "apple" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FaApple className="w-4 h-4" /> Continue with Apple</>}
-                  </button>
-                </div>
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45, duration: 0.4 }}
+                  onClick={() => oauth("google")}
+                  disabled={!!oauthBusy}
+                  className="h-14 w-full rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/30 text-white text-[15px] font-medium flex items-center justify-center gap-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+                >
+                  {oauthBusy === "google"
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <><FcGoogle className="w-6 h-6" /> Continue with Google</>}
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.52, duration: 0.4 }}
+                  onClick={() => oauth("apple")}
+                  disabled={!!oauthBusy}
+                  className="h-14 w-full rounded-2xl bg-white text-black text-[15px] font-semibold flex items-center justify-center gap-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] hover:bg-gray-100"
+                >
+                  {oauthBusy === "apple"
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <><FaApple className="w-6 h-6" /> Continue with Apple</>}
+                </motion.button>
 
                 {oauthError && (
-                  <div role="alert" className="rounded-xl border border-amber-400/40 dark:border-amber-400/30 bg-amber-500/5 dark:bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                  <div role="alert" className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-300 leading-relaxed">
                     {oauthError}
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 my-1">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
-                  <span className="text-[10.5px] uppercase tracking-[0.24em] text-gray-400 dark:text-white/35">or with email</span>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
-                </div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                  className="flex items-center gap-3 my-2"
+                >
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                  <span className="text-[10.5px] uppercase tracking-[0.24em] text-white/40">or with email</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                </motion.div>
 
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.65, duration: 0.4 }}
+                >
                   <label htmlFor="email" className="sr-only">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-white/40 pointer-events-none" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-white/40 pointer-events-none" />
                     <input
                       id="email"
                       type="email"
@@ -374,161 +409,170 @@ function LoginPage() {
                       onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                       autoComplete="email"
                       inputMode="email"
-                      placeholder="Email address"
+                      placeholder="you@email.com"
                       style={{ fontSize: "16px" }}
-                      className={`w-full h-12 rounded-2xl pl-11 pr-4 bg-white dark:bg-white/[0.04] border outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/35 ${
+                      className={`w-full h-14 rounded-2xl pl-11 pr-4 bg-white/[0.04] border outline-none transition-all text-white placeholder-white/35 ${
                         email.length > 0 && !emailOk
-                          ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                          : "border-gray-200 dark:border-white/10 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                          ? "border-red-400/60 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+                          : "border-white/10 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                       }`}
                     />
                   </div>
                   {email.length > 0 && !emailOk && (
-                    <p className="mt-1.5 text-[11.5px] text-red-500 dark:text-red-300/90">Enter a valid email</p>
+                    <p className="mt-1.5 text-[11.5px] text-red-300/90">Enter a valid email</p>
                   )}
-                </div>
+                </motion.div>
 
                 {emailError && (
-                  <div
-                    role="alert"
-                    className="rounded-xl border border-red-400/40 dark:border-red-400/30 bg-red-500/5 dark:bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-600 dark:text-red-300 leading-relaxed"
-                  >
+                  <div role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-300 leading-relaxed">
                     {emailError}
                   </div>
                 )}
 
-                <button
+                <motion.button
                   type="submit"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.72, duration: 0.4 }}
                   disabled={!emailOk || busy}
-                  className="group relative overflow-hidden mt-1 h-12 w-full rounded-2xl font-semibold text-[14px] bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0"
+                  className="group relative overflow-hidden mt-1 h-14 w-full rounded-2xl font-semibold text-[15px] text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%)",
+                    boxShadow: "0 10px 30px -8px rgba(34,211,238,0.45)",
+                  }}
                 >
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                  {busy ? (
-                    <Loader2 className="size-4 animate-spin relative" />
-                  ) : (
-                    <span className="relative inline-flex items-center gap-2">
-                      Send Verification Code
-                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                    </span>
-                  )}
-                </button>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  {busy
+                    ? <Loader2 className="size-4 animate-spin relative" />
+                    : <span className="relative inline-flex items-center gap-2">Send Magic OTP ✨</span>}
+                </motion.button>
 
-
-                <p className="mt-2 text-[11px] text-center text-gray-500 dark:text-white/40 leading-relaxed">
-                  By continuing you agree to our Terms & Privacy.
+                <p className="mt-4 text-[11px] text-center text-white/40 leading-relaxed">
+                  By signing in, you agree to our <span className="underline">Terms</span> &amp; <span className="underline">Privacy Policy</span>
                 </p>
-                <p className="text-[11.5px] text-center text-gray-500 dark:text-white/45">
+                <p className="text-[11.5px] text-center text-white/45">
                   Administrator?{" "}
-                  <Link to="/admin-login" className="text-blue-500 hover:text-blue-600 dark:text-cyan-300 dark:hover:text-cyan-200 underline-offset-4 hover:underline">
+                  <Link to="/admin-login" className="text-cyan-300 hover:text-cyan-200 underline-offset-4 hover:underline">
                     Admin console
                   </Link>
                 </p>
               </form>
             </motion.div>
-          ) : (
-            <motion.div
-              key="sent"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 16 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          </>
+        ) : (
+          <motion.div
+            key="sent"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="p-7 sm:p-8 bg-zinc-950 relative"
+          >
+            <button
+              onClick={() => {
+                setAuthStep("email");
+                setResendError(null);
+                setResendOk(false);
+                setOtpCode("");
+                setOtpError(null);
+              }}
+              className="absolute top-5 left-5 inline-flex items-center gap-1.5 text-[12px] text-white/50 hover:text-white transition-colors cursor-pointer"
             >
-              <div className="text-center mb-2 mt-4">
-                <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 dark:border-blue-400/20 flex items-center justify-center mb-4">
-                  <Mail className="size-6 text-blue-500 dark:text-blue-300" />
-                </div>
-                <h1 className="text-[24px] font-semibold tracking-tight text-gray-900 dark:text-white">
-                  Check your email
-                </h1>
-                <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 px-2">
-                  We sent a 6-digit verification code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
-                  Enter it below to sign in.
-                </p>
+              <ArrowLeft className="size-3.5" /> Use a different email
+            </button>
 
-              </div>
-
-              <form
-                onSubmit={(e) => { e.preventDefault(); verifyCode(); }}
-                className="mt-6 mb-4"
+            <div className="text-center mb-2 mt-8">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mb-4 shadow-lg"
+                style={{ boxShadow: "0 0 40px rgba(34,211,238,0.5)" }}
               >
-                <label className="block text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-white/50 mb-2 text-center">
-                  Enter 6-digit code
-                </label>
-                <input
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  value={otpCode}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setOtpCode(v);
-                    if (otpError) setOtpError(null);
-                  }}
-                  placeholder="••••••"
-                  className="w-full text-center tracking-[0.6em] font-mono text-[22px] py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white outline-none focus:border-blue-500 transition-all"
-                />
-                {otpError && (
-                  <p role="alert" className="mt-2 text-[12px] text-red-500 dark:text-red-300 text-center">{otpError}</p>
+                <Mail className="size-7 text-white" />
+              </div>
+              <h1 className="text-[26px] font-bold tracking-tight text-white">Check your email</h1>
+              <p className="mt-2 text-[13px] text-white/50 px-2">
+                We sent a 6-digit code to <span className="text-white font-medium">{email}</span>.
+              </p>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); verifyCode(); }} className="mt-6 mb-4">
+              <label className="block text-[11px] font-medium uppercase tracking-wider text-white/50 mb-2 text-center">
+                Enter 6-digit code
+              </label>
+              <input
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={otpCode}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setOtpCode(v);
+                  if (otpError) setOtpError(null);
+                }}
+                placeholder="••••••"
+                className="w-full text-center tracking-[0.6em] font-mono text-[24px] py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-white outline-none focus:border-cyan-400 transition-all"
+              />
+              {otpError && (
+                <p role="alert" className="mt-2 text-[12px] text-red-300 text-center">{otpError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={otpCode.length !== 6 || verifying}
+                className="mt-4 h-14 w-full rounded-2xl font-semibold text-[15px] text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%)",
+                  boxShadow: "0 10px 30px -8px rgba(34,211,238,0.45)",
+                }}
+              >
+                {verifying ? <Loader2 className="size-4 animate-spin" /> : <>Verify & Sign in <ArrowRight className="size-4" /></>}
+              </button>
+            </form>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-[12px] text-white/60 leading-relaxed">
+              <p className="mb-1.5 font-medium text-white">Tips</p>
+              <ul className="space-y-1 list-disc pl-4">
+                <li>The code expires in 60 minutes.</li>
+                <li>Check spam or promotions if it hasn't arrived.</li>
+              </ul>
+            </div>
+
+            {resendOk && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3.5 py-2.5 text-[12.5px] text-emerald-300"
+              >
+                <CheckCircle2 className="size-4" /> New code on the way
+              </motion.div>
+            )}
+
+            {resendError && (
+              <motion.div
+                role="alert"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-300 leading-relaxed text-center"
+              >
+                Couldn't resend: {resendError}
+              </motion.div>
+            )}
+
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => sendLink(true)}
+                disabled={resending || busy || cooldownMs > 0}
+                className="text-sm text-white/50 hover:text-cyan-300 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+              >
+                {resending ? <Loader2 className="size-3.5 animate-spin" /> : null}
+                {cooldownMs > 0 ? (
+                  <>Resend available in <span className="font-mono tabular-nums">{cooldownSec}s</span></>
+                ) : (
+                  <>Didn't receive it? <span className="underline underline-offset-2">Resend code</span></>
                 )}
-                <button
-                  type="submit"
-                  disabled={otpCode.length !== 6 || verifying}
-                  className="mt-4 h-11 w-full rounded-full font-medium text-[13.5px] bg-blue-500 hover:bg-blue-600 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
-                >
-                  {verifying ? <Loader2 className="size-4 animate-spin" /> : <>Verify & Sign in <ArrowRight className="size-4" /></>}
-                </button>
-              </form>
-
-              <div className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
-                <p className="mb-1.5 font-medium text-gray-900 dark:text-white">Tips</p>
-                <ul className="space-y-1 list-disc pl-4">
-                  <li>The code expires in 60 minutes.</li>
-                  <li>Check spam or promotions if it hasn't arrived.</li>
-                </ul>
-              </div>
-
-
-              {resendOk && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/5 px-3.5 py-2.5 text-[12.5px] text-emerald-600 dark:text-emerald-300"
-                >
-                  <CheckCircle2 className="size-4" /> New code on the way
-                </motion.div>
-              )}
-
-              {resendError && (
-                <motion.div
-                  role="alert"
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 rounded-xl border border-amber-400/40 dark:border-amber-400/30 bg-amber-500/5 dark:bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-700 dark:text-amber-300 leading-relaxed text-center"
-                >
-                  Couldn't resend: {resendError}
-                </motion.div>
-              )}
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => sendLink(true)}
-                  disabled={resending || busy || cooldownMs > 0}
-                  className="text-sm text-gray-500 hover:text-cyan-500 dark:hover:text-cyan-300 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
-                >
-                  {resending ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                  {cooldownMs > 0 ? (
-                    <>Resend available in <span className="font-mono tabular-nums">{cooldownSec}s</span></>
-                  ) : (
-                    <>Didn't receive it? <span className="underline underline-offset-2">Resend code</span></>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }
