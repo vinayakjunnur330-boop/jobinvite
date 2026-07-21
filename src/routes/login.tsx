@@ -431,7 +431,7 @@ function LoginPage() {
               <div className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
                 <p className="mb-1.5 font-medium text-gray-900 dark:text-white">Tips</p>
                 <ul className="space-y-1 list-disc pl-4">
-                  <li>The code and link expire in 60 minutes.</li>
+                  <li>The code expires in 60 minutes.</li>
                   <li>Check spam or promotions if it hasn't arrived.</li>
                 </ul>
               </div>
