@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2, KeyRound } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2, KeyRound, RefreshCw, Check } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaFacebookF } from "react-icons/fa6";
+import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useServerFn } from "@tanstack/react-start";
@@ -48,6 +49,8 @@ function LoginPage() {
   const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [resendIn, setResendIn] = useState(0);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
+  const [success, setSuccess] = useState(false);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const checkRoles = useServerFn(getMyRoles);
@@ -134,7 +137,9 @@ function LoginPage() {
 
   const sendOtp = async (isResend = false) => {
     if (!emailOk || busy) return;
+    if (isResend && resendIn > 0) return;
     setBusy(true); setError(null);
+    if (isResend) setResendState("sending");
     try {
       const { error: err } = await supabase.auth.signInWithOtp({
         email,
@@ -144,12 +149,29 @@ function LoginPage() {
       setOtp(["", "", "", "", "", ""]);
       setResendIn(RESEND_SECONDS);
       setView("otp_verify");
-      toast.success(isResend ? "New code sent" : "Verification code sent");
+      if (isResend) {
+        setResendState("sent");
+        toast.success("New code sent to your email");
+        window.setTimeout(() => setResendState("idle"), 4000);
+      } else {
+        toast.success("Verification code sent");
+      }
       setTimeout(() => otpRefs.current[0]?.focus(), 60);
     } catch (err) {
       const msg = humanize(err instanceof Error ? err.message : "Couldn't send code");
       setError(msg); toast.error(msg);
+      if (isResend) setResendState("idle");
     } finally { setBusy(false); }
+  };
+
+  const fireConfetti = () => {
+    if (typeof window === "undefined") return;
+    const opts = { spread: 70, startVelocity: 45, ticks: 200, zIndex: 100 };
+    confetti({ ...opts, particleCount: 90, origin: { x: 0.5, y: 0.6 } });
+    window.setTimeout(() => {
+      confetti({ ...opts, particleCount: 60, angle: 60, origin: { x: 0, y: 0.7 } });
+      confetti({ ...opts, particleCount: 60, angle: 120, origin: { x: 1, y: 0.7 } });
+    }, 200);
   };
 
   const verifyOtp = async (codeOverride?: string) => {
@@ -163,8 +185,10 @@ function LoginPage() {
         persistCareerPilotSession(data.session, { touchLastLogin: true });
         localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
       }
+      setSuccess(true);
+      fireConfetti();
       toast.success("Signed in");
-      await routeAfterAuth();
+      window.setTimeout(() => { routeAfterAuth(); }, 1500);
     } catch (err) {
       const raw = err instanceof Error ? err.message.toLowerCase() : "";
       const msg = raw.includes("expired") ? "That code expired. Request a new one."
@@ -173,7 +197,9 @@ function LoginPage() {
       setError(msg); toast.error(msg);
       setOtp(["", "", "", "", "", ""]);
       setTimeout(() => otpRefs.current[0]?.focus(), 30);
-    } finally { setBusy(false); }
+      setBusy(false);
+      return;
+    }
   };
 
   const onOtpChange = (i: number, raw: string) => {
@@ -507,20 +533,56 @@ function LoginPage() {
               {busy ? <Loader2 className="size-4 animate-spin" /> : "Verify & sign in"}
             </button>
 
-            <div className="mt-4 text-center text-white/90 text-[13px]">
-              Didn't get the code?{" "}
-              <button
-                type="button"
-                onClick={() => sendOtp(true)}
-                disabled={resendIn > 0 || busy}
-                className="font-semibold text-white hover:underline disabled:opacity-60 disabled:no-underline disabled:cursor-not-allowed"
-              >
-                {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
-              </button>
+            <div className="mt-4 text-center text-white/90 text-[13px] min-h-[20px]">
+              {resendState === "sending" ? (
+                <span className="inline-flex items-center gap-1.5 text-white/95">
+                  <Loader2 className="size-3.5 animate-spin" /> Sending a new code…
+                </span>
+              ) : resendState === "sent" ? (
+                <span className="inline-flex items-center gap-1.5 text-emerald-100">
+                  <CheckCircle2 className="size-3.5" /> New code sent — check your inbox
+                </span>
+              ) : (
+                <>
+                  Didn't get the code?{" "}
+                  <button
+                    type="button"
+                    onClick={() => sendOtp(true)}
+                    disabled={resendIn > 0 || busy}
+                    className="font-semibold text-white hover:underline disabled:opacity-60 disabled:no-underline disabled:cursor-not-allowed inline-flex items-center gap-1"
+                  >
+                    {resendIn > 0 ? (
+                      <>Resend in <span className="tabular-nums">{resendIn}s</span></>
+                    ) : (
+                      <><RefreshCw className="size-3.5" /> Resend code</>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Success overlay */}
+      {success && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="flex flex-col items-center gap-4 px-8 py-10 rounded-3xl bg-white/95 shadow-2xl animate-in zoom-in-50 duration-500">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-emerald-400/40 animate-ping" />
+              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg">
+                <Check className="size-10 text-white stroke-[3]" />
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-slate-900 text-xl font-bold">Welcome back!</h3>
+              <p className="text-slate-600 text-sm mt-1">Redirecting to your dashboard…</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
         <Link to="/admin-login" className="text-white/70 text-[12px] hover:text-white transition-colors">
