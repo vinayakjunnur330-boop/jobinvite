@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2, KeyRound } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaFacebookF } from "react-icons/fa6";
 import { supabase } from "@/integrations/supabase/client";
