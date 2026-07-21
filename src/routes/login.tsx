@@ -41,8 +41,7 @@ const SESSION_KEY = "user_session";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { form, next } = Route.useSearch();
-  const showLoginForm = form === "1";
+  const { next } = Route.useSearch();
 
   const [authStep, setAuthStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
@@ -95,7 +94,7 @@ function LoginPage() {
     return () => window.clearInterval(id);
   }, [cooldownUntil]);
 
-  if (!showLoginForm) return null;
+
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const cooldownMs = Math.max(0, cooldownUntil - nowTick);
