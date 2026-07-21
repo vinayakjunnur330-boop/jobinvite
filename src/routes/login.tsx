@@ -46,9 +46,12 @@ function LoginPage() {
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendOk, setResendOk] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+  const [nowTick, setNowTick] = useState(Date.now());
   const [theme, , toggleTheme] = useTheme();
 
   const checkRoles = useServerFn(getMyRoles);
+  const checkQuota = useServerFn(checkMagicLinkQuota);
   const routeAfterAuth = async () => {
     try {
       const r = await checkRoles();
