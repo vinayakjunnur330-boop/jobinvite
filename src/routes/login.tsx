@@ -329,10 +329,11 @@ function LoginPage() {
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <>
-                      Send Magic Link
+                      Send Verification Code
                       <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                     </>
                   )}
+
                 </button>
 
                 <div className="flex items-center gap-3">
