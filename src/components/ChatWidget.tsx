@@ -3,7 +3,10 @@ import { Send, X, Sparkles, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 const chatbotLogo = "/robot-avatar.png";
+const CONVERSATION_ID = "default";
+
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -28,14 +31,56 @@ function renderMd(text: string) {
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
   const [msgs, setMsgs] = useState<Msg[]>(seed);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const loadedForUserRef = useRef<string | null>(null);
 
-  // Hydrate guest conversation once, so post-login context isn't lost.
+  // Load persisted messages from DB when authenticated (once per user)
   useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    if (loadedForUserRef.current === user.id) return;
+    loadedForUserRef.current = user.id;
+    (async () => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("role,content,created_at")
+        .eq("user_id", user.id)
+        .eq("conversation_id", CONVERSATION_ID)
+        .order("created_at", { ascending: true });
+      if (error || !data) return;
+      // Merge any lingering guest messages into DB on first login
+      let guestPrior: Msg[] = [];
+      try {
+        const raw = localStorage.getItem("cp_guest_msgs");
+        if (raw) {
+          const prior = JSON.parse(raw) as Msg[];
+          if (Array.isArray(prior) && prior.length > 0) {
+            guestPrior = prior;
+            const rows = prior.map((m) => ({
+              user_id: user.id,
+              conversation_id: CONVERSATION_ID,
+              role: m.role,
+              content: m.content,
+            }));
+            await supabase.from("chat_messages").insert(rows);
+            localStorage.removeItem("cp_guest_msgs");
+            localStorage.removeItem("guest_chat_count");
+          }
+        }
+      } catch { /* ignore */ }
+      const persisted: Msg[] = data.map((r) => ({ role: r.role as "user" | "assistant", content: r.content }));
+      const combined = [...persisted, ...guestPrior];
+      if (combined.length > 0) setMsgs([...seed, ...combined]);
+    })();
+  }, [isAuthenticated, user]);
+
+  // For guests: still hydrate localStorage prior conversation
+  useEffect(() => {
+    if (isAuthenticated) return;
     if (typeof window === "undefined") return;
     try {
       const raw = localStorage.getItem("cp_guest_msgs");
@@ -43,11 +88,10 @@ export function ChatWidget() {
       const prior = JSON.parse(raw) as Msg[];
       if (Array.isArray(prior) && prior.length > 0) {
         setMsgs([...seed, ...prior]);
-        localStorage.removeItem("cp_guest_msgs");
-        localStorage.removeItem("cp_guest_count");
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [isAuthenticated]);
+
 
   // Body scroll lock when open
   useEffect(() => {
@@ -126,6 +170,19 @@ export function ChatWidget() {
           }
         }
       }
+      // Persist completed exchange to DB for signed-in users
+      if (isAuthenticated && user && assistant) {
+        await supabase.from("chat_messages").insert([
+          { user_id: user.id, conversation_id: CONVERSATION_ID, role: "user", content },
+          { user_id: user.id, conversation_id: CONVERSATION_ID, role: "assistant", content: assistant },
+        ]);
+      } else if (!isAuthenticated) {
+        try {
+          const persisted = [...next.slice(1, -1), { role: "assistant" as const, content: assistant }];
+          localStorage.setItem("cp_guest_msgs", JSON.stringify(persisted));
+        } catch { /* ignore */ }
+      }
+
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       toast.error(msg);

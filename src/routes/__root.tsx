@@ -15,7 +15,7 @@ import { GuestConcierge } from "@/components/GuestConcierge";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 
 import appCss from "../styles.css?url";
@@ -86,8 +86,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('theme');if(t==='light'){document.documentElement.classList.remove('dark');}else{document.documentElement.classList.add('dark');}}catch(e){}" }} />
+        <style dangerouslySetInnerHTML={{ __html: `
+          #cp-splash{position:fixed;inset:0;z-index:100000;background:#050505;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity .35s ease}
+          #cp-splash.cp-hide{opacity:0;pointer-events:none}
+          #cp-splash img{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 0 24px rgba(6,182,212,.45));animation:cpFloat 2.4s ease-in-out infinite}
+          #cp-splash .cp-dot{width:8px;height:8px;border-radius:9999px;background:rgba(255,255,255,.4);animation:cpPulse 1.2s ease-in-out infinite}
+          #cp-splash .cp-dots{display:flex;gap:8px}
+          #cp-splash .cp-dot:nth-child(2){animation-delay:.15s}
+          #cp-splash .cp-dot:nth-child(3){animation-delay:.3s}
+          @keyframes cpFloat{0%,100%{transform:translateY(-6px)}50%{transform:translateY(6px)}}
+          @keyframes cpPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+        ` }} />
       </head>
       <body className="text-foreground bg-white dark:bg-[#05060d] transition-colors duration-500">
+        <div id="cp-splash" aria-hidden="true" suppressHydrationWarning>
+          <img src="/robot-avatar.png" alt="" />
+          <div className="cp-dots"><span className="cp-dot" /><span className="cp-dot" /><span className="cp-dot" /></div>
+        </div>
         {children}
         <Scripts />
       </body>
@@ -95,12 +110,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AuthSync />
+        <SplashHider />
         <AmbientBackground />
         <div className="relative min-h-screen flex flex-col text-foreground">
           <Navbar />
@@ -116,6 +133,20 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
+function SplashHider() {
+  const { loading } = useAuth();
+  useEffect(() => {
+    if (loading) return;
+    const el = document.getElementById("cp-splash");
+    if (!el) return;
+    el.classList.add("cp-hide");
+    const t = window.setTimeout(() => el.remove(), 400);
+    return () => window.clearTimeout(t);
+  }, [loading]);
+  return null;
+}
+
 
 
 function AuthSync() {
