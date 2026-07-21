@@ -41,7 +41,7 @@ const SESSION_KEY = "user_session";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { form } = Route.useSearch();
+  const { form, next } = Route.useSearch();
   const showLoginForm = form === "1";
 
   const [authStep, setAuthStep] = useState<AuthStep>("email");
