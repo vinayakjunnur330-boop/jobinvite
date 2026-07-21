@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, X, Eye, EyeOff, Loader2, Sparkles, Mic } from "lucide-react";
+import { Send, X, Eye, EyeOff, Loader2, RotateCcw, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
@@ -15,7 +16,6 @@ type Provider = "google" | "apple" | "github" | "facebook" | "instagram" | "twit
 const GUEST_LIMIT = 3;
 const KEY_MSGS = "cp_guest_msgs";
 const KEY_COUNT = "guest_chat_count";
-const KEY_DISMISSED = "cp_guest_dismissed";
 
 function greeting() {
   const h = new Date().getHours();
@@ -45,28 +45,22 @@ function renderMd(text: string) {
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
   const [hydrated, setHydrated] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [count, setCount] = useState(0);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [listening, setListening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const openingMsg = `${greeting()}! Welcome to CareerPilot AI 👋 Ask me 3 free career questions.`;
+  const openingMsg = `${greeting()}! Welcome to CareerPilot AI 👋 Ask me 3 free career questions to discover your path.`;
 
   useEffect(() => {
-    const priorMsgs = readMsgs();
-    const priorCount = readCount();
-    setMsgs(priorMsgs);
-    setCount(priorCount);
-    setDismissed(sessionStorage.getItem(KEY_DISMISSED) === "1");
+    setMsgs(readMsgs());
+    setCount(readCount());
     setHydrated(true);
   }, []);
 
-  const active = hydrated && !loading && !isAuthenticated && !dismissed;
+  const active = hydrated && !loading && !isAuthenticated;
 
   useEffect(() => {
     if (!active) return;
@@ -135,11 +129,6 @@ export function GuestConcierge() {
       }
       const final: Msg[] = [...history, { role: "assistant", content: assistant }];
       localStorage.setItem(KEY_MSGS, JSON.stringify(final));
-      if (nextCount >= GUEST_LIMIT) {
-        setTimeout(() => {
-          toast.info("That was your last free question. Sign in to keep exploring.");
-        }, 800);
-      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       toast.error(msg);
@@ -148,162 +137,163 @@ export function GuestConcierge() {
     }
   };
 
-  const toggleMic = () => {
-    setListening((v) => !v);
-    toast.info("Voice input is coming soon.");
-    setTimeout(() => setListening(false), 800);
-  };
-
-  const dismiss = () => {
-    sessionStorage.setItem(KEY_DISMISSED, "1");
-    setDismissed(true);
+  const resetChat = () => {
+    setMsgs([]);
+    setCount(0);
+    localStorage.removeItem(KEY_MSGS);
+    localStorage.removeItem(KEY_COUNT);
+    toast.success("Conversation cleared.");
   };
 
   const remaining = Math.max(0, GUEST_LIMIT - count);
-  const locked = count >= GUEST_LIMIT;
 
   return (
     <AnimatePresence>
       {active && (
         <motion.div
           key="guest-overlay"
-          initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
-          transition={{ duration: 0.5, type: "spring" }}
-          className="fixed inset-0 z-[9990] bg-black/80 backdrop-blur-3xl flex flex-col items-center justify-center p-4 md:p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="fixed inset-0 z-[90] bg-[#0a0f1c]/70 backdrop-blur-3xl w-full h-screen flex items-center justify-center p-4 md:p-8"
         >
+          {/* Ambient glow */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at 25% 30%, rgba(34,211,238,0.18), transparent 55%), radial-gradient(ellipse at 75% 75%, rgba(139,92,246,0.20), transparent 55%)",
+                "radial-gradient(ellipse at 20% 30%, rgba(34,211,238,0.15), transparent 55%), radial-gradient(ellipse at 80% 75%, rgba(139,92,246,0.18), transparent 55%)",
             }}
           />
 
-          <button
-            onClick={dismiss}
-            className="absolute top-5 right-5 text-xs text-white/60 hover:text-white transition-colors inline-flex items-center gap-1.5 z-10"
+          {/* Top-right Sign In / Sign Up */}
+          <Link
+            to="/login"
+            className="absolute top-6 right-8 z-[100] px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] text-sm"
           >
-            Explore first <X className="size-3.5" />
-          </button>
+            Sign In / Sign Up
+          </Link>
 
-          <div className="relative w-full max-w-2xl flex flex-col items-center">
-            {/* Floating avatar */}
-            <motion.div
-              animate={{ y: [-5, 5, -5] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative mb-4"
-            >
-              <div
-                className="absolute inset-0 rounded-full blur-3xl -z-10"
-                style={{ background: "radial-gradient(circle, rgba(16,185,129,0.55), transparent 65%)" }}
-              />
-              <div className="size-20 md:size-24 rounded-full overflow-hidden border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center shadow-[0_20px_60px_rgba(16,185,129,0.5)]">
-                <img
-                  src={chatbotLogo}
-                  alt="Pilot AI"
-                  width={192}
-                  height={192}
-                  className="size-16 md:size-20 object-contain drop-shadow-[0_0_18px_rgba(16,185,129,0.8)]"
-                />
-              </div>
-              <Sparkles className="absolute -top-1 -right-1 size-4 text-emerald-300" />
-            </motion.div>
-
-            {/* Scrollable chat history */}
-            <div
-              ref={scrollRef}
-              className="flex flex-col gap-4 w-full max-w-2xl h-[400px] overflow-y-auto scrollbar-hide px-4 pb-4"
-              style={{ scrollbarWidth: "none" }}
-            >
-              {/* opening greeting */}
+          {/* Two-column grid */}
+          <div className="w-full max-w-6xl h-[80vh] grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative">
+            {/* LEFT — floating mascot */}
+            <div className="flex flex-col items-center justify-center w-full h-full relative">
               <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="self-start max-w-[85%] bg-white/10 backdrop-blur-md rounded-2xl rounded-tl-sm p-4 text-white text-sm leading-relaxed border border-white/10"
+                animate={{ y: [-15, 15, -15] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="relative z-10"
               >
-                {openingMsg}
+                <div
+                  className="absolute inset-0 rounded-full blur-3xl -z-10"
+                  style={{ background: "radial-gradient(circle, rgba(34,211,238,0.55), transparent 65%)" }}
+                />
+                <div className="size-56 md:size-72 rounded-full overflow-hidden border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center shadow-[0_30px_80px_rgba(34,211,238,0.45)]">
+                  <img
+                    src={chatbotLogo}
+                    alt="CareerPilot AI"
+                    className="size-44 md:size-56 object-contain drop-shadow-[0_0_28px_rgba(34,211,238,0.9)]"
+                  />
+                </div>
               </motion.div>
+              {/* Dynamic drop shadow */}
+              <motion.div
+                animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.7, 0.3] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="w-32 h-4 bg-black/40 blur-md rounded-[100%] mt-6"
+              />
 
-              {msgs.map((m, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className={
-                    m.role === "user"
-                      ? "self-end max-w-[85%] bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl rounded-tr-sm p-4 text-white shadow-lg text-sm leading-relaxed"
-                      : "self-start max-w-[85%] bg-white/10 backdrop-blur-md rounded-2xl rounded-tl-sm p-4 text-white text-sm leading-relaxed border border-white/10"
-                  }
-                >
-                  {m.role === "assistant" ? (
-                    <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || "Thinking…") }} />
-                  ) : (
-                    m.content
-                  )}
-                </motion.div>
-              ))}
-              <div ref={bottomRef} />
+              <div className="mt-8 text-center px-6">
+                <div className="text-[11px] uppercase tracking-[0.28em] text-cyan-300/80">Pilot · AI counselor</div>
+                <div className="mt-2 text-white/70 text-sm max-w-xs">
+                  Free Questions Remaining:{" "}
+                  <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Glass input pill */}
-            <form
-              onSubmit={(e) => { e.preventDefault(); send(); }}
-              className="w-full max-w-2xl bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-4 md:px-6 py-3 flex items-center gap-2 shadow-2xl"
-            >
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask CareerPilot AI anything..."
-                disabled={streaming}
-                className="flex-1 bg-transparent text-sm md:text-[15px] text-white placeholder:text-white/50 focus:outline-none px-2"
-              />
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.9 }}
-                onClick={toggleMic}
-                className={`p-2 rounded-full transition-all ${
-                  listening
-                    ? "text-cyan-400 bg-white/10"
-                    : "text-white/50 hover:text-cyan-400 hover:bg-white/10"
-                }`}
-                aria-label="Voice input"
+            {/* RIGHT — chat interface */}
+            <div className="flex flex-col h-full w-full max-w-lg mx-auto relative">
+              {/* Scrollable history */}
+              <div
+                className="flex-1 overflow-y-auto flex flex-col gap-4 pb-6 w-full px-2"
+                style={{ scrollbarWidth: "none" }}
               >
-                <Mic className="size-4" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
-                type="submit"
-                disabled={streaming || !input.trim()}
-                className="size-10 rounded-full flex items-center justify-center text-white disabled:opacity-50 border border-white/25 shadow-[0_8px_24px_rgba(34,211,238,0.35)]"
-                style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.85), rgba(139,92,246,0.85))" }}
-                aria-label="Send"
-              >
-                {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-              </motion.button>
-            </form>
+                {/* opening bot bubble */}
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[85%] text-sm leading-relaxed"
+                >
+                  {openingMsg}
+                  <div className="mt-2 flex items-center gap-3 text-white/40">
+                    <button className="hover:text-cyan-300 transition-colors" aria-label="Like"><ThumbsUp className="size-3.5" /></button>
+                    <button className="hover:text-red-300 transition-colors" aria-label="Dislike"><ThumbsDown className="size-3.5" /></button>
+                  </div>
+                </motion.div>
 
-            {/* Remaining pill */}
-            <motion.div
-              key={`pill-${count}`}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-widest border ${
-                locked
-                  ? "bg-red-500/10 border-red-400/30 text-red-200"
-                  : "bg-white/10 border-white/20 text-white/80"
-              }`}
-            >
-              <span className={`size-1.5 rounded-full ${locked ? "bg-red-400" : "bg-emerald-400 animate-pulse"}`} />
-              {locked
-                ? "Free trial used — sign in to continue"
-                : <>Free Questions Remaining: <span className="text-white font-semibold">{remaining}/{GUEST_LIMIT}</span></>}
-            </motion.div>
+                {msgs.map((m, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={
+                      m.role === "user"
+                        ? "self-end bg-white text-gray-900 p-3 rounded-2xl rounded-tr-sm shadow-md max-w-[75%] text-sm leading-relaxed"
+                        : "self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[85%] text-sm leading-relaxed"
+                    }
+                  >
+                    {m.role === "assistant" ? (
+                      <>
+                        <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || "Thinking…") }} />
+                        {m.content && (
+                          <div className="mt-2 flex items-center gap-3 text-white/40">
+                            <button className="hover:text-cyan-300 transition-colors" aria-label="Like"><ThumbsUp className="size-3.5" /></button>
+                            <button className="hover:text-red-300 transition-colors" aria-label="Dislike"><ThumbsDown className="size-3.5" /></button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      m.content
+                    )}
+                  </motion.div>
+                ))}
+                <div ref={bottomRef} />
+              </div>
+
+              {/* Bottom input bar */}
+              <form
+                onSubmit={(e) => { e.preventDefault(); send(); }}
+                className="w-full flex items-center gap-2 bg-white rounded-lg p-1 shadow-2xl relative mt-4"
+              >
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask CareerPilot AI…"
+                  disabled={streaming}
+                  className="flex-1 bg-transparent border-none text-gray-900 px-4 py-3 focus:outline-none focus:ring-0 text-sm placeholder-gray-500"
+                />
+                <button
+                  type="submit"
+                  disabled={streaming || !input.trim()}
+                  className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-60"
+                  aria-label="Send"
+                >
+                  {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetChat}
+                  className="bg-[#0a0f1c] text-white p-3 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer"
+                  aria-label="Restart"
+                >
+                  <RotateCcw className="size-4" />
+                </button>
+              </form>
+            </div>
           </div>
 
           <AuthGateModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
