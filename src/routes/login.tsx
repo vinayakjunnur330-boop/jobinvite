@@ -141,12 +141,10 @@ function LoginPage() {
         return;
       }
 
-      const callback = `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: callback,
         },
       });
       if (error) throw error;
@@ -154,11 +152,12 @@ function LoginPage() {
       setCooldownUntil(Date.now() + 30_000);
       if (isResend) {
         setResendOk(true);
-        toast.success("New link sent");
+        toast.success("New code sent");
       } else {
         setAuthStep("sent");
-        toast.success("Magic link sent");
+        toast.success("Verification code sent");
       }
+
     } catch (err) {
       const msg = humanizeAuthError(err instanceof Error ? err.message : "Failed to send link");
       if (isResend) setResendError(msg);
@@ -274,8 +273,9 @@ function LoginPage() {
                   Sign in to CareerPilot
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50">
-                  Enter your email — we'll send you a secure sign-in link.
+                  Enter your email — we'll send you a 6-digit verification code.
                 </p>
+
               </div>
 
               <form
@@ -329,10 +329,11 @@ function LoginPage() {
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <>
-                      Send Magic Link
+                      Send Verification Code
                       <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                     </>
                   )}
+
                 </button>
 
                 <div className="flex items-center gap-3">
@@ -388,9 +389,10 @@ function LoginPage() {
                   Check your email
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 px-2">
-                  We sent a secure sign-in link and a 6-digit code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
-                  Click the link or enter the code below.
+                  We sent a 6-digit verification code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
+                  Enter it below to sign in.
                 </p>
+
               </div>
 
               <form
@@ -429,7 +431,7 @@ function LoginPage() {
               <div className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
                 <p className="mb-1.5 font-medium text-gray-900 dark:text-white">Tips</p>
                 <ul className="space-y-1 list-disc pl-4">
-                  <li>The code and link expire in 60 minutes.</li>
+                  <li>The code expires in 60 minutes.</li>
                   <li>Check spam or promotions if it hasn't arrived.</li>
                 </ul>
               </div>
@@ -441,7 +443,7 @@ function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/5 px-3.5 py-2.5 text-[12.5px] text-emerald-600 dark:text-emerald-300"
                 >
-                  <CheckCircle2 className="size-4" /> New link on the way
+                  <CheckCircle2 className="size-4" /> New code on the way
                 </motion.div>
               )}
 
@@ -467,7 +469,7 @@ function LoginPage() {
                   {cooldownMs > 0 ? (
                     <>Resend available in <span className="font-mono tabular-nums">{cooldownSec}s</span></>
                   ) : (
-                    <>Didn't receive it? <span className="underline underline-offset-2">Resend link</span></>
+                    <>Didn't receive it? <span className="underline underline-offset-2">Resend code</span></>
                   )}
                 </button>
               </div>
