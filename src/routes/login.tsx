@@ -41,8 +41,7 @@ const SESSION_KEY = "user_session";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { form, next } = Route.useSearch();
-  const showLoginForm = form === "1";
+  const { next } = Route.useSearch();
 
   const [authStep, setAuthStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
@@ -95,7 +94,7 @@ function LoginPage() {
     return () => window.clearInterval(id);
   }, [cooldownUntil]);
 
-  if (!showLoginForm) return null;
+
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const cooldownMs = Math.max(0, cooldownUntil - nowTick);
@@ -207,7 +206,8 @@ function LoginPage() {
           {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </button>
         <button
-          onClick={() => navigate({ to: "/login", search: {} })}
+          onClick={() => navigate({ to: "/" })}
+
           className="px-4 py-2 rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white text-xs font-medium hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
         >
           ← Back to Zoiee
