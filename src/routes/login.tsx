@@ -28,7 +28,7 @@ export const Route = createFileRoute("/login")({
 });
 
 type Provider = "google" | "apple";
-type AuthStep = "email" | "otp";
+type AuthStep = "email" | "sent";
 
 const SESSION_KEY = "user_session";
 
@@ -39,16 +39,13 @@ function LoginPage() {
 
   const [authStep, setAuthStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
-  const [otpError, setOtpError] = useState<string | null>(null);
   const [resendError, setResendError] = useState<string | null>(null);
+  const [resendOk, setResendOk] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [theme, , toggleTheme] = useTheme();
-
-  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const checkRoles = useServerFn(getMyRoles);
   const routeAfterAuth = async () => {
