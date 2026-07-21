@@ -389,9 +389,10 @@ function LoginPage() {
                   Check your email
                 </h1>
                 <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 px-2">
-                  We sent a secure sign-in link and a 6-digit code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
-                  Click the link or enter the code below.
+                  We sent a 6-digit verification code to <span className="text-gray-900 dark:text-white font-medium">{email}</span>.
+                  Enter it below to sign in.
                 </p>
+
               </div>
 
               <form
