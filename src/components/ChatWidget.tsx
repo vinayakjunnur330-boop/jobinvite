@@ -31,14 +31,56 @@ function renderMd(text: string) {
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
   const [msgs, setMsgs] = useState<Msg[]>(seed);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const loadedForUserRef = useRef<string | null>(null);
 
-  // Hydrate guest conversation once, so post-login context isn't lost.
+  // Load persisted messages from DB when authenticated (once per user)
   useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    if (loadedForUserRef.current === user.id) return;
+    loadedForUserRef.current = user.id;
+    (async () => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("role,content,created_at")
+        .eq("user_id", user.id)
+        .eq("conversation_id", CONVERSATION_ID)
+        .order("created_at", { ascending: true });
+      if (error || !data) return;
+      // Merge any lingering guest messages into DB on first login
+      let guestPrior: Msg[] = [];
+      try {
+        const raw = localStorage.getItem("cp_guest_msgs");
+        if (raw) {
+          const prior = JSON.parse(raw) as Msg[];
+          if (Array.isArray(prior) && prior.length > 0) {
+            guestPrior = prior;
+            const rows = prior.map((m) => ({
+              user_id: user.id,
+              conversation_id: CONVERSATION_ID,
+              role: m.role,
+              content: m.content,
+            }));
+            await supabase.from("chat_messages").insert(rows);
+            localStorage.removeItem("cp_guest_msgs");
+            localStorage.removeItem("guest_chat_count");
+          }
+        }
+      } catch { /* ignore */ }
+      const persisted: Msg[] = data.map((r) => ({ role: r.role as "user" | "assistant", content: r.content }));
+      const combined = [...persisted, ...guestPrior];
+      if (combined.length > 0) setMsgs([...seed, ...combined]);
+    })();
+  }, [isAuthenticated, user]);
+
+  // For guests: still hydrate localStorage prior conversation
+  useEffect(() => {
+    if (isAuthenticated) return;
     if (typeof window === "undefined") return;
     try {
       const raw = localStorage.getItem("cp_guest_msgs");
@@ -46,11 +88,10 @@ export function ChatWidget() {
       const prior = JSON.parse(raw) as Msg[];
       if (Array.isArray(prior) && prior.length > 0) {
         setMsgs([...seed, ...prior]);
-        localStorage.removeItem("cp_guest_msgs");
-        localStorage.removeItem("cp_guest_count");
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [isAuthenticated]);
+
 
   // Body scroll lock when open
   useEffect(() => {
