@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Award, Bell, Download, Settings } from "lucide-react";
+import { AccountSecurityCard } from "@/components/AccountSecurityCard";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -102,6 +103,7 @@ function ProfilePage() {
               <Link to="/dashboard" className="block p-3 rounded-lg bg-white/5 border border-border hover:bg-white/10 text-sm">→ Open dashboard</Link>
             </div>
           </div>
+          <AccountSecurityCard />
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyRoles } from "@/lib/roles.functions";
+import { checkMagicLinkQuota } from "@/lib/auth-security.functions";
 import { getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
 import { useTheme } from "@/lib/theme";
 
@@ -45,9 +46,12 @@ function LoginPage() {
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendOk, setResendOk] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+  const [nowTick, setNowTick] = useState(Date.now());
   const [theme, , toggleTheme] = useTheme();
 
   const checkRoles = useServerFn(getMyRoles);
+  const checkQuota = useServerFn(checkMagicLinkQuota);
   const routeAfterAuth = async () => {
     try {
       const r = await checkRoles();
@@ -73,9 +77,18 @@ function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Cooldown ticker (drives the "Resend in Ns" label)
+  useEffect(() => {
+    if (cooldownUntil <= Date.now()) return;
+    const id = window.setInterval(() => setNowTick(Date.now()), 500);
+    return () => window.clearInterval(id);
+  }, [cooldownUntil]);
+
   if (!showLoginForm) return null;
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const cooldownMs = Math.max(0, cooldownUntil - nowTick);
+  const cooldownSec = Math.ceil(cooldownMs / 1000);
 
   const humanizeAuthError = (raw: string): string => {
     const m = raw.toLowerCase();
@@ -85,12 +98,36 @@ function LoginPage() {
     return raw || "Something went wrong. Please try again.";
   };
 
+  const formatRetry = (ms: number): string => {
+    const s = Math.ceil(ms / 1000);
+    if (s < 60) return `${s}s`;
+    const m = Math.ceil(s / 60);
+    if (m < 60) return `${m} min`;
+    return `${Math.ceil(m / 60)}h`;
+  };
+
   const sendLink = async (isResend = false) => {
     if (!emailOk) return;
+    if (cooldownMs > 0) return;
     isResend ? setResending(true) : setBusy(true);
     if (isResend) { setResendError(null); setResendOk(false); }
     else setEmailError(null);
     try {
+      // Server-side per-email + per-IP throttle before we touch Supabase Auth.
+      const quota = await checkQuota({ data: { email } });
+      if (!quota.allowed) {
+        setCooldownUntil(Date.now() + quota.retryAfterMs);
+        const msg =
+          quota.reason === "cooldown"
+            ? `Please wait ${formatRetry(quota.retryAfterMs)} before requesting another link.`
+            : quota.reason === "ip"
+              ? `Too many requests from your network. Try again in ${formatRetry(quota.retryAfterMs)}.`
+              : `Too many requests for this email. Try again in ${formatRetry(quota.retryAfterMs)}.`;
+        if (isResend) setResendError(msg); else setEmailError(msg);
+        toast.error(msg);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -99,6 +136,8 @@ function LoginPage() {
         },
       });
       if (error) throw error;
+      // Client-side cooldown mirrors the server minimum spacing.
+      setCooldownUntil(Date.now() + 30_000);
       if (isResend) {
         setResendOk(true);
         toast.success("New link sent");
@@ -347,11 +386,15 @@ function LoginPage() {
                 <button
                   type="button"
                   onClick={() => sendLink(true)}
-                  disabled={resending || busy}
-                  className="text-sm text-gray-500 hover:text-cyan-500 dark:hover:text-cyan-300 cursor-pointer transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
+                  disabled={resending || busy || cooldownMs > 0}
+                  className="text-sm text-gray-500 hover:text-cyan-500 dark:hover:text-cyan-300 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                 >
                   {resending ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                  Didn't receive it? <span className="underline underline-offset-2">Resend link</span>
+                  {cooldownMs > 0 ? (
+                    <>Resend available in <span className="font-mono tabular-nums">{cooldownSec}s</span></>
+                  ) : (
+                    <>Didn't receive it? <span className="underline underline-offset-2">Resend link</span></>
+                  )}
                 </button>
               </div>
             </motion.div>
