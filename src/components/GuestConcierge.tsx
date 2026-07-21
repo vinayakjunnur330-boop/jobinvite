@@ -262,7 +262,8 @@ export function GuestConcierge() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[9998] bg-[#050b18] w-full min-h-screen flex flex-col md:flex-row overflow-hidden"
+          className="fixed inset-0 z-[9998] bg-[#050b18] w-full h-full flex flex-col md:flex-row overflow-hidden"
+          style={{ height: "100dvh" }}
         >
           {/* Ambient glow */}
           <div
