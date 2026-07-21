@@ -86,9 +86,23 @@ function LoginPage() {
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+  const humanizeAuthError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes("expired")) return "This code has expired. Request a new one below.";
+    if (m.includes("invalid") && m.includes("token")) return "That code doesn't match. Double-check the 6 digits and try again.";
+    if (m.includes("otp") && m.includes("invalid")) return "Invalid code. Please re-enter the 6 digits from your email.";
+    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
+    if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
+    if (m.includes("not found") || m.includes("user")) return "We couldn't find that email. Try a different address.";
+    return raw || "Something went wrong. Please try again.";
+  };
+
   const sendCode = async (isResend = false) => {
     if (!emailOk) return;
     isResend ? setResending(true) : setBusy(true);
+    if (isResend) setResendError(null);
+    else setEmailError(null);
+    setOtpError(null);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -101,7 +115,10 @@ function LoginPage() {
         setAuthStep("otp");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send code");
+      const msg = humanizeAuthError(err instanceof Error ? err.message : "Failed to send code");
+      if (isResend) setResendError(msg);
+      else setEmailError(msg);
+      toast.error(msg);
     } finally {
       isResend ? setResending(false) : setBusy(false);
     }
@@ -110,6 +127,7 @@ function LoginPage() {
   const verifyCode = async (code: string) => {
     if (code.length !== 6 || busy) return;
     setBusy(true);
+    setOtpError(null);
     try {
       const { data, error } = await supabase.auth.verifyOtp({
         email,
@@ -124,7 +142,9 @@ function LoginPage() {
       toast.success("Welcome back.");
       await routeAfterAuth();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Invalid or expired code");
+      const msg = humanizeAuthError(err instanceof Error ? err.message : "Invalid or expired code");
+      setOtpError(msg);
+      toast.error(msg);
       setOtp(["", "", "", "", "", ""]);
       otpRefs.current[0]?.focus();
     } finally {
@@ -133,6 +153,7 @@ function LoginPage() {
   };
 
   const handleOtpChange = (i: number, val: string) => {
+    if (otpError) setOtpError(null);
     const digit = val.replace(/\D/g, "").slice(-1);
     const next = [...otp];
     next[i] = digit;
