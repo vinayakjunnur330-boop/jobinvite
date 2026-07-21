@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { Loader2, ArrowRight, Sun, Moon, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Mail, CheckCircle2, Eye, EyeOff, KeyRound } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa6";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { getMyRoles } from "@/lib/roles.functions";
 import { checkMagicLinkQuota } from "@/lib/auth-security.functions";
 import { getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
-import { useTheme } from "@/lib/theme";
 
 type LoginSearch = { form?: "1"; next?: string };
 
@@ -35,7 +34,9 @@ export const Route = createFileRoute("/login")({
 });
 
 type Provider = "google" | "apple";
-type AuthStep = "email" | "sent";
+type Tab = "otp" | "password";
+type OtpStep = "email" | "code";
+type PwView = "signin" | "signup" | "forgot" | "forgot_sent";
 
 const SESSION_KEY = "user_session";
 
@@ -43,24 +44,38 @@ function LoginPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
 
-  const [authStep, setAuthStep] = useState<AuthStep>("email");
+  const [tab, setTab] = useState<Tab>("otp");
+
+  // OTP state
+  const [otpStep, setOtpStep] = useState<OtpStep>("email");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
-  const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
-  const [oauthError, setOauthError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendOk, setResendOk] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number>(0);
   const [nowTick, setNowTick] = useState(Date.now());
   const [otpCode, setOtpCode] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
-  const [theme, , toggleTheme] = useTheme();
+
+  // Password state
+  const [pwView, setPwView] = useState<PwView>("signin");
+  const [pwEmail, setPwEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+
+  // OAuth
+  const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   const checkRoles = useServerFn(getMyRoles);
   const checkQuota = useServerFn(checkMagicLinkQuota);
+
   const routeAfterAuth = async () => {
     if (next) {
       window.location.assign(next);
@@ -91,93 +106,60 @@ function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cooldown ticker (drives the "Resend in Ns" label)
   useEffect(() => {
     if (cooldownUntil <= Date.now()) return;
     const id = window.setInterval(() => setNowTick(Date.now()), 500);
     return () => window.clearInterval(id);
   }, [cooldownUntil]);
 
-
-
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const pwEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pwEmail);
   const cooldownMs = Math.max(0, cooldownUntil - nowTick);
   const cooldownSec = Math.ceil(cooldownMs / 1000);
 
-  const humanizeAuthError = (raw: string): string => {
+  const humanize = (raw: string): string => {
     const m = raw.toLowerCase();
-    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
-    if (m.includes("network") || m.includes("fetch") || m.includes("failed to fetch")) return "Network issue. Check your connection and try again.";
-    if (m.includes("not found") || m.includes("user")) return "We couldn't find that email. Try a different address.";
-    if (m.includes("popup") || m.includes("closed") || m.includes("window")) return "Sign-in window was closed before completing. Try again — or use email code sign-in below.";
-    if (m.includes("redirect") || m.includes("origin") || m.includes("uri")) return "Your browser blocked the Google redirect. Try again, or sign in with an email code below.";
-    if (m.includes("provider") || m.includes("oauth")) return "Google sign-in isn't responding right now. Try again, or use email code sign-in instead.";
-    return raw || "Something went wrong. Please try again.";
-  };
-
-  const humanizeOtpError = (raw: string): string => {
-    const m = raw.toLowerCase();
-    if (m.includes("expired")) return "This code has expired. Tap 'Resend code' below to get a new one.";
-    if (m.includes("invalid") || m.includes("incorrect") || m.includes("token") || m.includes("otp")) return "That code doesn't match. Double-check the 6 digits from your email, or resend a new code.";
-    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
+    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a moment and try again.";
+    if (m.includes("invalid login") || m.includes("invalid credentials") || m.includes("invalid_grant")) return "That email and password don't match. Try again or reset your password.";
+    if (m.includes("email not confirmed")) return "Please confirm your email first — check your inbox for the verification link.";
+    if (m.includes("user already registered") || m.includes("already been registered")) return "An account with this email already exists. Try signing in instead.";
+    if (m.includes("password") && m.includes("6")) return "Password must be at least 6 characters.";
     if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
-    return raw || "We couldn't verify that code. Please try again.";
+    if (m.includes("expired")) return "This code has expired. Tap 'Resend' to get a new one.";
+    if (m.includes("otp") || m.includes("token")) return "That code doesn't match. Double-check the 6 digits or resend a new code.";
+    return raw || "Something went wrong. Please try again.";
   };
 
   const formatRetry = (ms: number): string => {
     const s = Math.ceil(ms / 1000);
     if (s < 60) return `${s}s`;
     const m = Math.ceil(s / 60);
-    if (m < 60) return `${m} min`;
-    return `${Math.ceil(m / 60)}h`;
+    return m < 60 ? `${m} min` : `${Math.ceil(m / 60)}h`;
   };
 
-  const isMobileUA = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  const isIOS = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  const sendLink = async (isResend = false) => {
-    if (!emailOk) return;
-    if (cooldownMs > 0) return;
+  // ---------- OTP ----------
+  const sendCode = async (isResend = false) => {
+    if (!emailOk || cooldownMs > 0) return;
     isResend ? setResending(true) : setBusy(true);
     if (isResend) { setResendError(null); setResendOk(false); }
     else setEmailError(null);
     try {
-      // Server-side per-email + per-IP throttle before we touch Supabase Auth.
       const quota = await checkQuota({ data: { email } });
       if (!quota.allowed) {
         setCooldownUntil(Date.now() + quota.retryAfterMs);
-        const msg =
-          quota.reason === "cooldown"
-            ? `Please wait ${formatRetry(quota.retryAfterMs)} before requesting another link.`
-            : quota.reason === "ip"
-              ? `Too many requests from your network. Try again in ${formatRetry(quota.retryAfterMs)}.`
-              : `Too many requests for this email. Try again in ${formatRetry(quota.retryAfterMs)}.`;
+        const msg = `Please wait ${formatRetry(quota.retryAfterMs)} before requesting another code.`;
         if (isResend) setResendError(msg); else setEmailError(msg);
         toast.error(msg);
         return;
       }
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
       if (error) throw error;
-      // Client-side cooldown mirrors the server minimum spacing.
       setCooldownUntil(Date.now() + 30_000);
-      if (isResend) {
-        setResendOk(true);
-        toast.success("New code sent");
-      } else {
-        setAuthStep("sent");
-        toast.success("Verification code sent");
-      }
-
+      if (isResend) { setResendOk(true); toast.success("New code sent"); }
+      else { setOtpStep("code"); toast.success("Verification code sent"); }
     } catch (err) {
-      const msg = humanizeAuthError(err instanceof Error ? err.message : "Failed to send link");
-      if (isResend) setResendError(msg);
-      else setEmailError(msg);
+      const msg = humanize(err instanceof Error ? err.message : "Failed to send code");
+      if (isResend) setResendError(msg); else setEmailError(msg);
       toast.error(msg);
     } finally {
       isResend ? setResending(false) : setBusy(false);
@@ -199,8 +181,7 @@ function LoginPage() {
       toast.success("Signed in");
       await routeAfterAuth();
     } catch (err) {
-      const raw = err instanceof Error ? err.message : "Invalid or expired code";
-      const msg = humanizeOtpError(raw);
+      const msg = humanize(err instanceof Error ? err.message : "Invalid code");
       setOtpError(msg);
       toast.error(msg);
     } finally {
@@ -208,249 +189,433 @@ function LoginPage() {
     }
   };
 
+  // ---------- Password ----------
+  const signInWithPassword = async () => {
+    if (!pwEmailOk || password.length < 6 || pwBusy) return;
+    setPwBusy(true); setPwError(null);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: pwEmail, password });
+      if (error) throw error;
+      if (data.session) {
+        persistCareerPilotSession(data.session, { touchLastLogin: true });
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
+      }
+      toast.success("Signed in");
+      await routeAfterAuth();
+    } catch (err) {
+      const msg = humanize(err instanceof Error ? err.message : "Sign in failed");
+      setPwError(msg); toast.error(msg);
+    } finally { setPwBusy(false); }
+  };
+
+  const signUpWithPassword = async () => {
+    if (!pwEmailOk || password.length < 6 || password !== password2 || pwBusy) return;
+    setPwBusy(true); setPwError(null);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: pwEmail,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}` },
+      });
+      if (error) throw error;
+      if (data.session) {
+        persistCareerPilotSession(data.session, { touchLastLogin: true });
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
+        toast.success("Welcome to CareerPilot");
+        await routeAfterAuth();
+      } else {
+        toast.success("Account created — check your inbox to verify");
+        setPwView("signin");
+      }
+    } catch (err) {
+      const msg = humanize(err instanceof Error ? err.message : "Sign up failed");
+      setPwError(msg); toast.error(msg);
+    } finally { setPwBusy(false); }
+  };
+
+  const sendReset = async () => {
+    if (!pwEmailOk || pwBusy) return;
+    setPwBusy(true); setPwError(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(pwEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setPwView("forgot_sent");
+      toast.success("Reset link sent");
+    } catch (err) {
+      const msg = humanize(err instanceof Error ? err.message : "Couldn't send reset email");
+      setPwError(msg); toast.error(msg);
+    } finally { setPwBusy(false); }
+  };
+
   const oauth = async (provider: Provider) => {
     if (oauthBusy) return;
-    setOauthBusy(provider);
-    setOauthError(null);
+    setOauthBusy(provider); setOauthError(null);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       });
       if (result.error) throw result.error;
-      // On mobile, if we didn't redirect within a moment, the popup likely was blocked.
-      if (isMobileUA && !result.redirected) {
-        window.setTimeout(() => {
-          if (!document.hidden) {
-            setOauthError(
-              isIOS
-                ? "iOS may have blocked the Google popup. Allow popups for this site in Settings → Safari, or sign in with an email code below."
-                : "Your browser may have blocked the Google popup. Allow popups for this site, or sign in with an email code below.",
-            );
-            setOauthBusy(null);
-          }
-        }, 2500);
-      }
     } catch (err) {
-      const msg = humanizeAuthError(err instanceof Error ? err.message : "OAuth failed");
-      setOauthError(msg);
-      toast.error(msg);
-      setOauthBusy(null);
+      const msg = humanize(err instanceof Error ? err.message : "OAuth failed");
+      setOauthError(msg); toast.error(msg); setOauthBusy(null);
     }
   };
 
+  const inputCls =
+    "w-full px-4 py-3 bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder:text-white/35 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300";
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6 relative"
+    <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-[#05060a]"
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
-      {/* Top-right controls */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-50 flex items-center gap-2">
-        <button
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-white/10 border border-zinc-200 dark:border-white/15 text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-white/20 transition-colors cursor-pointer"
-        >
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </button>
+      {/* Ambient gradient background */}
+      <div className="pointer-events-none absolute inset-0 -z-0">
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-cyan-500/15 blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[520px] h-[520px] rounded-full bg-indigo-500/15 blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-fuchsia-500/[0.06] blur-[140px]" />
+      </div>
+
+      {/* Top-right */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-50">
         <button
           onClick={() => navigate({ to: "/" })}
-          className="px-3 py-1.5 rounded-full bg-white dark:bg-white/10 border border-zinc-200 dark:border-white/15 text-zinc-700 dark:text-white text-[11px] font-medium hover:bg-zinc-100 dark:hover:bg-white/20 transition-colors cursor-pointer"
+          className="px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-white/80 text-[11px] font-medium hover:bg-white/10 transition-colors cursor-pointer backdrop-blur-xl"
         >
           ← Back
         </button>
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-[400px] bg-white dark:bg-zinc-900 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-zinc-100 dark:border-white/10 p-8 sm:p-10 flex flex-col items-center mt-16 sm:mt-0"
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-full max-w-[420px] bg-black/60 backdrop-blur-3xl border border-white/10 rounded-3xl p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.7)] mt-14 sm:mt-0"
       >
-        {authStep === "email" ? (
-          <>
-            {/* Brand */}
-            <div className="mb-8 text-center">
-              <h1 className="text-[24px] font-bold tracking-tight text-zinc-900 dark:text-white">CareerPilot</h1>
-              <p className="text-zinc-500 dark:text-white/50 text-sm mt-1">Sign in to your account</p>
-            </div>
+        {/* Brand */}
+        <div className="mb-7 text-center">
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400/30 to-indigo-500/30 border border-white/10 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+            <KeyRound className="size-5 text-cyan-300" />
+          </div>
+          <h1 className="text-[24px] font-semibold tracking-tight text-white">Welcome to CareerPilot</h1>
+          <p className="text-white/50 text-sm mt-1">Sign in to continue</p>
+        </div>
 
-            <form
-              onSubmit={(e) => { e.preventDefault(); sendLink(false); }}
-              className="w-full"
-              noValidate
+        {/* Social */}
+        <div className="space-y-2.5 mb-5">
+          <button
+            type="button"
+            onClick={() => oauth("google")}
+            disabled={!!oauthBusy}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-xl text-white text-[14px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {oauthBusy === "google" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FcGoogle className="w-5 h-5" /> Continue with Google</>}
+          </button>
+          <button
+            type="button"
+            onClick={() => oauth("apple")}
+            disabled={!!oauthBusy}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-xl text-white text-[14px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {oauthBusy === "apple" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FaApple className="w-5 h-5" /> Continue with Apple</>}
+          </button>
+        </div>
+
+        {oauthError && (
+          <div role="alert" className="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-300">{oauthError}</div>
+        )}
+
+        <div className="flex items-center gap-4 mb-5">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-white/40 text-[11px] font-medium uppercase tracking-widest">or</span>
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        {/* Tab pill */}
+        <div className="relative mb-5 grid grid-cols-2 gap-1 p-1 rounded-full bg-white/[0.04] border border-white/10">
+          <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white/10 border border-white/10 shadow-[0_4px_20px_rgba(34,211,238,0.15)]"
+            style={{ left: tab === "otp" ? 4 : "50%" }}
+          />
+          {(["otp", "password"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => { setTab(t); setOtpError(null); setPwError(null); }}
+              className={`relative z-10 py-2 text-[12.5px] font-medium rounded-full transition-colors cursor-pointer ${tab === t ? "text-white" : "text-white/50 hover:text-white/80"}`}
             >
-              {/* Social */}
-              <div className="w-full space-y-3 mb-6">
-                <button
-                  type="button"
-                  onClick={() => oauth("google")}
-                  disabled={!!oauthBusy}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 rounded-xl text-zinc-700 dark:text-white text-[14px] font-medium hover:bg-zinc-50 dark:hover:bg-white/[0.08] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {oauthBusy === "google"
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <><FcGoogle className="w-5 h-5" /> Continue with Google</>}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => oauth("apple")}
-                  disabled={!!oauthBusy}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 rounded-xl text-zinc-700 dark:text-white text-[14px] font-medium hover:bg-zinc-50 dark:hover:bg-white/[0.08] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {oauthBusy === "apple"
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <><FaApple className="w-5 h-5 text-zinc-900 dark:text-white" /> Continue with Apple</>}
-                </button>
-              </div>
+              {t === "otp" ? "Passcode" : "Password"}
+            </button>
+          ))}
+        </div>
 
-              {oauthError && (
-                <div role="alert" className="mb-4 rounded-xl border border-amber-300 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-700 dark:text-amber-300 leading-relaxed">
-                  {oauthError}
-                </div>
+        <AnimatePresence mode="wait">
+          {tab === "otp" && otpStep === "email" && (
+            <motion.form
+              key="otp-email"
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12 }}
+              transition={{ duration: 0.22 }}
+              onSubmit={(e) => { e.preventDefault(); sendCode(false); }}
+            >
+              <label htmlFor="email" className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Email address</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
+                autoComplete="email"
+                inputMode="email"
+                placeholder="name@example.com"
+                style={{ fontSize: "16px" }}
+                className={inputCls}
+              />
+              {email.length > 0 && !emailOk && (
+                <p className="mt-1.5 text-[11.5px] text-red-300 px-1">Enter a valid email</p>
               )}
-
-              {/* Divider */}
-              <div className="w-full flex items-center gap-4 mb-6">
-                <div className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
-                <span className="text-zinc-400 dark:text-white/40 text-[11px] font-medium uppercase tracking-widest">or</span>
-                <div className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
-              </div>
-
-              {/* Email */}
-              <div className="mb-4">
-                <label htmlFor="email" className="block text-[13px] font-medium text-zinc-700 dark:text-white/70 mb-2 px-1">Email address</label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
-                  autoComplete="email"
-                  inputMode="email"
-                  placeholder="name@example.com"
-                  style={{ fontSize: "16px" }}
-                  className={`w-full px-4 py-3 bg-zinc-50 dark:bg-white/[0.04] border rounded-xl text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 transition-all ${
-                    email.length > 0 && !emailOk
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-zinc-200 dark:border-white/10 focus:border-zinc-900 dark:focus:border-white/40"
-                  }`}
-                />
-                {email.length > 0 && !emailOk && (
-                  <p className="mt-1.5 text-[11.5px] text-red-500 dark:text-red-300/90 px-1">Enter a valid email</p>
-                )}
-              </div>
-
               {emailError && (
-                <div role="alert" className="mb-4 rounded-xl border border-red-200 dark:border-red-400/30 bg-red-50 dark:bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-600 dark:text-red-300 leading-relaxed">
-                  {emailError}
-                </div>
+                <div role="alert" className="mt-3 rounded-xl border border-red-400/30 bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-300">{emailError}</div>
               )}
-
               <button
                 type="submit"
                 disabled={!emailOk || busy}
-                className="w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold text-[14px] rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors duration-200 active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                className="mt-4 w-full py-3.5 rounded-xl font-semibold text-[14px] text-black bg-gradient-to-r from-cyan-300 to-white hover:opacity-90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(34,211,238,0.25)]"
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <>Send code <ArrowRight className="size-4" /></>}
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <>Send verification code <ArrowRight className="size-4" /></>}
+              </button>
+            </motion.form>
+          )}
+
+          {tab === "otp" && otpStep === "code" && (
+            <motion.div
+              key="otp-code"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.22 }}
+            >
+              <button
+                onClick={() => { setOtpStep("email"); setOtpCode(""); setOtpError(null); setResendError(null); setResendOk(false); }}
+                className="inline-flex items-center gap-1.5 text-[12px] text-white/50 hover:text-white transition-colors cursor-pointer mb-4"
+              >
+                <ArrowLeft className="size-3.5" /> Back
+              </button>
+              <div className="text-center mb-5">
+                <div className="mx-auto w-11 h-11 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center mb-3">
+                  <Mail className="size-5 text-white/80" />
+                </div>
+                <h2 className="text-[18px] font-semibold text-white">Check your email</h2>
+                <p className="mt-1 text-[12.5px] text-white/50">Code sent to <span className="text-white/90">{email}</span></p>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); verifyCode(); }}>
+                <input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6)); if (otpError) setOtpError(null); }}
+                  placeholder="••••••"
+                  className="w-full text-center tracking-[0.5em] font-mono text-[22px] py-3.5 rounded-xl bg-white/[0.04] border border-white/10 text-white outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+                />
+                {otpError && <p role="alert" className="mt-2 text-[12px] text-red-300 text-center">{otpError}</p>}
+                <button
+                  type="submit"
+                  disabled={otpCode.length !== 6 || verifying}
+                  className="mt-4 w-full py-3.5 rounded-xl font-semibold text-[14px] text-black bg-gradient-to-r from-cyan-300 to-white hover:opacity-90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center justify-center gap-2"
+                >
+                  {verifying ? <Loader2 className="size-4 animate-spin" /> : <>Verify & sign in <ArrowRight className="size-4" /></>}
+                </button>
+              </form>
+
+              {resendOk && (
+                <div className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-2.5 text-[12.5px] text-emerald-300">
+                  <CheckCircle2 className="size-4" /> New code sent
+                </div>
+              )}
+              {resendError && (
+                <div role="alert" className="mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-300 text-center">{resendError}</div>
+              )}
+              <div className="text-center mt-5">
+                <button
+                  type="button"
+                  onClick={() => sendCode(true)}
+                  disabled={resending || busy || cooldownMs > 0}
+                  className="text-[13px] text-white/50 hover:text-white cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                >
+                  {resending ? <Loader2 className="size-3.5 animate-spin" /> : null}
+                  {cooldownMs > 0 ? <>Resend in <span className="font-mono tabular-nums">{cooldownSec}s</span></> : <>Didn't get it? <span className="underline underline-offset-2">Resend code</span></>}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {tab === "password" && pwView !== "forgot" && pwView !== "forgot_sent" && (
+            <motion.form
+              key={`pw-${pwView}`}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.22 }}
+              onSubmit={(e) => { e.preventDefault(); pwView === "signin" ? signInWithPassword() : signUpWithPassword(); }}
+            >
+              <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Email address</label>
+              <input
+                type="email"
+                value={pwEmail}
+                onChange={(e) => { setPwEmail(e.target.value); if (pwError) setPwError(null); }}
+                autoComplete="email"
+                placeholder="name@example.com"
+                style={{ fontSize: "16px" }}
+                className={inputCls}
+              />
+
+              <label className="block text-[12.5px] font-medium text-white/70 mb-2 mt-4 px-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPw ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); if (pwError) setPwError(null); }}
+                  autoComplete={pwView === "signup" ? "new-password" : "current-password"}
+                  placeholder="••••••••"
+                  style={{ fontSize: "16px" }}
+                  className={inputCls + " pr-11"}
+                />
+                <button type="button" onClick={() => setShowPw((v) => !v)} aria-label="Toggle password visibility" className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white cursor-pointer">
+                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+
+              {pwView === "signup" && (
+                <>
+                  <label className="block text-[12.5px] font-medium text-white/70 mb-2 mt-4 px-1">Confirm password</label>
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={password2}
+                    onChange={(e) => { setPassword2(e.target.value); if (pwError) setPwError(null); }}
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    style={{ fontSize: "16px" }}
+                    className={inputCls}
+                  />
+                  {password2.length > 0 && password !== password2 && (
+                    <p className="mt-1.5 text-[11.5px] text-red-300 px-1">Passwords don't match</p>
+                  )}
+                </>
+              )}
+
+              {pwView === "signin" && (
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setPwView("forgot"); setPwError(null); }}
+                    className="text-[12px] text-cyan-300/90 hover:text-cyan-200 transition-colors cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+
+              {pwError && (
+                <div role="alert" className="mt-3 rounded-xl border border-red-400/30 bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-300">{pwError}</div>
+              )}
+
+              <button
+                type="submit"
+                disabled={!pwEmailOk || password.length < 6 || pwBusy || (pwView === "signup" && password !== password2)}
+                className="mt-4 w-full py-3.5 rounded-xl font-semibold text-[14px] text-black bg-gradient-to-r from-cyan-300 to-white hover:opacity-90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(34,211,238,0.25)]"
+              >
+                {pwBusy ? <Loader2 className="size-4 animate-spin" /> : <>{pwView === "signin" ? "Sign in" : "Create account"} <ArrowRight className="size-4" /></>}
               </button>
 
-              <p className="mt-6 text-[11px] text-center text-zinc-400 dark:text-white/40 leading-relaxed">
-                By continuing you agree to our Terms &amp; Privacy.
+              <p className="mt-4 text-center text-[12.5px] text-white/50">
+                {pwView === "signin" ? "New to CareerPilot?" : "Already have an account?"}{" "}
+                <button
+                  type="button"
+                  onClick={() => { setPwView(pwView === "signin" ? "signup" : "signin"); setPwError(null); }}
+                  className="text-white hover:text-cyan-300 transition-colors cursor-pointer underline underline-offset-2"
+                >
+                  {pwView === "signin" ? "Create an account" : "Sign in"}
+                </button>
               </p>
-            </form>
+            </motion.form>
+          )}
 
-            <div className="mt-8">
-              <Link to="/admin-login" className="text-zinc-400 dark:text-white/40 text-sm font-medium hover:text-zinc-900 dark:hover:text-white transition-colors">
-                Admin Console
-              </Link>
-            </div>
-          </>
-        ) : (
-          <motion.div
-            key="sent"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full relative"
-          >
-            <button
-              onClick={() => {
-                setAuthStep("email");
-                setResendError(null);
-                setResendOk(false);
-                setOtpCode("");
-                setOtpError(null);
-              }}
-              className="absolute -top-2 -left-2 inline-flex items-center gap-1.5 text-[12px] text-zinc-500 dark:text-white/50 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
+          {tab === "password" && pwView === "forgot" && (
+            <motion.form
+              key="pw-forgot"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.22 }}
+              onSubmit={(e) => { e.preventDefault(); sendReset(); }}
             >
-              <ArrowLeft className="size-3.5" /> Back
-            </button>
-
-            <div className="text-center mb-6 mt-6">
-              <div className="mx-auto w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-white/10 flex items-center justify-center mb-4">
-                <Mail className="size-5 text-zinc-700 dark:text-white" />
-              </div>
-              <h1 className="text-[22px] font-bold tracking-tight text-zinc-900 dark:text-white">Check your email</h1>
-              <p className="mt-2 text-[13px] text-zinc-500 dark:text-white/50">
-                We sent a 6-digit code to <span className="text-zinc-900 dark:text-white font-medium">{email}</span>.
-              </p>
-            </div>
-
-            <form onSubmit={(e) => { e.preventDefault(); verifyCode(); }} className="w-full">
-              <label className="block text-[13px] font-medium text-zinc-700 dark:text-white/70 mb-2 px-1">Verification code</label>
+              <button type="button" onClick={() => setPwView("signin")} className="inline-flex items-center gap-1.5 text-[12px] text-white/50 hover:text-white transition-colors cursor-pointer mb-3">
+                <ArrowLeft className="size-3.5" /> Back to sign in
+              </button>
+              <h2 className="text-[18px] font-semibold text-white">Reset your password</h2>
+              <p className="text-[12.5px] text-white/50 mt-1 mb-4">Enter your email and we'll send you a secure reset link.</p>
+              <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Email address</label>
               <input
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]*"
-                maxLength={6}
-                value={otpCode}
-                onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-                  setOtpCode(v);
-                  if (otpError) setOtpError(null);
-                }}
-                placeholder="••••••"
-                className="w-full text-center tracking-[0.5em] font-mono text-[20px] py-3 rounded-xl bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white outline-none focus:border-zinc-900 dark:focus:border-white/40 focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 transition-all"
+                type="email"
+                value={pwEmail}
+                onChange={(e) => { setPwEmail(e.target.value); if (pwError) setPwError(null); }}
+                autoComplete="email"
+                placeholder="name@example.com"
+                style={{ fontSize: "16px" }}
+                className={inputCls}
               />
-              {otpError && (
-                <p role="alert" className="mt-2 text-[12px] text-red-500 dark:text-red-300 text-center">{otpError}</p>
+              {pwError && (
+                <div role="alert" className="mt-3 rounded-xl border border-red-400/30 bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-300">{pwError}</div>
               )}
               <button
                 type="submit"
-                disabled={otpCode.length !== 6 || verifying}
-                className="mt-4 w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold text-[14px] rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors duration-200 active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                disabled={!pwEmailOk || pwBusy}
+                className="mt-4 w-full py-3.5 rounded-xl font-semibold text-[14px] text-black bg-gradient-to-r from-cyan-300 to-white hover:opacity-90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center justify-center gap-2"
               >
-                {verifying ? <Loader2 className="size-4 animate-spin" /> : <>Verify & Sign in <ArrowRight className="size-4" /></>}
+                {pwBusy ? <Loader2 className="size-4 animate-spin" /> : <>Send reset link <ArrowRight className="size-4" /></>}
               </button>
-            </form>
+            </motion.form>
+          )}
 
-            {resendOk && (
-              <div className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-400/30 bg-emerald-50 dark:bg-emerald-500/10 px-3.5 py-2.5 text-[12.5px] text-emerald-700 dark:text-emerald-300">
-                <CheckCircle2 className="size-4" /> New code on the way
+          {tab === "password" && pwView === "forgot_sent" && (
+            <motion.div
+              key="pw-forgot-sent"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.22 }}
+              className="text-center"
+            >
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center mb-4">
+                <CheckCircle2 className="size-5 text-emerald-300" />
               </div>
-            )}
-
-            {resendError && (
-              <div role="alert" className="mt-4 rounded-xl border border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-700 dark:text-amber-300 leading-relaxed text-center">
-                Couldn't resend: {resendError}
-              </div>
-            )}
-
-            <div className="text-center mt-6">
+              <h2 className="text-[18px] font-semibold text-white">Check your inbox</h2>
+              <p className="text-[12.5px] text-white/60 mt-1">We sent password reset instructions to <span className="text-white">{pwEmail}</span>.</p>
               <button
                 type="button"
-                onClick={() => sendLink(true)}
-                disabled={resending || busy || cooldownMs > 0}
-                className="text-[13px] text-zinc-500 dark:text-white/50 hover:text-zinc-900 dark:hover:text-white cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                onClick={() => setPwView("signin")}
+                className="mt-5 w-full py-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-white text-[13.5px] font-medium transition-colors cursor-pointer"
               >
-                {resending ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                {cooldownMs > 0 ? (
-                  <>Resend available in <span className="font-mono tabular-nums">{cooldownSec}s</span></>
-                ) : (
-                  <>Didn't receive it? <span className="underline underline-offset-2">Resend code</span></>
-                )}
+                Back to sign in
               </button>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <p className="mt-6 text-[11px] text-center text-white/35 leading-relaxed">
+          By continuing you agree to our Terms &amp; Privacy.
+        </p>
+
+        <div className="mt-6 text-center">
+          <Link to="/admin-login" className="text-white/35 text-[12px] hover:text-white/80 transition-colors">
+            Admin Console
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
