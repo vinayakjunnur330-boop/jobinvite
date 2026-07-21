@@ -13,11 +13,17 @@ import { checkMagicLinkQuota } from "@/lib/auth-security.functions";
 import { getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
 import { useTheme } from "@/lib/theme";
 
-type LoginSearch = { form?: "1" };
+type LoginSearch = { form?: "1"; next?: string };
+
+function sanitizeNext(v: unknown): string | undefined {
+  if (typeof v !== "string" || !v.startsWith("/") || v.startsWith("//")) return undefined;
+  return v;
+}
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>): LoginSearch => ({
     form: s.form === "1" ? "1" : undefined,
+    next: sanitizeNext(s.next),
   }),
   head: () => ({
     meta: [
