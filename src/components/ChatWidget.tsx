@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Send, X, Sparkles, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ const SUGGESTED = [
 ];
 
 const seed: Msg[] = [
-  { role: "assistant", content: "Hi — I'm **Pilot**, your AI career advisor. Ask me about any career, roadmap, skill gap, or interview prep." },
+  { role: "assistant", content: "Hi — I'm **Zoiee**, your AI career advisor. Ask me about any career, roadmap, skill gap, or interview prep." },
 ];
 
 function renderMd(text: string) {
@@ -31,27 +31,37 @@ function renderMd(text: string) {
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: isAuthLoading } = useAuth();
   const [msgs, setMsgs] = useState<Msg[]>(seed);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollRafRef = useRef<number | null>(null);
   const loadedForUserRef = useRef<string | null>(null);
+  const guestHydratedRef = useRef(false);
+  const userId = user?.id ?? null;
+  const messageSignature = useMemo(() => {
+    const last = msgs[msgs.length - 1];
+    return `${msgs.length}:${last?.role ?? "none"}:${last?.content.length ?? 0}:${streaming ? 1 : 0}`;
+  }, [msgs, streaming]);
 
-  // Load persisted messages from DB when authenticated (once per user)
+  // Auth/database hydration: runs only after auth finishes and only once per user.
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
-    if (loadedForUserRef.current === user.id) return;
-    loadedForUserRef.current = user.id;
+    if (isAuthLoading || !isAuthenticated || !userId) return;
+    if (loadedForUserRef.current === userId) return;
+    loadedForUserRef.current = userId;
+
+    let cancelled = false;
     (async () => {
       const { data, error } = await supabase
         .from("chat_messages")
         .select("role,content,created_at")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("conversation_id", CONVERSATION_ID)
         .order("created_at", { ascending: true });
-      if (error || !data) return;
+      if (cancelled || error || !data) return;
+
       // Merge any lingering guest messages into DB on first login
       let guestPrior: Msg[] = [];
       try {
@@ -61,7 +71,7 @@ export function ChatWidget() {
           if (Array.isArray(prior) && prior.length > 0) {
             guestPrior = prior;
             const rows = prior.map((m) => ({
-              user_id: user.id,
+              user_id: userId,
               conversation_id: CONVERSATION_ID,
               role: m.role,
               content: m.content,
@@ -74,14 +84,18 @@ export function ChatWidget() {
       } catch { /* ignore */ }
       const persisted: Msg[] = data.map((r) => ({ role: r.role as "user" | "assistant", content: r.content }));
       const combined = [...persisted, ...guestPrior];
-      if (combined.length > 0) setMsgs([...seed, ...combined]);
+      if (!cancelled && combined.length > 0) setMsgs([...seed, ...combined]);
     })();
-  }, [isAuthenticated, user]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthLoading, isAuthenticated, userId]);
 
-  // For guests: still hydrate localStorage prior conversation
+  // Guest hydration: wait for auth to settle, then read localStorage once.
   useEffect(() => {
-    if (isAuthenticated) return;
+    if (isAuthLoading || isAuthenticated || guestHydratedRef.current) return;
     if (typeof window === "undefined") return;
+    guestHydratedRef.current = true;
     try {
       const raw = localStorage.getItem("cp_guest_msgs");
       if (!raw) return;
@@ -90,25 +104,51 @@ export function ChatWidget() {
         setMsgs([...seed, ...prior]);
       }
     } catch { /* ignore */ }
-  }, [isAuthenticated]);
+  }, [isAuthLoading, isAuthenticated]);
 
 
-  // Body scroll lock when open
+  // Body scroll lock: no state updates inside this effect, only reversible DOM writes.
   useEffect(() => {
     if (typeof document === "undefined") return;
-    if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = prev || "unset"; };
-    }
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
   }, [open]);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll: use a stable signature and one RAF so scrolling never creates a render loop.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [msgs, streaming, open]);
+    if (!open) return;
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
 
-  const send = async (text?: string) => {
+    if (scrollRafRef.current !== null) {
+      window.cancelAnimationFrame(scrollRafRef.current);
+    }
+
+    scrollRafRef.current = window.requestAnimationFrame(() => {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "auto" });
+      scrollRafRef.current = null;
+    });
+
+    return () => {
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
+  }, [open, messageSignature]);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+      }
+    };
+  }, []);
+
+  const send = useCallback(async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || streaming) return;
     setInput("");
@@ -171,10 +211,10 @@ export function ChatWidget() {
         }
       }
       // Persist completed exchange to DB for signed-in users
-      if (isAuthenticated && user && assistant) {
+      if (isAuthenticated && userId && assistant) {
         await supabase.from("chat_messages").insert([
-          { user_id: user.id, conversation_id: CONVERSATION_ID, role: "user", content },
-          { user_id: user.id, conversation_id: CONVERSATION_ID, role: "assistant", content: assistant },
+          { user_id: userId, conversation_id: CONVERSATION_ID, role: "user", content },
+          { user_id: userId, conversation_id: CONVERSATION_ID, role: "assistant", content: assistant },
         ]);
       } else if (!isAuthenticated) {
         try {
@@ -197,16 +237,16 @@ export function ChatWidget() {
       setStreaming(false);
       abortRef.current = null;
     }
-  };
+  }, [input, isAuthenticated, msgs, streaming, userId]);
 
-  const retry = () => {
+  const retry = useCallback(() => {
     const lastUser = [...msgs].reverse().find((m) => m.role === "user");
     if (!lastUser) return;
     setMsgs((cur) => cur.slice(0, -1));
     setTimeout(() => send(lastUser.content), 50);
-  };
+  }, [msgs, send]);
 
-  const startVoice = () => {
+  const startVoice = useCallback(() => {
     const w = window as unknown as { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown };
     const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) { toast.message("Voice input not supported in this browser"); return; }
@@ -217,15 +257,15 @@ export function ChatWidget() {
     };
     r.onerror = () => toast.error("Voice input failed");
     r.start();
-  };
+  }, []);
 
-  const speak = (text: string) => {
+  const speak = useCallback((text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     const u = new SpeechSynthesisUtterance(text.replace(/[*`_#>-]/g, ""));
     u.rate = 1.02; u.pitch = 1;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
-  };
+  }, []);
 
   return (
     <div className="z-[9999]">
@@ -243,7 +283,7 @@ export function ChatWidget() {
           backdropFilter: "blur(24px) saturate(160%)",
           boxShadow: "0 8px 32px -4px rgba(16,185,129,0.45), 0 0 0 1px rgba(255,255,255,0.05) inset",
         }}
-        aria-label={open ? "Close chat" : "Open Pilot AI"}
+        aria-label={open ? "Close chat" : "Open Zoiee AI"}
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
@@ -257,7 +297,7 @@ export function ChatWidget() {
             {open ? (
               <X className="size-6 text-white" />
             ) : (
-              <img src={chatbotLogo} alt="Pilot AI" width={512} height={512} loading="lazy" className="size-11 object-contain drop-shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
+              <img src={chatbotLogo} alt="Zoiee AI" width={512} height={512} loading="lazy" className="size-11 object-contain drop-shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
             )}
           </motion.span>
         </AnimatePresence>
@@ -293,6 +333,7 @@ export function ChatWidget() {
             </div>
 
             <div
+              ref={scrollerRef}
               className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 touch-pan-y"
               style={{ overscrollBehavior: "contain" }}
             >
@@ -328,8 +369,6 @@ export function ChatWidget() {
                   </div>
                 </div>
               )}
-
-              <div ref={endRef} />
             </div>
 
             <div className="p-3 border-t border-white/10 bg-white/[0.03] flex gap-2">
