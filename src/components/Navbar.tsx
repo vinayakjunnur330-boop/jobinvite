@@ -1,8 +1,23 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, LogOut, Compass, Sparkles } from "lucide-react";
+import { Menu, X, LogOut, Compass, Sparkles, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
+
+function ThemeToggle({ className = "" }: { className?: string }) {
+  const [theme, , toggle] = useTheme();
+  return (
+    <button
+      onClick={toggle}
+      aria-label="Toggle theme"
+      title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      className={`size-9 inline-flex items-center justify-center rounded-full border border-white/15 dark:border-white/15 border-black/10 bg-white/[0.04] dark:bg-white/[0.04] text-foreground/80 hover:text-foreground hover:bg-white/[0.1] dark:hover:bg-white/[0.08] transition-colors ${className}`}
+    >
+      {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+    </button>
+  );
+}
 
 const primaryLinks = [
   { to: "/", label: "Home" },
