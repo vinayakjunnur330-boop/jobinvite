@@ -43,6 +43,9 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [resendError, setResendError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [theme, , toggleTheme] = useTheme();
 
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
