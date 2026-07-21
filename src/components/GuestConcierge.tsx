@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useTheme } from "@/lib/theme";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -67,6 +68,7 @@ function TopRightControls() {
 
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
+  const isMobile = useIsMobile();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const formParam = useRouterState({ select: (s) => (s.location.search as Record<string, unknown>)?.form ?? null });
   const loginShowingForm = pathname === "/login" && formParam === "1";
@@ -300,6 +302,14 @@ export function GuestConcierge() {
 
   const remaining = Math.max(0, GUEST_LIMIT - count);
 
+  const overlayMotionProps = isMobile
+    ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 1 }, transition: { duration: 0 } }
+    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.4 } };
+
+  const messageMotionProps = isMobile
+    ? { initial: false, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } }
+    : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.25 } };
+
   return (
     <>
       {showLoadingGate && (
@@ -312,10 +322,7 @@ export function GuestConcierge() {
         <motion.div
           data-zoiee-overlay="true"
           key="guest-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
+          {...overlayMotionProps}
           className="fixed inset-0 z-[9998] bg-[#050b18] w-full flex flex-col md:flex-row overflow-hidden"
           style={{ height: "var(--zoiee-vh, 100svh)" }}
         >
@@ -365,8 +372,7 @@ export function GuestConcierge() {
                 style={{ scrollbarWidth: "none" }}
               >
                 <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  {...messageMotionProps}
                   className="self-start bg-[#0b132b] border border-white/10 text-white p-4 rounded-2xl rounded-tl-sm shadow-lg max-w-[90%] md:max-w-[85%] text-sm leading-relaxed"
                 >
                   {openingMsg}
@@ -379,9 +385,7 @@ export function GuestConcierge() {
                 {msgs.map((m, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25 }}
+                    {...messageMotionProps}
                     className={
                       m.role === "user"
                         ? "self-end bg-white text-gray-900 p-3 rounded-2xl rounded-tr-sm shadow-md max-w-[90%] md:max-w-[75%] text-sm leading-relaxed"
