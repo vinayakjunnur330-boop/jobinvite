@@ -270,6 +270,8 @@ export function ChatWidget() {
     window.speechSynthesis.speak(u);
   }, []);
 
+  if (hidden) return null;
+
   return (
     <div className="z-[9999]">
       {/* Floating toggle button — living AI orb */}
