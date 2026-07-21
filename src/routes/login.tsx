@@ -239,20 +239,31 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-[#050505] transition-colors duration-500 relative overflow-hidden p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-slate-950 dark:to-black transition-colors duration-500 relative overflow-hidden p-4">
       <motion.div
         aria-hidden
-        className="absolute -top-1/4 -left-1/4 w-[700px] h-[700px] rounded-full blur-[140px] opacity-40 dark:opacity-60"
-        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.35), transparent 60%)" }}
-        animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-1/4 -left-1/4 w-[720px] h-[720px] rounded-full blur-[160px] opacity-30 dark:opacity-50 pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(56,189,248,0.6), transparent 60%)" }}
+        animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         aria-hidden
-        className="absolute -bottom-1/4 -right-1/4 w-[700px] h-[700px] rounded-full blur-[140px] opacity-40 dark:opacity-60"
-        style={{ background: "radial-gradient(circle, rgba(139,92,246,0.35), transparent 60%)" }}
-        animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
-        transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -bottom-1/4 -right-1/4 w-[720px] h-[720px] rounded-full blur-[160px] opacity-30 dark:opacity-50 pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(139,92,246,0.5), transparent 60%)" }}
+        animate={{ x: [0, -50, 0], y: [0, -30, 0] }}
+        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.035] dark:opacity-[0.06] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+          maskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+        }}
       />
 
       <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-50 flex items-center gap-2 sm:gap-3">
@@ -265,14 +276,13 @@ function LoginPage() {
         </button>
         <button
           onClick={() => navigate({ to: "/" })}
-
           className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-gray-200 dark:border-white/20 text-gray-700 dark:text-white text-[11px] sm:text-xs font-medium hover:bg-white dark:hover:bg-white/20 transition-all cursor-pointer"
         >
           ← Back
         </button>
       </div>
 
-      <div className="relative w-full max-w-[440px] mt-16 sm:mt-0 bg-white/70 dark:bg-black/40 backdrop-blur-3xl border border-gray-200 dark:border-white/10 p-6 sm:p-10 rounded-3xl shadow-2xl">
+      <div className="relative w-full max-w-[440px] mt-16 sm:mt-0 bg-white/80 dark:bg-white/[0.03] backdrop-blur-3xl border border-gray-200/80 dark:border-white/10 p-6 sm:p-10 rounded-[28px] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.25)] dark:shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)] ring-1 ring-black/[0.02] dark:ring-white/[0.04]">
         {authStep === "sent" && (
           <button
             onClick={() => {
@@ -292,22 +302,25 @@ function LoginPage() {
           {authStep === "email" ? (
             <motion.div
               key="email"
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="text-center mb-8">
-                <div className="text-[10px] uppercase tracking-[0.28em] text-gray-500 dark:text-white/40 mb-3">
-                  CareerPilot
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-cyan-400 to-violet-500 flex items-center justify-center mb-5 shadow-lg shadow-blue-500/30 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
+                  <span className="relative text-2xl">🤖</span>
                 </div>
-                <h1 className="text-[26px] font-semibold tracking-tight text-gray-900 dark:text-white">
-                  Sign in to CareerPilot
+                <div className="text-[10px] uppercase tracking-[0.32em] text-gray-500 dark:text-white/40 mb-2">
+                  CareerPilot • Zoiee
+                </div>
+                <h1 className="text-[28px] font-semibold tracking-tight text-gray-900 dark:text-white">
+                  Unlock Full Access
                 </h1>
-                <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50">
-                  Enter your email — we'll send you a 6-digit verification code.
+                <p className="mt-2 text-[13px] text-gray-500 dark:text-white/50 leading-relaxed px-2">
+                  Sign in to save conversations, analyze your resume, and explore 44+ career domains.
                 </p>
-
               </div>
 
               <form
