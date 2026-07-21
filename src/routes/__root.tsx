@@ -144,9 +144,11 @@ function RootAppContent() {
   const { loading, isAuthenticated } = useAuth();
   const isMobile = useIsMobileViewport();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const formParam = useRouterState({ select: (s) => (s.location.search as Record<string, unknown>)?.form ?? null });
-  const loginShowingForm = pathname === "/login" && formParam === "1";
-  const onAuthRoute = pathname === "/admin-login" || pathname.startsWith("/auth") || loginShowingForm;
+  const onAuthRoute =
+    pathname === "/login" ||
+    pathname === "/admin-login" ||
+    pathname === "/reset-password" ||
+    pathname.startsWith("/auth");
   const suspendMobileUnderlay = isMobile && !loading && !isAuthenticated && !onAuthRoute;
 
   return (
@@ -165,7 +167,7 @@ function RootAppContent() {
               <ChatWidget />
             </>
           )}
-          <GuestConcierge />
+          {!onAuthRoute && <GuestConcierge />}
           <ChatOpenGate />
           <SessionManager />
           <Toaster />
