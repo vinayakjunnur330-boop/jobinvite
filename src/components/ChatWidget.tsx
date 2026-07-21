@@ -3,7 +3,7 @@ import { Send, X, Sparkles, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import chatbotLogo from "@/assets/chatbot-logo.png";
+const chatbotLogo = "/robot-avatar.png";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
