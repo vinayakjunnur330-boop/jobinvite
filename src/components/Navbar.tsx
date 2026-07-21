@@ -71,6 +71,7 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+          <ThemeToggle />
           {user ? (
             <>
               <Link to="/dashboard" className="size-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm" title={user.email ?? ""}>
