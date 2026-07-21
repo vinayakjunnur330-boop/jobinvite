@@ -59,6 +59,10 @@ function LoginPage() {
   const checkRoles = useServerFn(getMyRoles);
   const checkQuota = useServerFn(checkMagicLinkQuota);
   const routeAfterAuth = async () => {
+    if (next) {
+      window.location.assign(next);
+      return;
+    }
     try {
       const r = await checkRoles();
       navigate({ to: r.isAdmin ? "/admin" : "/dashboard" });
