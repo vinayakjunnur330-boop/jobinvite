@@ -19,6 +19,7 @@ export function ParticleField({
     const canvas = ref.current;
     if (!canvas) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
