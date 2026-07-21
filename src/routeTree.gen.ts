@@ -18,6 +18,7 @@ import { Route as SalaryRouteImport } from './routes/salary'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PersonalityRouteImport } from './routes/personality'
 import { Route as MentorsRouteImport } from './routes/mentors'
@@ -88,6 +89,11 @@ const ResumeRoute = ResumeRouteImport.update({
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
@@ -318,6 +326,7 @@ export interface FileRoutesById {
   '/mentors': typeof MentorsRoute
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
   '/roadmap': typeof RoadmapRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/reset-password'
     | '/resources'
     | '/resume'
     | '/roadmap'
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/reset-password'
     | '/resources'
     | '/resume'
     | '/roadmap'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/mentors'
     | '/personality'
     | '/profile'
+    | '/reset-password'
     | '/resources'
     | '/resume'
     | '/roadmap'
@@ -469,6 +481,7 @@ export interface RootRouteChildren {
   MentorsRoute: typeof MentorsRoute
   PersonalityRoute: typeof PersonalityRoute
   ProfileRoute: typeof ProfileRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   ResumeRoute: typeof ResumeRoute
   RoadmapRoute: typeof RoadmapRoute
@@ -552,6 +565,13 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -757,6 +777,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentorsRoute: MentorsRoute,
   PersonalityRoute: PersonalityRoute,
   ProfileRoute: ProfileRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   ResumeRoute: ResumeRoute,
   RoadmapRoute: RoadmapRoute,
