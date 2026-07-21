@@ -75,7 +75,8 @@ function LoginPage() {
     if (typeof window === "undefined") return;
     const stored = localStorage.getItem(SESSION_KEY);
     if (stored) {
-      navigate({ to: "/dashboard" });
+      if (next) window.location.assign(next);
+      else navigate({ to: "/dashboard" });
       return;
     }
     getHydratedCareerPilotSession().then((s) => {
