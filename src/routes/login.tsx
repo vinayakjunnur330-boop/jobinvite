@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyRoles } from "@/lib/roles.functions";
+import { checkMagicLinkQuota } from "@/lib/auth-security.functions";
 import { getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
 import { useTheme } from "@/lib/theme";
 
