@@ -12,6 +12,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
 import { GuestConcierge } from "@/components/GuestConcierge";
+import { ChatOpenGate } from "@/components/ChatOpenGate";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
