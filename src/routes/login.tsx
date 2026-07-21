@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2, KeyRound } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2, KeyRound, RefreshCw, Check } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaFacebookF } from "react-icons/fa6";
+import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useServerFn } from "@tanstack/react-start";
