@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Send, X, Eye, EyeOff, Loader2, RotateCcw, ThumbsUp, ThumbsDown, Sun, Moon } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -78,13 +78,30 @@ export function GuestConcierge() {
   const [streaming, setStreaming] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const openingMsg = `${greeting()}! Hey! I'm Zoiee, your friendly learning buddy. Ready to discover your perfect career today? 🤩`;
+  const chatScrollerRef = useRef<HTMLDivElement>(null);
+  const hydrationStartedRef = useRef(false);
+  const scrollRafRef = useRef<number | null>(null);
+  const openingMsg = useMemo(
+    () => `${greeting()}! Hey! I'm Zoiee, your friendly learning buddy. Ready to discover your perfect career today? 🤩`,
+    [],
+  );
 
   useEffect(() => {
-    setMsgs(readMsgs());
-    setCount(readCount());
+    if (hydrationStartedRef.current) return;
+    hydrationStartedRef.current = true;
+
+    const storedMsgs = readMsgs();
+    const storedCount = readCount();
+    setMsgs(Array.isArray(storedMsgs) ? storedMsgs : []);
+    setCount(Number.isFinite(storedCount) ? storedCount : 0);
     setHydrated(true);
+
+    return () => {
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
   }, []);
 
   const authResolving = !hydrated || loading;
@@ -92,18 +109,54 @@ export function GuestConcierge() {
   const showLoadingGate = authResolving && !onAuthRoute;
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
     if (!active) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    inputRef.current?.focus();
-    return () => { document.body.style.overflow = prev; };
+    const { body } = document;
+    const prevOverflow = body.style.overflow;
+    const prevTouchAction = body.style.touchAction;
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+
+    const focusTimer = window.setTimeout(() => {
+      const canAutofocus = window.matchMedia("(min-width: 768px)").matches;
+      if (canAutofocus) inputRef.current?.focus({ preventScroll: true });
+    }, 120);
+
+    return () => {
+      window.clearTimeout(focusTimer);
+      body.style.overflow = prevOverflow;
+      body.style.touchAction = prevTouchAction;
+    };
   }, [active]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs.length]);
+  const scrollSignature = useMemo(() => {
+    const last = msgs[msgs.length - 1];
+    return `${msgs.length}:${last?.content.length ?? 0}:${streaming ? 1 : 0}`;
+  }, [msgs, streaming]);
 
-  const send = async (text?: string) => {
+  useEffect(() => {
+    if (!active) return;
+    const scroller = chatScrollerRef.current;
+    if (!scroller) return;
+
+    if (scrollRafRef.current !== null) {
+      window.cancelAnimationFrame(scrollRafRef.current);
+    }
+
+    scrollRafRef.current = window.requestAnimationFrame(() => {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "auto" });
+      scrollRafRef.current = null;
+    });
+
+    return () => {
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
+  }, [active, scrollSignature]);
+
+  const send = useCallback(async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || streaming) return;
 
@@ -182,15 +235,15 @@ export function GuestConcierge() {
     } finally {
       setStreaming(false);
     }
-  };
+  }, [count, input, msgs, streaming]);
 
-  const resetChat = () => {
+  const resetChat = useCallback(() => {
     setMsgs([]);
     setCount(0);
     localStorage.removeItem(KEY_MSGS);
     localStorage.removeItem(KEY_COUNT);
     toast.success("Conversation cleared.");
-  };
+  }, []);
 
   const remaining = Math.max(0, GUEST_LIMIT - count);
 
@@ -247,6 +300,7 @@ export function GuestConcierge() {
           <div className="w-full flex-1 md:w-1/2 md:h-full flex flex-col relative px-4 md:px-8 pb-4 pt-4 md:pt-16 min-h-0">
               {/* Chat history */}
               <div
+                ref={chatScrollerRef}
                 className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col gap-4"
                 style={{ scrollbarWidth: "none" }}
               >
@@ -289,7 +343,6 @@ export function GuestConcierge() {
                     )}
                   </motion.div>
                 ))}
-                <div ref={bottomRef} />
               </div>
 
               {/* Input bar wrapper */}
