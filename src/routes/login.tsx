@@ -106,9 +106,21 @@ function LoginPage() {
   const humanizeAuthError = (raw: string): string => {
     const m = raw.toLowerCase();
     if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
-    if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
+    if (m.includes("network") || m.includes("fetch") || m.includes("failed to fetch")) return "Network issue. Check your connection and try again.";
     if (m.includes("not found") || m.includes("user")) return "We couldn't find that email. Try a different address.";
+    if (m.includes("popup") || m.includes("closed") || m.includes("window")) return "Sign-in window was closed before completing. Try again — or use email code sign-in below.";
+    if (m.includes("redirect") || m.includes("origin") || m.includes("uri")) return "Your browser blocked the Google redirect. Try again, or sign in with an email code below.";
+    if (m.includes("provider") || m.includes("oauth")) return "Google sign-in isn't responding right now. Try again, or use email code sign-in instead.";
     return raw || "Something went wrong. Please try again.";
+  };
+
+  const humanizeOtpError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes("expired")) return "This code has expired. Tap 'Resend code' below to get a new one.";
+    if (m.includes("invalid") || m.includes("incorrect") || m.includes("token") || m.includes("otp")) return "That code doesn't match. Double-check the 6 digits from your email, or resend a new code.";
+    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a minute before trying again.";
+    if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection and try again.";
+    return raw || "We couldn't verify that code. Please try again.";
   };
 
   const formatRetry = (ms: number): string => {
@@ -118,6 +130,9 @@ function LoginPage() {
     if (m < 60) return `${m} min`;
     return `${Math.ceil(m / 60)}h`;
   };
+
+  const isMobileUA = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const isIOS = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   const sendLink = async (isResend = false) => {
     if (!emailOk) return;
