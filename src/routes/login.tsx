@@ -126,6 +126,89 @@ function LoginPage() {
     } finally { setBusy(false); }
   };
 
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const id = window.setInterval(() => setResendIn((v) => (v <= 1 ? 0 : v - 1)), 1000);
+    return () => window.clearInterval(id);
+  }, [resendIn]);
+
+  const sendOtp = async (isResend = false) => {
+    if (!emailOk || busy) return;
+    setBusy(true); setError(null);
+    try {
+      const { error: err } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true },
+      });
+      if (err) throw err;
+      setOtp(["", "", "", "", "", ""]);
+      setResendIn(RESEND_SECONDS);
+      setView("otp_verify");
+      toast.success(isResend ? "New code sent" : "Verification code sent");
+      setTimeout(() => otpRefs.current[0]?.focus(), 60);
+    } catch (err) {
+      const msg = humanize(err instanceof Error ? err.message : "Couldn't send code");
+      setError(msg); toast.error(msg);
+    } finally { setBusy(false); }
+  };
+
+  const verifyOtp = async (codeOverride?: string) => {
+    const code = (codeOverride ?? otp.join("")).trim();
+    if (code.length !== 6 || busy) return;
+    setBusy(true); setError(null);
+    try {
+      const { data, error: err } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+      if (err) throw err;
+      if (data.session) {
+        persistCareerPilotSession(data.session, { touchLastLogin: true });
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
+      }
+      toast.success("Signed in");
+      await routeAfterAuth();
+    } catch (err) {
+      const raw = err instanceof Error ? err.message.toLowerCase() : "";
+      const msg = raw.includes("expired") ? "That code expired. Request a new one."
+        : raw.includes("invalid") || raw.includes("token") ? "Incorrect code. Double-check and try again."
+        : humanize(err instanceof Error ? err.message : "Verification failed");
+      setError(msg); toast.error(msg);
+      setOtp(["", "", "", "", "", ""]);
+      setTimeout(() => otpRefs.current[0]?.focus(), 30);
+    } finally { setBusy(false); }
+  };
+
+  const onOtpChange = (i: number, raw: string) => {
+    const chars = raw.replace(/\D/g, "").split("");
+    if (chars.length === 0) {
+      const next = [...otp]; next[i] = ""; setOtp(next); return;
+    }
+    const next = [...otp];
+    let idx = i;
+    for (const c of chars) {
+      if (idx > 5) break;
+      next[idx] = c; idx++;
+    }
+    setOtp(next);
+    const focusIdx = Math.min(idx, 5);
+    otpRefs.current[focusIdx]?.focus();
+    if (next.every((d) => d !== "") && next.join("").length === 6) {
+      verifyOtp(next.join(""));
+    }
+  };
+
+  const onOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[i] && i > 0) {
+      const next = [...otp]; next[i - 1] = ""; setOtp(next);
+      otpRefs.current[i - 1]?.focus();
+      e.preventDefault();
+    } else if (e.key === "ArrowLeft" && i > 0) {
+      otpRefs.current[i - 1]?.focus();
+    } else if (e.key === "ArrowRight" && i < 5) {
+      otpRefs.current[i + 1]?.focus();
+    }
+  };
+
+
+
   const oauth = async (provider: "google" | "apple") => {
     if (oauthBusy) return;
     setOauthBusy(provider); setError(null);
