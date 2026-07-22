@@ -474,3 +474,48 @@ function StayCheckbox({ stay, setStay }: { stay: boolean; setStay: (v: boolean) 
     </label>
   );
 }
+
+function SocialButton({
+  provider,
+  label,
+  icon,
+  busy,
+  disabled,
+  comingSoon,
+  onClick,
+}: {
+  provider: string;
+  label: string;
+  icon: React.ReactNode;
+  busy?: boolean;
+  disabled?: boolean;
+  comingSoon?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || busy}
+      aria-label={comingSoon ? `${label} — coming soon` : `Continue with ${label}`}
+      className={`relative h-12 rounded-2xl inline-flex items-center justify-center gap-2 font-medium text-[13px] border transition active:scale-[0.99] ${
+        provider === "google" || provider === "apple"
+          ? "bg-white text-slate-800 hover:bg-white/95 border-white/40 shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
+          : "bg-white/10 text-white/70 border-white/20 cursor-not-allowed"
+      }`}
+    >
+      {busy ? (
+        <Loader2 className="size-5 animate-spin text-slate-600" />
+      ) : (
+        <>
+          {icon}
+          <span>{label}</span>
+          {comingSoon && (
+            <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-white/90 text-slate-900 text-[9px] font-bold shadow-sm">
+              Soon
+            </span>
+          )}
+        </>
+      )}
+    </button>
+  );
+}
