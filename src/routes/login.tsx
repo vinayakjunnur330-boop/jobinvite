@@ -179,12 +179,12 @@ function LoginPage() {
     else otpRefs.current[text.length]?.focus();
   };
 
-  const handleOAuth = async (provider: "google") => {
+  const handleOAuth = async (provider: "google" | "apple") => {
     if (oauthBusy) return;
     setOauthBusy(provider);
     try { window.localStorage.setItem("cp_stay", stay ? "1" : "0"); } catch { /* ignore */ }
     try {
-      const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
+      const res = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/auth/callback" });
       if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
       if (res.redirected) return;
       await afterAuth();
