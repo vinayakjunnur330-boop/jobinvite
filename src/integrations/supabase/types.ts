@@ -272,6 +272,30 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_challenges: {
+        Row: {
+          attempts: number
+          email: string
+          issued_at: string
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          email: string
+          issued_at?: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          email?: string
+          issued_at?: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
