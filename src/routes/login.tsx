@@ -181,7 +181,7 @@ function LoginPage() {
 
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { shouldCreateUser: true, emailRedirectTo: window.location.origin + "/auth/callback" },
+        options: { shouldCreateUser: true },
       });
       if (error) throw error;
       // Reset server-side challenge window & attempt counter for this email.
