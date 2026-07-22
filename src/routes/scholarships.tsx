@@ -55,7 +55,7 @@ function Scholarships() {
                   <div className="font-bold">{s.deadline}</div>
                 </div>
               </div>
-              <button className="mt-5 w-full py-2.5 rounded-lg bg-foreground text-background text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-primary hover:text-primary-foreground transition-colors">
+              <button className="mt-5 w-full py-2.5 rounded-lg bg-foreground text-neutral-900 text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-primary hover:text-primary-foreground transition-colors">
                 Apply <ArrowRight className="size-3" />
               </button>
             </motion.div>

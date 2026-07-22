@@ -353,7 +353,7 @@ function Home() {
 
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-6 pb-24">
-        <div className="relative rounded-3xl overflow-hidden border border-border bg-foreground text-background p-10 md:p-16">
+        <div className="relative rounded-3xl overflow-hidden border border-border bg-foreground text-neutral-900 p-10 md:p-16">
           <div
             aria-hidden
             className="absolute inset-0 opacity-30"

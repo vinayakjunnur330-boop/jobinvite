@@ -296,7 +296,7 @@ function AlertsPanel() {
               <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /> On
             </label>
           </div>
-          <button onClick={() => mut.mutate()} disabled={mut.isPending} className="w-full px-3 py-2 rounded-lg bg-foreground text-background text-xs font-semibold disabled:opacity-60">
+          <button onClick={() => mut.mutate()} disabled={mut.isPending} className="w-full px-3 py-2 rounded-lg bg-foreground text-neutral-900 text-xs font-semibold disabled:opacity-60">
             {mut.isPending ? "Saving..." : "Save alert preferences"}
           </button>
           <p className="text-[10px] text-muted-foreground leading-relaxed">Emails start once your team enables the sender domain. We'll never spam — unsubscribe from any email.</p>
