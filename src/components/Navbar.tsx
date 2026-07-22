@@ -88,7 +88,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-white/10 bg-white/[0.02] backdrop-blur-3xl px-6 py-5 space-y-3">
+        <div className="border-t border-white/10 bg-white/[0.02] backdrop-blur-3xl px-6 py-5 space-y-3">
           {primaryLinks.map((l) => (
             <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="block text-sm text-muted-foreground hover:text-foreground">
               {l.label}
