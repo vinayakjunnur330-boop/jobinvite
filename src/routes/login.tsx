@@ -74,6 +74,7 @@ function LoginPage() {
   const afterAuth = async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) persistCareerPilotSession(data.session, { touchLastLogin: true });
+    try { window.localStorage.setItem("cp_stay", stay ? "1" : "0"); } catch { /* ignore */ }
     toast.success("Welcome back!");
     navigate({ to: dest });
   };
