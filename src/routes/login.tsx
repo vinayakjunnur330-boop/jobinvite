@@ -305,7 +305,7 @@ function LoginPage() {
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(i, e)}
                       style={{ fontSize: "20px" }}
-                      className="w-11 h-13 aspect-square text-center font-bold rounded-xl bg-white text-slate-900 border border-white/50 outline-none focus:ring-2 focus:ring-white/80 shadow-sm"
+                      className="w-12 h-12 text-center font-bold rounded-xl bg-white text-slate-900 border border-white/50 outline-none focus:ring-2 focus:ring-white/80 shadow-sm"
                     />
                   ))}
                 </div>
