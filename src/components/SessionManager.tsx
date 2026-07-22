@@ -132,6 +132,24 @@ export function SessionManager() {
     return () => window.removeEventListener("storage", onStorage);
   }, [isAuthed, warnOpen, doSignOut, scheduleIdle]);
 
+  // "Stay signed in" opt-out: when unchecked, wipe session on tab/window close
+  // so the next visit lands on /login. When checked (default), sessions persist
+  // across restarts via Supabase's localStorage token + auto-refresh.
+  useEffect(() => {
+    const purgeIfNotStaying = () => {
+      try {
+        if (localStorage.getItem("cp_stay") !== "0") return;
+        localStorage.removeItem(CAREERPILOT_SESSION_KEY);
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith("sb-") && k.endsWith("-auth-token")) localStorage.removeItem(k);
+        }
+      } catch { /* ignore */ }
+    };
+    window.addEventListener("pagehide", purgeIfNotStaying);
+    return () => window.removeEventListener("pagehide", purgeIfNotStaying);
+  }, []);
+
   if (!warnOpen) return null;
 
   const secondsLeft = Math.ceil(msLeft / 1000);

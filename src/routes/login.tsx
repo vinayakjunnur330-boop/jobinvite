@@ -49,6 +49,10 @@ function LoginPage() {
   const [resendIn, setResendIn] = useState(0);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [forgotSent, setForgotSent] = useState(false);
+  const [stay, setStay] = useState<boolean>(true);
+  useEffect(() => {
+    try { setStay(window.localStorage.getItem("cp_stay") !== "0"); } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -70,6 +74,7 @@ function LoginPage() {
   const afterAuth = async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) persistCareerPilotSession(data.session, { touchLastLogin: true });
+    try { window.localStorage.setItem("cp_stay", stay ? "1" : "0"); } catch { /* ignore */ }
     toast.success("Welcome back!");
     navigate({ to: dest });
   };
@@ -176,6 +181,7 @@ function LoginPage() {
   const handleOAuth = async (provider: "google") => {
     if (oauthBusy) return;
     setOauthBusy(provider);
+    try { window.localStorage.setItem("cp_stay", stay ? "1" : "0"); } catch { /* ignore */ }
     try {
       const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
       if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
@@ -262,6 +268,8 @@ function LoginPage() {
               </button>
             </div>
 
+            <StayCheckbox stay={stay} setStay={setStay} />
+
             <PrimaryBtn busy={isSubmitting} label="Sign in" />
           </form>
         )}
@@ -300,6 +308,7 @@ function LoginPage() {
                     />
                   ))}
                 </div>
+                <StayCheckbox stay={stay} setStay={setStay} />
                 <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || otp.join("").length !== 6} className={primaryCls}>
                   {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <>Verify code <ArrowRight className="size-4" /></>}
                 </button>
@@ -432,5 +441,19 @@ function PrimaryBtn({ busy, label }: { busy: boolean; label: string }) {
     <button type="submit" disabled={busy} className={primaryCls}>
       {busy ? <Loader2 className="size-5 animate-spin" /> : <>{label} <ArrowRight className="size-4" /></>}
     </button>
+  );
+}
+
+function StayCheckbox({ stay, setStay }: { stay: boolean; setStay: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2 text-[13px] text-white/90 select-none cursor-pointer">
+      <input
+        type="checkbox"
+        checked={stay}
+        onChange={(e) => setStay(e.target.checked)}
+        className="size-4 rounded border-white/60 accent-white cursor-pointer"
+      />
+      <span>Stay signed in</span>
+    </label>
   );
 }
