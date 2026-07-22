@@ -197,7 +197,7 @@ function ContactPage() {
                 <button
                   type="submit"
                   disabled={status === "submitting"}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-neutral-900 text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {status === "submitting" ? (
                     <><Loader2 className="size-4 animate-spin" /> Sending…</>

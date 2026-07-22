@@ -150,7 +150,7 @@ function JobsPage() {
           <h2 className="text-xl font-bold">Get only the roles you actually want.</h2>
           <p className="text-sm text-muted-foreground mt-1">Pick your categories, choose daily or weekly — we'll never spam.</p>
         </div>
-        <Link to="/dashboard" className="px-5 py-3 rounded-xl bg-foreground text-background text-sm font-semibold hover:bg-primary transition-colors">
+        <Link to="/dashboard" className="px-5 py-3 rounded-xl bg-foreground text-neutral-900 text-sm font-semibold hover:bg-primary transition-colors">
           Set up alerts
         </Link>
       </section>

@@ -52,7 +52,7 @@ function Internships() {
               <div className="flex gap-1.5">
                 {it.tags.map(t => <span key={t} className="text-[10px] font-mono px-2 py-0.5 bg-white/5 border border-border rounded">{t}</span>)}
               </div>
-              <button className="px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-colors">Apply</button>
+              <button className="px-4 py-2 rounded-full bg-foreground text-neutral-900 text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-colors">Apply</button>
             </motion.div>
           ))}
         </div>

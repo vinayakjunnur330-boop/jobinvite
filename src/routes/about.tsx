@@ -57,7 +57,7 @@ function AboutPage() {
             a clear path forward — and re-route it the moment something changes.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/assessment" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]">
+            <Link to="/assessment" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-neutral-900 text-sm font-medium hover:bg-primary transition-colors active:scale-[0.98]">
               Start your assessment <ArrowRight className="size-4" />
             </Link>
             <Link to="/contact" className="inline-flex items-center px-5 py-2.5 rounded-lg border border-border bg-background text-sm font-medium hover:border-foreground/30 transition-colors">

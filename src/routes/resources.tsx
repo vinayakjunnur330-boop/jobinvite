@@ -92,7 +92,7 @@ export function ResourcesPage() {
               <li className="flex gap-2"><CheckCircle2 className="size-4 text-success mt-0.5" /> Role-specific technical drills</li>
               <li className="flex gap-2"><CheckCircle2 className="size-4 text-success mt-0.5" /> Voice or text input</li>
             </ul>
-            <Link to="/assessment" className="mt-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-foreground text-background text-sm font-semibold hover:bg-primary transition-colors">
+            <Link to="/assessment" className="mt-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-foreground text-neutral-900 text-sm font-semibold hover:bg-primary transition-colors">
               Start a mock interview <ArrowRight className="size-4" />
             </Link>
           </div>

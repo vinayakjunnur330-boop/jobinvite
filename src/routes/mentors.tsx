@@ -49,7 +49,7 @@ function Mentors() {
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-border">
               <span className="text-sm font-bold text-primary">{m.price}</span>
-              <button className="px-3 py-1.5 rounded-lg bg-foreground text-background text-xs font-bold flex items-center gap-1.5 hover:bg-primary hover:text-primary-foreground transition-colors">
+              <button className="px-3 py-1.5 rounded-lg bg-foreground text-neutral-900 text-xs font-bold flex items-center gap-1.5 hover:bg-primary hover:text-primary-foreground transition-colors">
                 <Calendar className="size-3" /> Book
               </button>
             </div>
