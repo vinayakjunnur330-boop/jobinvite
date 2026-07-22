@@ -18,7 +18,6 @@ interface MagicLinkEmailProps {
 
 export const MagicLinkEmail = ({
   siteName,
-  confirmationUrl,
   token,
 }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
@@ -31,10 +30,6 @@ export const MagicLinkEmail = ({
           Enter this 6-digit code on the {siteName} login screen. It expires shortly.
         </Text>
         <Text style={codeStyle}>{token || '123456'}</Text>
-        <Text style={smallText}>
-          If you opened this email on the same device and the code screen is not available, you can use this secure backup link:
-        </Text>
-        <Text style={linkText}>{confirmationUrl}</Text>
         <Text style={footer}>
           If you didn't request this code, you can safely ignore this email.
         </Text>
@@ -72,6 +67,4 @@ const codeStyle = {
   textAlign: 'center' as const,
   margin: '0 0 22px',
 }
-const smallText = { ...text, fontSize: '12px', color: '#64748b', margin: '0 0 8px' }
-const linkText = { fontSize: '11px', color: '#2563eb', lineHeight: '1.5', wordBreak: 'break-all' as const, margin: '0 0 24px' }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
