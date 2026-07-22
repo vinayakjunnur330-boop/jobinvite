@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, ArrowLeft, KeyRound, ArrowRight, CheckCircle2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { FaApple, FaGithub, FaFacebook } from "react-icons/fa";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { persistCareerPilotSession } from "@/lib/auth-persistence";
@@ -178,12 +179,12 @@ function LoginPage() {
     else otpRefs.current[text.length]?.focus();
   };
 
-  const handleOAuth = async (provider: "google") => {
+  const handleOAuth = async (provider: "google" | "apple") => {
     if (oauthBusy) return;
     setOauthBusy(provider);
     try { window.localStorage.setItem("cp_stay", stay ? "1" : "0"); } catch { /* ignore */ }
     try {
-      const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
+      const res = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/auth/callback" });
       if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
       if (res.redirected) return;
       await afterAuth();
@@ -388,21 +389,37 @@ function LoginPage() {
         {/* Divider */}
         <p className="text-center text-white/85 text-[13px] mt-6 mb-3">or continue with</p>
 
-        {/* Google (only supported managed OAuth provider) */}
-        <button
-          onClick={() => handleOAuth("google")}
-          disabled={!!oauthBusy}
-          aria-label="Continue with Google"
-          className="w-full h-12 rounded-2xl bg-white hover:bg-white/95 active:scale-[0.99] transition disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2.5 text-slate-800 font-medium text-[14px] shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
-        >
-          {oauthBusy === "google" ? (
-            <Loader2 className="size-5 animate-spin text-slate-600" />
-          ) : (
-            <>
-              <FcGoogle className="size-5" /> Continue with Google
-            </>
-          )}
-        </button>
+        {/* Social grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <SocialButton
+            provider="google"
+            label="Google"
+            icon={<FcGoogle className="size-5" />}
+            busy={oauthBusy === "google"}
+            onClick={() => handleOAuth("google")}
+          />
+          <SocialButton
+            provider="apple"
+            label="Apple"
+            icon={<FaApple className="size-5 text-slate-800" />}
+            busy={oauthBusy === "apple"}
+            onClick={() => handleOAuth("apple")}
+          />
+          <SocialButton
+            provider="github"
+            label="GitHub"
+            icon={<FaGithub className="size-5 text-white" />}
+            disabled
+            comingSoon
+          />
+          <SocialButton
+            provider="facebook"
+            label="Facebook"
+            icon={<FaFacebook className="size-5 text-white" />}
+            disabled
+            comingSoon
+          />
+        </div>
 
         {/* Footer */}
         <p className="mt-6 text-center text-white/90 text-[13.5px]">
@@ -455,5 +472,50 @@ function StayCheckbox({ stay, setStay }: { stay: boolean; setStay: (v: boolean) 
       />
       <span>Stay signed in</span>
     </label>
+  );
+}
+
+function SocialButton({
+  provider,
+  label,
+  icon,
+  busy,
+  disabled,
+  comingSoon,
+  onClick,
+}: {
+  provider: string;
+  label: string;
+  icon: React.ReactNode;
+  busy?: boolean;
+  disabled?: boolean;
+  comingSoon?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || busy}
+      aria-label={comingSoon ? `${label} — coming soon` : `Continue with ${label}`}
+      className={`relative h-12 rounded-2xl inline-flex items-center justify-center gap-2 font-medium text-[13px] border transition active:scale-[0.99] ${
+        provider === "google" || provider === "apple"
+          ? "bg-white text-slate-800 hover:bg-white/95 border-white/40 shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
+          : "bg-white/10 text-white/70 border-white/20 cursor-not-allowed"
+      }`}
+    >
+      {busy ? (
+        <Loader2 className="size-5 animate-spin text-slate-600" />
+      ) : (
+        <>
+          {icon}
+          <span>{label}</span>
+          {comingSoon && (
+            <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-white/90 text-slate-900 text-[9px] font-bold shadow-sm">
+              Soon
+            </span>
+          )}
+        </>
+      )}
+    </button>
   );
 }
