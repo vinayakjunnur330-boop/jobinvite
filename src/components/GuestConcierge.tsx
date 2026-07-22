@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, X, Eye, EyeOff, Loader2, RotateCcw, ThumbsUp, ThumbsDown, Sun, Moon } from "lucide-react";
+import { Send, Loader2, RotateCcw, ThumbsUp, ThumbsDown, Sun, Moon } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { FcGoogle } from "react-icons/fc";
-import { FaApple, FaGithub, FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useTheme } from "@/lib/theme";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 
 type Msg = { role: "user" | "assistant"; content: string };
-type Provider = "google" | "apple" | "github" | "facebook" | "instagram" | "twitter";
 
 const GUEST_LIMIT = 3;
 const KEY_MSGS = "cp_guest_msgs";
@@ -85,7 +81,6 @@ export function GuestConcierge() {
   const [count, setCount] = useState(0);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatScrollerRef = useRef<HTMLDivElement>(null);
   const hydrationStartedRef = useRef(false);
@@ -450,173 +445,5 @@ export function GuestConcierge() {
         )}
       </AnimatePresence>
     </>
-  );
-}
-
-function AuthGateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
-
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const canSubmit = emailOk && password.length >= 8 && (mode === "signin" || fullName.trim().length >= 2);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit || busy) return;
-    setBusy(true);
-    try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: { emailRedirectTo: `${window.location.origin}/workspace`, data: { full_name: fullName.trim() } },
-        });
-        if (error) throw error;
-        toast.success("Account created. Check your inbox to confirm.");
-        setMode("signin");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Welcome back.");
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const oauth = async (provider: Provider) => {
-    if (oauthBusy) return;
-    if (provider !== "google" && provider !== "apple") {
-      toast.info(`${provider[0].toUpperCase() + provider.slice(1)} sign-in is coming soon. Continue with Google or Apple for now.`);
-      return;
-    }
-    setOauthBusy(provider);
-    try {
-      const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: `${window.location.origin}/workspace`,
-      });
-      if (result.error) throw result.error;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "OAuth failed");
-      setOauthBusy(null);
-    }
-  };
-
-  const socials: { id: Provider; Icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: "google", Icon: (p) => <FcGoogle {...p} /> },
-    { id: "apple", Icon: (p) => <FaApple {...p} /> },
-    { id: "github", Icon: (p) => <FaGithub {...p} /> },
-    { id: "facebook", Icon: (p) => <FaFacebook {...p} className={`${p.className ?? ""} text-[#1877F2]`} /> },
-    { id: "instagram", Icon: (p) => <FaInstagram {...p} className={`${p.className ?? ""} text-[#E1306C]`} /> },
-    { id: "twitter", Icon: (p) => <FaXTwitter {...p} /> },
-  ];
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
-        >
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-2xl" onClick={onClose} />
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 12 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="relative w-full max-w-[460px] rounded-3xl bg-white/[0.05] backdrop-blur-3xl border border-white/15 shadow-[0_32px_80px_rgba(0,0,0,0.6)] p-8 md:p-10 text-white overflow-y-auto max-h-[92vh]"
-          >
-            <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white" aria-label="Close">
-              <X className="size-4" />
-            </button>
-
-            <div className="text-[11px] uppercase tracking-[0.22em] text-cyan-300 mb-3">Unlock full access</div>
-            <h3 className="text-[22px] md:text-2xl font-semibold tracking-tight leading-tight">
-              Unlock Your Full Career Roadmap & Intelligence Dashboard
-            </h3>
-            <p className="mt-2 text-[13px] text-white/60 leading-relaxed">
-              You've used your 3 free guest questions. Sign in to save your conversation, analyze your
-              resume, and access 44+ career domains.
-            </p>
-
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              {socials.map(({ id, Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => oauth(id)}
-                  disabled={!!oauthBusy}
-                  className="aspect-square flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/[0.12] border border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-[1.04] disabled:opacity-60"
-                  aria-label={`Continue with ${id}`}
-                >
-                  {oauthBusy === id ? <Loader2 className="size-5 animate-spin text-white" /> : <Icon className="size-5 text-white" />}
-                </button>
-              ))}
-            </div>
-
-            <div className="my-6 flex items-center gap-3 text-[11px] text-white/40">
-              <div className="flex-1 h-px bg-white/10" />
-              OR CONTINUE WITH EMAIL
-              <div className="flex-1 h-px bg-white/10" />
-            </div>
-
-            <div className="flex gap-1 mb-4 text-[13px]">
-              {(["signin", "signup"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={`px-3 py-1.5 rounded-lg transition-colors ${mode === m ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`}
-                >
-                  {m === "signin" ? "Sign in" : "Create account"}
-                </button>
-              ))}
-            </div>
-
-            <form onSubmit={submit} className="space-y-3">
-              {mode === "signup" && (
-                <input
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Full name"
-                  className="h-11 w-full bg-transparent border border-white/10 rounded-lg px-4 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all text-sm outline-none"
-                />
-              )}
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-                className="h-11 w-full bg-transparent border border-white/10 rounded-lg px-4 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all text-sm outline-none"
-              />
-              <div className="relative">
-                <input
-                  type={showPw ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password (min 8 chars)"
-                  className="h-11 w-full bg-transparent border border-white/10 rounded-lg px-4 pr-10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all text-sm outline-none"
-                />
-                <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80">
-                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-
-              <button
-                type="submit"
-                disabled={!canSubmit || busy}
-                className="w-full h-11 rounded-lg bg-white text-black font-semibold text-sm hover:bg-white/90 transition-colors disabled:opacity-60 inline-flex items-center justify-center gap-2"
-              >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : (mode === "signin" ? "Sign in" : "Create account")}
-              </button>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
