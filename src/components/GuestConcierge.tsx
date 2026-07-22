@@ -61,7 +61,7 @@ function TopRightControls() {
           // Mount loader BEFORE navigation so the home page cannot leak
           // through as the Zoiee overlay unmounts.
           import("@/lib/nav-loader").then((m) => m.showPageLoader("Connecting..."));
-          navigate({ to: "/login", search: { form: "1" } });
+          navigate({ to: "/login", search: { next: "/dashboard" } });
         }}
         className="px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] text-sm cursor-pointer"
       >
