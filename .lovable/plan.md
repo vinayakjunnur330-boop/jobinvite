@@ -1,31 +1,13 @@
-## Problem
+I found the main blocker: the app code is already trying to render an OTP-only email, but the sender domain is still pending DNS verification. Until that completes, auth emails can continue falling back to the default link-style email.
 
-On the home page, the animated aurora orbs, particle field, cursor spotlight, and grid overlay (the "bubbles / dynamic effects") disappear for **guest users on mobile**, and the entire main content (Navbar, Hero, Footer, ChatWidget) is also being suppressed on mobile in that state.
+Plan:
+1. Keep the current restored blue login page design unchanged.
+2. Make the OTP send request explicitly request an email OTP flow and remove redirect-link options from that OTP-only call, so the auth provider sends/uses a code instead of a magic-link redirect.
+3. Re-check the custom OTP email template and webhook path so the “magiclink” auth email body renders only the 6-digit code and no clickable link.
+4. Keep password reset/signup confirmation links working, because those flows legitimately need links.
+5. After the code fix, you will still need to finish the email DNS setup for `notify.rolehub.com`; otherwise default link emails may keep appearing before the custom OTP email activates.
 
-## Root cause
-
-In `src/routes/__root.tsx`, `RootAppContent` computes:
-
-```ts
-const suspendMobileUnderlay = isMobile && !loading && !isAuthenticated && !onAuthRoute;
-```
-
-and then uses it to gate BOTH `<AmbientBackground />` and the entire `<Navbar/> <Outlet/> <Footer/> <ChatWidget/>` block. This was originally added to reduce mobile paint cost behind the Zoiee overlay, but it now removes the ambient visuals (and the hero itself) for every unauthenticated mobile visitor.
-
-`AmbientBackground.tsx` already has its own, correct pause mechanism (`usePauseForMobileZoieeOverlay`) that only disables the backdrop while the Zoiee chat overlay is actively open on mobile — so the root-level guard is redundant and destructive.
-
-## Fix
-
-Edit `src/routes/__root.tsx` only:
-
-1. Delete the `useIsMobileViewport` hook and its usage.
-2. Remove `suspendMobileUnderlay` and always render `<AmbientBackground />` plus the `<Navbar/> <main><Outlet/></main> <Footer/> <ChatWidget/>` block.
-3. Keep the existing `!onAuthRoute` guard on `<GuestConcierge />`.
-4. Leave `AmbientBackground.tsx`, `FuturisticHero.tsx`, `NeuralCanvas.tsx`, and `ParticleField.tsx` untouched — they already handle mobile (NeuralCanvas is desktop-only by design; orbs + particle field remain on mobile) and reduced-motion correctly.
-
-## Verification
-
-- Load `/` on mobile viewport (392×788) as a guest: aurora orbs, particle field, cursor spotlight, and grid overlay are visible behind the hero; Navbar, Hero, Footer, ChatWidget all render.
-- Load `/` on desktop: unchanged — NeuralCanvas + orbs both present.
-- Open Zoiee chat on mobile: `AmbientBackground` still pauses via its internal `zoiee-overlay-active` check (no regression).
-- `/login` on mobile: unchanged (auth route path already excluded).
+Required DNS records still pending:
+- TXT `_lovable-email.rolehub.com`
+- NS `notify.rolehub.com` to `ns3.lovable.cloud`
+- NS `notify.rolehub.com` to `ns4.lovable.cloud`
