@@ -1,0 +1,31 @@
+# CareerPilot AI
+
+> AI-powered career counselor offering personalized career suggestions, skill gap analysis, salary predictions, and learning roadmaps across 40+ career domains.
+
+CareerPilot AI helps students and professionals navigate their careers with an interactive AI assistant (Zoiee), domain-specific roadmaps, mentor connections, and job discovery tools.
+
+## Pages
+
+- [Home](/): Overview of CareerPilot AI and featured career domains.
+- [About](/about): What CareerPilot AI is and how it helps.
+- [Assessment](/assessment): Interactive career fit assessment.
+- [Personality](/personality): Personality-based career matching.
+- [Skills](/skills): Skill gap analysis and recommendations.
+- [Roadmap](/roadmap): Learning roadmaps for chosen careers.
+- [Courses](/courses): Curated courses to build career skills.
+- [Resume](/resume): AI-assisted resume builder.
+- [Jobs](/jobs): Job listings and application tracking.
+- [Internships](/internships): Internship opportunities.
+- [Mentors](/mentors): Book sessions with career mentors.
+- [Salary](/salary): Salary insights across roles and regions.
+- [Scholarships](/scholarships): Scholarship opportunities.
+- [Compare](/compare): Compare career domains side by side.
+- [Success Stories](/success-stories): Real user journeys.
+- [Resources](/resources): Guides and reference material.
+- [Blog](/blog): Career insights and articles.
+- [Contact](/contact): Get in touch with the team.
+
+## Optional
+
+- [Dashboard](/dashboard): Personalized dashboard (requires sign-in).
+- [Workspace](/workspace): Personal workspace (requires sign-in).

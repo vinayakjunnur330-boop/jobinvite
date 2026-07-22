@@ -9,12 +9,24 @@ import { getMyProfile, updateMyProfile, applyToJob } from "@/lib/careers-profile
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/apply/$jobId")({
-  head: () => ({
-    meta: [
-      { title: "Apply — CareerPilot AI" },
-      { name: "description", content: "One-click apply with your saved profile." },
-    ],
-  }),
+  head: ({ params }) => {
+    const job = jobs.find((j) => j.id === params.jobId);
+    const title = job ? `Apply for ${job.title} — CareerPilot AI` : "Apply — CareerPilot AI";
+    const description = job
+      ? `One-click apply for ${job.title}${job.company ? ` at ${job.company}` : ""} with your saved CareerPilot AI profile.`
+      : "One-click apply with your saved profile.";
+    const url = `https://jobinvite.lovable.app/apply/${params.jobId}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: ApplyPage,
 });
 
