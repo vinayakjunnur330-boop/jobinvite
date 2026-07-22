@@ -313,11 +313,43 @@ function LoginPage() {
                 <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || otp.join("").length !== 6} className={primaryCls}>
                   {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <>Verify code <ArrowRight className="size-4" /></>}
                 </button>
-                <div className="flex items-center justify-between text-[12.5px] text-white/85">
-                  <button onClick={sendOtp} disabled={isSubmitting || resendIn > 0} className="hover:text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                    {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={sendOtp}
+                    disabled={isSubmitting || resendIn > 0}
+                    aria-live="polite"
+                    aria-disabled={isSubmitting || resendIn > 0}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/15 hover:bg-white/25 px-4 py-2.5 text-[13.5px] font-medium text-white transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-white/15"
+                  >
+                    {isSubmitting ? (
+                      <><Loader2 className="size-4 animate-spin" /> Sending…</>
+                    ) : resendIn > 0 ? (
+                      <>Resend code in <span className="tabular-nums font-semibold">{resendIn}s</span></>
+                    ) : (
+                      <>Resend code</>
+                    )}
                   </button>
-                  <button onClick={() => setOtpStage("request")} className="hover:text-white cursor-pointer">Change email</button>
+                  {resendIn > 0 && (
+                    <div
+                      className="h-1 w-full overflow-hidden rounded-full bg-white/20"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={RESEND_SECONDS}
+                      aria-valuenow={RESEND_SECONDS - resendIn}
+                    >
+                      <div
+                        className="h-full bg-white/80 transition-[width] duration-1000 ease-linear"
+                        style={{ width: `${((RESEND_SECONDS - resendIn) / RESEND_SECONDS) * 100}%` }}
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-[12.5px] text-white/85">
+                    <span className="opacity-80">
+                      {resendIn > 0 ? "Check your inbox — email may take a moment." : "Didn't get it? Try again."}
+                    </span>
+                    <button type="button" onClick={() => setOtpStage("request")} className="hover:text-white cursor-pointer">Change email</button>
+                  </div>
                 </div>
               </>
             )}
