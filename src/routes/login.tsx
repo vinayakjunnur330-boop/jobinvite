@@ -173,22 +173,14 @@ function LoginPage() {
     else otpRefs.current[text.length]?.focus();
   };
 
-  const handleOAuth = async (provider: "google" | "github" | "facebook") => {
+  const handleOAuth = async (provider: "google") => {
     if (oauthBusy) return;
     setOauthBusy(provider);
     try {
-      if (provider === "google") {
-        const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
-        if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
-        if (res.redirected) return;
-        await afterAuth();
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: { redirectTo: window.location.origin + "/auth/callback" },
-        });
-        if (error) throw error;
-      }
+      const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
+      if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
+      if (res.redirected) return;
+      await afterAuth();
     } catch (err) {
       toast.error(humanize(err instanceof Error ? err.message : "Sign-in failed"));
     } finally { setOauthBusy(null); }
