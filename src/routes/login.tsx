@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, ArrowLeft, KeyRound, ArrowRight, CheckCircle2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub, FaFacebookF } from "react-icons/fa6";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { persistCareerPilotSession } from "@/lib/auth-persistence";
@@ -174,22 +173,14 @@ function LoginPage() {
     else otpRefs.current[text.length]?.focus();
   };
 
-  const handleOAuth = async (provider: "google" | "github" | "facebook") => {
+  const handleOAuth = async (provider: "google") => {
     if (oauthBusy) return;
     setOauthBusy(provider);
     try {
-      if (provider === "google") {
-        const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
-        if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
-        if (res.redirected) return;
-        await afterAuth();
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: { redirectTo: window.location.origin + "/auth/callback" },
-        });
-        if (error) throw error;
-      }
+      const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
+      if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
+      if (res.redirected) return;
+      await afterAuth();
     } catch (err) {
       toast.error(humanize(err instanceof Error ? err.message : "Sign-in failed"));
     } finally { setOauthBusy(null); }
@@ -305,7 +296,7 @@ function LoginPage() {
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(i, e)}
                       style={{ fontSize: "20px" }}
-                      className="w-11 h-13 aspect-square text-center font-bold rounded-xl bg-white text-slate-900 border border-white/50 outline-none focus:ring-2 focus:ring-white/80 shadow-sm"
+                      className="w-12 h-12 text-center font-bold rounded-xl bg-white text-slate-900 border border-white/50 outline-none focus:ring-2 focus:ring-white/80 shadow-sm"
                     />
                   ))}
                 </div>
@@ -388,24 +379,21 @@ function LoginPage() {
         {/* Divider */}
         <p className="text-center text-white/85 text-[13px] mt-6 mb-3">or continue with</p>
 
-        {/* Social */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { id: "google" as const, icon: <FcGoogle className="size-6" /> },
-            { id: "github" as const, icon: <FaGithub className="size-6 text-slate-900" /> },
-            { id: "facebook" as const, icon: <FaFacebookF className="size-6 text-[#1877F2]" /> },
-          ].map((p) => (
-            <button
-              key={p.id}
-              onClick={() => handleOAuth(p.id)}
-              disabled={!!oauthBusy}
-              aria-label={`Continue with ${p.id}`}
-              className="h-12 rounded-2xl bg-white hover:bg-white/95 active:scale-[0.98] transition disabled:opacity-60 cursor-pointer inline-flex items-center justify-center shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
-            >
-              {oauthBusy === p.id ? <Loader2 className="size-5 animate-spin text-slate-600" /> : p.icon}
-            </button>
-          ))}
-        </div>
+        {/* Google (only supported managed OAuth provider) */}
+        <button
+          onClick={() => handleOAuth("google")}
+          disabled={!!oauthBusy}
+          aria-label="Continue with Google"
+          className="w-full h-12 rounded-2xl bg-white hover:bg-white/95 active:scale-[0.99] transition disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2.5 text-slate-800 font-medium text-[14px] shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
+        >
+          {oauthBusy === "google" ? (
+            <Loader2 className="size-5 animate-spin text-slate-600" />
+          ) : (
+            <>
+              <FcGoogle className="size-5" /> Continue with Google
+            </>
+          )}
+        </button>
 
         {/* Footer */}
         <p className="mt-6 text-center text-white/90 text-[13.5px]">
@@ -425,10 +413,10 @@ function LoginPage() {
 }
 
 const inputCls =
-  "w-full h-13 px-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 border border-white/40 outline-none focus:ring-2 focus:ring-white/80 transition disabled:opacity-60 shadow-[0_4px_14px_rgba(30,60,130,0.10)]";
+  "w-full h-12 px-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 border border-white/40 outline-none focus:ring-2 focus:ring-white/80 transition disabled:opacity-60 shadow-[0_4px_14px_rgba(30,60,130,0.10)]";
 
 const primaryCls =
-  "w-full h-13 rounded-2xl font-semibold text-white text-[15px] bg-[#2b4a8f] hover:bg-[#25417e] active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-[0_10px_25px_rgba(20,40,90,0.35)]";
+  "w-full h-12 rounded-2xl font-semibold text-white text-[15px] bg-[#2b4a8f] hover:bg-[#25417e] active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-[0_10px_25px_rgba(20,40,90,0.35)]";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
