@@ -442,3 +442,17 @@ function PrimaryBtn({ busy, label }: { busy: boolean; label: string }) {
     </button>
   );
 }
+
+function StayCheckbox({ stay, setStay }: { stay: boolean; setStay: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2 text-[13px] text-white/90 select-none cursor-pointer">
+      <input
+        type="checkbox"
+        checked={stay}
+        onChange={(e) => setStay(e.target.checked)}
+        className="size-4 rounded border-white/60 accent-white cursor-pointer"
+      />
+      <span>Stay signed in</span>
+    </label>
+  );
+}
