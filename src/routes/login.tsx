@@ -146,6 +146,8 @@ function LoginPage() {
         options: { shouldCreateUser: true, emailRedirectTo: window.location.origin + "/auth/callback" },
       });
       if (error) throw error;
+      // Reset server-side challenge window & attempt counter for this email.
+      try { await startOtpChallenge({ data: { email: email.trim() } }); } catch { /* non-fatal */ }
       setOtpStage("verify"); setResendIn(RESEND_SECONDS); setOtp(Array(6).fill(""));
       toast.success("Code sent to your email.");
       setTimeout(() => otpRefs.current[0]?.focus(), 80);
@@ -156,10 +158,38 @@ function LoginPage() {
 
   const verifyOtp = async (token: string) => {
     if (isSubmitting) return;
+    const cleanEmail = email.trim();
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "email" });
-      if (error) throw error;
+      // Server-side pre-check: expiry + lockout, independent of Supabase.
+      const pre = await checkOtpChallenge({ data: { email: cleanEmail } });
+      if (!pre.ok) {
+        toast.error(pre.message);
+        if (pre.reason === "expired" || pre.reason === "not_started") {
+          setOtp(Array(6).fill(""));
+        }
+        return;
+      }
+
+      const { error } = await supabase.auth.verifyOtp({ email: cleanEmail, token, type: "email" });
+      if (error) {
+        // Record the failure server-side so attempts survive page reloads.
+        try {
+          const after = await recordOtpFailure({ data: { email: cleanEmail } });
+          if (!after.ok) {
+            toast.error(after.message);
+            setOtp(Array(6).fill(""));
+            otpRefs.current[0]?.focus();
+            return;
+          }
+        } catch { /* fall through to generic error */ }
+        toast.error(humanize(error.message));
+        setOtp(Array(6).fill(""));
+        otpRefs.current[0]?.focus();
+        return;
+      }
+
+      try { await clearOtpChallenge({ data: { email: cleanEmail } }); } catch { /* ignore */ }
       await afterAuth();
     } catch (err) {
       toast.error(humanize(err instanceof Error ? err.message : "Invalid code"));
