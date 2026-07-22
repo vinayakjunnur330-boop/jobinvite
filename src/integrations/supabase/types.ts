@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_results: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -332,6 +359,54 @@ export type Database = {
           resume_url?: string | null
           updated_at?: string
           years_experience?: number | null
+        }
+        Relationships: []
+      }
+      resume_analyses: {
+        Row: {
+          ats_score: number
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          overall_score: number
+          sections: Json
+          strengths: Json
+          suggested_roles: Json
+          suggestions: Json
+          summary: string | null
+          user_id: string
+          weaknesses: Json
+        }
+        Insert: {
+          ats_score?: number
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          overall_score?: number
+          sections?: Json
+          strengths?: Json
+          suggested_roles?: Json
+          suggestions?: Json
+          summary?: string | null
+          user_id: string
+          weaknesses?: Json
+        }
+        Update: {
+          ats_score?: number
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          overall_score?: number
+          sections?: Json
+          strengths?: Json
+          suggested_roles?: Json
+          suggestions?: Json
+          summary?: string | null
+          user_id?: string
+          weaknesses?: Json
         }
         Relationships: []
       }
