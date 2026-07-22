@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, ArrowLeft, KeyRound, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft, KeyRound, ArrowRight, CheckCircle2, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaGithub, FaFacebook } from "react-icons/fa";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +66,32 @@ function LoginPage() {
     const id = setInterval(() => setResendIn((s) => s - 1), 1000);
     return () => clearInterval(id);
   }, [resendIn]);
+
+  // Lockout countdown (ms epoch when the address unlocks).
+  const [lockUntil, setLockUntil] = useState<number | null>(null);
+  const [lockRemaining, setLockRemaining] = useState(0);
+  useEffect(() => {
+    if (!lockUntil) { setLockRemaining(0); return; }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((lockUntil - Date.now()) / 1000));
+      setLockRemaining(remaining);
+      if (remaining <= 0) setLockUntil(null);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lockUntil]);
+  const isLocked = lockRemaining > 0;
+  const fmtLock = (s: number) => {
+    const mm = Math.floor(s / 60).toString().padStart(2, "0");
+    const ss = (s % 60).toString().padStart(2, "0");
+    return `${mm}:${ss}`;
+  };
+  const applyLockFromResult = (r: { reason?: string; retryAfterSeconds?: number }) => {
+    if (r.reason === "locked" && r.retryAfterSeconds && r.retryAfterSeconds > 0) {
+      setLockUntil(Date.now() + r.retryAfterSeconds * 1000);
+    }
+  };
 
   const humanize = (raw: string) => {
     const m = raw.toLowerCase();
@@ -138,9 +164,21 @@ function LoginPage() {
 
   const sendOtp = async () => {
     if (isSubmitting) return;
+    if (isLocked) return toast.error(`Locked — try again in ${fmtLock(lockRemaining)}.`);
     if (!email.trim()) return toast.error("Enter your email first.");
     setIsSubmitting(true);
     try {
+      // Pre-check: if this email is currently locked, block send and show countdown.
+      try {
+        const pre = await checkOtpChallenge({ data: { email: email.trim() } });
+        if (!pre.ok && pre.reason === "locked") {
+          applyLockFromResult(pre);
+          toast.error(pre.message);
+          setOtpStage("verify");
+          return;
+        }
+      } catch { /* non-fatal */ }
+
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: { shouldCreateUser: true, emailRedirectTo: window.location.origin + "/auth/callback" },
@@ -158,12 +196,14 @@ function LoginPage() {
 
   const verifyOtp = async (token: string) => {
     if (isSubmitting) return;
+    if (isLocked) return toast.error(`Locked — try again in ${fmtLock(lockRemaining)}.`);
     const cleanEmail = email.trim();
     setIsSubmitting(true);
     try {
       // Server-side pre-check: expiry + lockout, independent of Supabase.
       const pre = await checkOtpChallenge({ data: { email: cleanEmail } });
       if (!pre.ok) {
+        applyLockFromResult(pre);
         toast.error(pre.message);
         if (pre.reason === "expired" || pre.reason === "not_started") {
           setOtp(Array(6).fill(""));
@@ -177,9 +217,10 @@ function LoginPage() {
         try {
           const after = await recordOtpFailure({ data: { email: cleanEmail } });
           if (!after.ok) {
+            applyLockFromResult(after);
             toast.error(after.message);
             setOtp(Array(6).fill(""));
-            otpRefs.current[0]?.focus();
+            if (after.reason !== "locked") otpRefs.current[0]?.focus();
             return;
           }
         } catch { /* fall through to generic error */ }
@@ -195,6 +236,7 @@ function LoginPage() {
       toast.error(humanize(err instanceof Error ? err.message : "Invalid code"));
     } finally { setIsSubmitting(false); }
   };
+
 
   const handleOtpChange = (i: number, v: string) => {
     const clean = v.replace(/\D/g, "").slice(-1);
@@ -331,35 +373,65 @@ function LoginPage() {
             ) : (
               <>
                 <p className="text-white/85 text-[13px] -mt-1">Enter the 6-digit code sent to {email}</p>
+                {isLocked && (
+                  <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="rounded-2xl border border-red-300/40 bg-red-500/15 p-3.5 text-white"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Lock className="size-4 shrink-0" />
+                      <span className="text-[13.5px] font-semibold">Too many attempts</span>
+                    </div>
+                    <p className="mt-1 text-[12.5px] text-white/85">
+                      For your security, this email is temporarily locked. Try again in{" "}
+                      <span className="tabular-nums font-semibold text-white">{fmtLock(lockRemaining)}</span>.
+                    </p>
+                    <div
+                      className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/20"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={lockUntil ? Math.round(100 - (lockRemaining * 1000 * 100) / Math.max(1, lockUntil - (lockUntil - lockRemaining * 1000 - 1))) : 0}
+                    >
+                      <div
+                        className="h-full bg-red-300/80 transition-[width] duration-1000 ease-linear"
+                        style={{ width: `${Math.max(0, Math.min(100, 100 - (lockRemaining / (15 * 60)) * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="flex gap-2 justify-between" onPaste={handleOtpPaste}>
                   {otp.map((v, i) => (
                     <input
                       key={i}
                       ref={(el) => { otpRefs.current[i] = el; }}
                       type="text" inputMode="numeric" maxLength={1} value={v}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isLocked}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(i, e)}
                       style={{ fontSize: "20px" }}
-                      className="w-12 h-12 text-center font-bold rounded-xl bg-white text-slate-900 border border-white/50 outline-none focus:ring-2 focus:ring-white/80 shadow-sm"
+                      className="w-12 h-12 text-center font-bold rounded-xl bg-white text-slate-900 border border-white/50 outline-none focus:ring-2 focus:ring-white/80 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   ))}
                 </div>
                 <StayCheckbox stay={stay} setStay={setStay} />
-                <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || otp.join("").length !== 6} className={primaryCls}>
-                  {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <>Verify code <ArrowRight className="size-4" /></>}
+                <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || isLocked || otp.join("").length !== 6} className={primaryCls}>
+                  {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : isLocked ? <><Lock className="size-4" /> Locked · {fmtLock(lockRemaining)}</> : <>Verify code <ArrowRight className="size-4" /></>}
                 </button>
                 <div className="space-y-2">
                   <button
                     type="button"
                     onClick={sendOtp}
-                    disabled={isSubmitting || resendIn > 0}
+                    disabled={isSubmitting || resendIn > 0 || isLocked}
                     aria-live="polite"
-                    aria-disabled={isSubmitting || resendIn > 0}
+                    aria-disabled={isSubmitting || resendIn > 0 || isLocked}
                     className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/15 hover:bg-white/25 px-4 py-2.5 text-[13.5px] font-medium text-white transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-white/15"
                   >
                     {isSubmitting ? (
                       <><Loader2 className="size-4 animate-spin" /> Sending…</>
+                    ) : isLocked ? (
+                      <><Lock className="size-4" /> Resend available in <span className="tabular-nums font-semibold">{fmtLock(lockRemaining)}</span></>
                     ) : resendIn > 0 ? (
                       <>Resend code in <span className="tabular-nums font-semibold">{resendIn}s</span></>
                     ) : (
