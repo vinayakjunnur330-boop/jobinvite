@@ -7,6 +7,12 @@ import { FaApple, FaGithub, FaFacebook } from "react-icons/fa";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { persistCareerPilotSession } from "@/lib/auth-persistence";
+import {
+  startOtpChallenge,
+  checkOtpChallenge,
+  recordOtpFailure,
+  clearOtpChallenge,
+} from "@/lib/otp-guard.functions";
 
 type LoginSearch = { next?: string };
 
