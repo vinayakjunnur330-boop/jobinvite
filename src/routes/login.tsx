@@ -1,17 +1,14 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2, KeyRound, RefreshCw, Check } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft, Mail, Lock, KeyRound, ArrowRight, CheckCircle2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub, FaFacebookF } from "react-icons/fa6";
-import confetti from "canvas-confetti";
+import { FaGithub, FaFacebookF, FaApple } from "react-icons/fa6";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { useServerFn } from "@tanstack/react-start";
-import { getMyRoles } from "@/lib/roles.functions";
-import { getHydratedCareerPilotSession, persistCareerPilotSession } from "@/lib/auth-persistence";
+import { persistCareerPilotSession } from "@/lib/auth-persistence";
 
-type LoginSearch = { form?: "1"; next?: string };
+type LoginSearch = { next?: string };
 
 function sanitizeNext(v: unknown): string | undefined {
   if (typeof v !== "string" || !v.startsWith("/") || v.startsWith("//")) return undefined;
@@ -20,574 +17,490 @@ function sanitizeNext(v: unknown): string | undefined {
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>): LoginSearch => ({
-    form: s.form === "1" ? "1" : undefined,
     next: sanitizeNext(s.next),
   }),
   head: () => ({
     meta: [
-      { title: "CareerPilot AI — Sign in" },
+      { title: "Sign in — CareerPilot AI" },
       { name: "description", content: "Sign in to CareerPilot AI — your intelligent career co-pilot." },
     ],
   }),
   component: LoginPage,
 });
 
-type View = "login" | "forgot" | "forgot_sent" | "otp_email" | "otp_verify";
-const SESSION_KEY = "user_session";
+type Mode = "password" | "otp" | "forgot" | "signup";
+type OtpStage = "request" | "verify";
+
 const RESEND_SECONDS = 30;
 
 function LoginPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
+  const dest = next || "/dashboard";
 
-  const [view, setView] = useState<View>("login");
+  const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState<string | null>(null);
+
+  // OTP state
+  const [otpStage, setOtpStage] = useState<OtpStage>("request");
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [resendIn, setResendIn] = useState(0);
-  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
-  const [success, setSuccess] = useState(false);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-  const checkRoles = useServerFn(getMyRoles);
-
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const humanize = (raw: string): string => {
-    const m = raw.toLowerCase();
-    if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "Too many attempts. Please wait a moment and try again.";
-    if (m.includes("invalid login") || m.includes("invalid credentials") || m.includes("invalid_grant")) return "Email and password don't match.";
-    if (m.includes("email not confirmed")) return "Please confirm your email first — check your inbox.";
-    if (m.includes("user already registered")) return "An account with this email already exists.";
-    if (m.includes("password") && m.includes("6")) return "Password must be at least 6 characters.";
-    if (m.includes("network") || m.includes("fetch")) return "Network issue. Check your connection.";
-    return raw || "Something went wrong. Please try again.";
-  };
-
-  const routeAfterAuth = async () => {
-    if (next) { window.location.assign(next); return; }
-    try {
-      const r = await checkRoles();
-      navigate({ to: r.isAdmin ? "/admin" : "/dashboard" });
-    } catch {
-      navigate({ to: "/dashboard" });
-    }
-  };
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (stored) {
-      if (next) window.location.assign(next);
-      else navigate({ to: "/dashboard" });
-      return;
-    }
-    getHydratedCareerPilotSession().then((s) => {
-      if (s) {
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: s.user, token: s.access_token }));
-        routeAfterAuth();
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const signIn = async () => {
-    if (!emailOk || password.length < 6 || busy) return;
-    setBusy(true); setError(null);
-    try {
-      const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
-      if (err) throw err;
-      if (data.session) {
-        persistCareerPilotSession(data.session, { touchLastLogin: true });
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
-      }
-      toast.success("Signed in");
-      await routeAfterAuth();
-    } catch (err) {
-      const msg = humanize(err instanceof Error ? err.message : "Sign in failed");
-      setError(msg); toast.error(msg);
-    } finally { setBusy(false); }
-  };
-
-  const sendReset = async () => {
-    if (!emailOk || busy) return;
-    setBusy(true); setError(null);
-    try {
-      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (err) throw err;
-      setView("forgot_sent");
-      toast.success("Reset link sent");
-    } catch (err) {
-      const msg = humanize(err instanceof Error ? err.message : "Couldn't send reset email");
-      setError(msg); toast.error(msg);
-    } finally { setBusy(false); }
-  };
+  // Forgot success state
+  const [forgotSent, setForgotSent] = useState(false);
 
   useEffect(() => {
     if (resendIn <= 0) return;
-    const id = window.setInterval(() => setResendIn((v) => (v <= 1 ? 0 : v - 1)), 1000);
-    return () => window.clearInterval(id);
+    const id = setInterval(() => setResendIn((s) => s - 1), 1000);
+    return () => clearInterval(id);
   }, [resendIn]);
 
-  const sendOtp = async (isResend = false) => {
-    if (!emailOk || busy) return;
-    if (isResend && resendIn > 0) return;
-    setBusy(true); setError(null);
-    if (isResend) setResendState("sending");
+  const humanize = (raw: string) => {
+    const m = raw.toLowerCase();
+    if (m.includes("invalid login")) return "Wrong email or password.";
+    if (m.includes("user already")) return "An account with this email already exists.";
+    if (m.includes("email not confirmed")) return "Please confirm your email first.";
+    if (m.includes("token has expired") || m.includes("invalid") && m.includes("otp")) return "That code is invalid or expired.";
+    if (m.includes("rate") || m.includes("429")) return "Too many attempts. Please wait a moment.";
+    return raw || "Something went wrong.";
+  };
+
+  const goHome = () => navigate({ to: "/" });
+
+  const afterAuth = async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) persistCareerPilotSession(data.session, { touchLastLogin: true });
+    toast.success("Welcome back!");
+    navigate({ to: dest });
+  };
+
+  // --- Handlers ---
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      });
-      if (err) throw err;
-      setOtp(["", "", "", "", "", ""]);
-      setResendIn(RESEND_SECONDS);
-      setView("otp_verify");
-      if (isResend) {
-        setResendState("sent");
-        toast.success("New code sent to your email");
-        window.setTimeout(() => setResendState("idle"), 4000);
-      } else {
-        toast.success("Verification code sent");
-      }
-      setTimeout(() => otpRefs.current[0]?.focus(), 60);
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) throw error;
+      await afterAuth();
     } catch (err) {
-      const msg = humanize(err instanceof Error ? err.message : "Couldn't send code");
-      setError(msg); toast.error(msg);
-      if (isResend) setResendState("idle");
-    } finally { setBusy(false); }
+      toast.error(humanize(err instanceof Error ? err.message : "Sign in failed"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const fireConfetti = () => {
-    if (typeof window === "undefined") return;
-    const opts = { spread: 70, startVelocity: 45, ticks: 200, zIndex: 100 };
-    confetti({ ...opts, particleCount: 90, origin: { x: 0.5, y: 0.6 } });
-    window.setTimeout(() => {
-      confetti({ ...opts, particleCount: 60, angle: 60, origin: { x: 0, y: 0.7 } });
-      confetti({ ...opts, particleCount: 60, angle: 120, origin: { x: 1, y: 0.7 } });
-    }, 200);
-  };
-
-  const verifyOtp = async (codeOverride?: string) => {
-    const code = (codeOverride ?? otp.join("")).trim();
-    if (code.length !== 6 || busy) return;
-    setBusy(true); setError(null);
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    if (password.length < 6) return toast.error("Password must be at least 6 characters.");
+    if (password !== confirm) return toast.error("Passwords don't match.");
+    setIsSubmitting(true);
     try {
-      const { data, error: err } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
-      if (err) throw err;
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { emailRedirectTo: window.location.origin + "/auth/callback" },
+      });
+      if (error) throw error;
       if (data.session) {
-        persistCareerPilotSession(data.session, { touchLastLogin: true });
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ user: data.session.user, token: data.session.access_token }));
+        await afterAuth();
+      } else {
+        toast.success("Check your email to confirm your account.");
+        setMode("password");
       }
-      setSuccess(true);
-      fireConfetti();
-      toast.success("Signed in");
-      window.setTimeout(() => { routeAfterAuth(); }, 1500);
     } catch (err) {
-      const raw = err instanceof Error ? err.message.toLowerCase() : "";
-      const msg = raw.includes("expired") ? "That code expired. Request a new one."
-        : raw.includes("invalid") || raw.includes("token") ? "Incorrect code. Double-check and try again."
-        : humanize(err instanceof Error ? err.message : "Verification failed");
-      setError(msg); toast.error(msg);
-      setOtp(["", "", "", "", "", ""]);
-      setTimeout(() => otpRefs.current[0]?.focus(), 30);
-      setBusy(false);
-      return;
+      toast.error(humanize(err instanceof Error ? err.message : "Sign up failed"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const onOtpChange = (i: number, raw: string) => {
-    const chars = raw.replace(/\D/g, "").split("");
-    if (chars.length === 0) {
-      const next = [...otp]; next[i] = ""; setOtp(next); return;
-    }
-    const next = [...otp];
-    let idx = i;
-    for (const c of chars) {
-      if (idx > 5) break;
-      next[idx] = c; idx++;
-    }
-    setOtp(next);
-    const focusIdx = Math.min(idx, 5);
-    otpRefs.current[focusIdx]?.focus();
-    if (next.every((d) => d !== "") && next.join("").length === 6) {
-      verifyOtp(next.join(""));
-    }
-  };
-
-  const onOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0) {
-      const next = [...otp]; next[i - 1] = ""; setOtp(next);
-      otpRefs.current[i - 1]?.focus();
-      e.preventDefault();
-    } else if (e.key === "ArrowLeft" && i > 0) {
-      otpRefs.current[i - 1]?.focus();
-    } else if (e.key === "ArrowRight" && i < 5) {
-      otpRefs.current[i + 1]?.focus();
-    }
-  };
-
-
-
-  const oauth = async (provider: "google" | "apple") => {
-    if (oauthBusy) return;
-    setOauthBusy(provider); setError(null);
+  const handleForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
-      const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin + "/reset-password",
       });
-      if (result.error) throw result.error;
+      if (error) throw error;
+      setForgotSent(true);
+      toast.success("Reset link sent — check your inbox.");
     } catch (err) {
-      const msg = humanize(err instanceof Error ? err.message : "OAuth failed");
-      setError(msg); toast.error(msg); setOauthBusy(null);
+      toast.error(humanize(err instanceof Error ? err.message : "Couldn't send reset link"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const unsupportedProvider = (name: string) => {
-    toast.info(`${name} sign-in isn't available yet. Try Google or email.`);
+  const sendOtp = async () => {
+    if (isSubmitting) return;
+    if (!email.trim()) return toast.error("Enter your email first.");
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { shouldCreateUser: true, emailRedirectTo: window.location.origin + "/auth/callback" },
+      });
+      if (error) throw error;
+      setOtpStage("verify");
+      setResendIn(RESEND_SECONDS);
+      setOtp(Array(6).fill(""));
+      toast.success("Code sent to your email.");
+      setTimeout(() => otpRefs.current[0]?.focus(), 80);
+    } catch (err) {
+      toast.error(humanize(err instanceof Error ? err.message : "Couldn't send code"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const verifyOtp = async (token: string) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+      if (error) throw error;
+      await afterAuth();
+    } catch (err) {
+      toast.error(humanize(err instanceof Error ? err.message : "Invalid code"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOtpChange = (i: number, v: string) => {
+    const clean = v.replace(/\D/g, "").slice(-1);
+    const arr = [...otp];
+    arr[i] = clean;
+    setOtp(arr);
+    if (clean && i < 5) otpRefs.current[i + 1]?.focus();
+    if (arr.every((c) => c) && arr.join("").length === 6) verifyOtp(arr.join(""));
+  };
+
+  const handleOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!text) return;
+    e.preventDefault();
+    const arr = text.split("").concat(Array(6).fill("")).slice(0, 6);
+    setOtp(arr);
+    if (text.length === 6) verifyOtp(text);
+    else otpRefs.current[text.length]?.focus();
+  };
+
+  const handleOAuth = async (provider: "google" | "apple" | "github" | "facebook") => {
+    if (oauthBusy) return;
+    setOauthBusy(provider);
+    try {
+      if (provider === "google" || provider === "apple") {
+        const res = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/auth/callback" });
+        if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
+        if (res.redirected) return;
+        await afterAuth();
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo: window.location.origin + "/auth/callback" },
+        });
+        if (error) throw error;
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Sign-in failed";
+      toast.error(msg.toLowerCase().includes("provider") ? `${provider} sign-in isn't enabled yet.` : humanize(msg));
+    } finally {
+      setOauthBusy(null);
+    }
+  };
+
+  // --- UI helpers ---
+  const inputCls =
+    "w-full px-4 py-3 bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder:text-white/35 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/15 transition disabled:opacity-50";
+
+  const primaryBtn =
+    "w-full py-3.5 rounded-xl font-semibold text-[14px] text-black bg-gradient-to-r from-cyan-300 to-white hover:opacity-95 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(34,211,238,0.25)]";
+
+  const linkBtn = "text-[12.5px] text-white/60 hover:text-cyan-300 transition cursor-pointer";
+
+  const title =
+    mode === "signup" ? "Create your account"
+    : mode === "forgot" ? "Reset your password"
+    : mode === "otp" ? (otpStage === "verify" ? "Enter your code" : "Sign in with a code")
+    : "Sign in to your account";
+
+  const subtitle =
+    mode === "signup" ? "Start your journey with CareerPilot AI."
+    : mode === "forgot" ? (forgotSent ? "Check your inbox for the reset link." : "We'll email you a secure reset link.")
+    : mode === "otp" ? (otpStage === "verify" ? `We sent a 6-digit code to ${email}` : "We'll send a one-time code to your email.")
+    : "Welcome back — let's continue.";
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 relative overflow-hidden"
-      style={{
-        fontFamily: "'Inter', system-ui, sans-serif",
-        background: "linear-gradient(135deg, #7cb3ff 0%, #5aa0ff 50%, #4a90ff 100%)",
-      }}
+      className="min-h-screen w-full flex items-center justify-center bg-[#050505] p-4 text-white relative overflow-hidden"
+      style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
-      {/* Abstract blob shapes */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <svg className="absolute -top-20 -left-20 w-[520px] h-[520px] opacity-70" viewBox="0 0 400 400" fill="none">
-          <path d="M80 120 Q140 60 200 120 T320 120" stroke="url(#g1)" strokeWidth="42" strokeLinecap="round" fill="none" />
-          <path d="M60 220 Q120 160 180 220 T300 220" stroke="url(#g1)" strokeWidth="34" strokeLinecap="round" fill="none" opacity="0.7" />
-          <defs>
-            <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor="#dbeafe" />
-              <stop offset="100%" stopColor="#93c5fd" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <svg className="absolute top-1/4 right-0 w-[560px] h-[560px] opacity-80" viewBox="0 0 400 400" fill="none">
-          <path d="M320 60 Q260 120 300 200 T240 340" stroke="url(#g2)" strokeWidth="48" strokeLinecap="round" fill="none" />
-          <path d="M360 140 Q300 200 340 280" stroke="url(#g2)" strokeWidth="36" strokeLinecap="round" fill="none" opacity="0.65" />
-          <defs>
-            <linearGradient id="g2" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor="#bfdbfe" />
-              <stop offset="100%" stopColor="#60a5fa" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <svg className="absolute bottom-0 left-1/3 w-[520px] h-[520px] opacity-70" viewBox="0 0 400 400" fill="none">
-          <path d="M80 300 Q160 240 240 300 T380 300" stroke="url(#g3)" strokeWidth="40" strokeLinecap="round" fill="none" />
-          <defs>
-            <linearGradient id="g3" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor="#dbeafe" />
-              <stop offset="100%" stopColor="#7dd3fc" />
-            </linearGradient>
-          </defs>
-        </svg>
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-cyan-500/15 blur-[130px]" />
+        <div className="absolute -bottom-40 -right-40 w-[520px] h-[520px] rounded-full bg-indigo-500/15 blur-[130px]" />
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
       </div>
 
-      {/* Back button */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50">
-        <button
-          onClick={() => navigate({ to: "/" })}
-          className="px-3 py-1.5 rounded-full bg-white/25 backdrop-blur-md border border-white/40 text-white text-[11px] font-medium hover:bg-white/35 transition-colors cursor-pointer"
-        >
-          ← Back
-        </button>
-      </div>
-
-      {/* Glass card */}
-      <div
-        className="relative z-10 w-full max-w-[420px] rounded-3xl p-8 sm:p-10 border border-white/40 shadow-[0_20px_60px_rgba(30,58,138,0.35)]"
-        style={{
-          background: "linear-gradient(135deg, rgba(59,130,246,0.55) 0%, rgba(37,99,235,0.55) 100%)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-        }}
+      {/* Back to home */}
+      <button
+        onClick={goHome}
+        className="absolute top-5 left-5 z-20 inline-flex items-center gap-1.5 text-[12.5px] text-white/60 hover:text-white transition cursor-pointer"
       >
-        {view === "login" && (
-          <>
-            <div className="mb-6">
-              <p className="text-white/90 text-[13px] font-semibold tracking-wide">CareerPilot</p>
-              <h1 className="text-white text-[34px] font-bold leading-tight mt-0.5">Login</h1>
-            </div>
+        <ArrowLeft className="size-4" /> Back
+      </button>
 
-            <form onSubmit={(e) => { e.preventDefault(); signIn(); }} className="space-y-4">
-              <div>
-                <label className="block text-white text-[13px] font-medium mb-1.5">Email</label>
+      <div className="w-full max-w-[420px] bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative z-10">
+        {/* Header */}
+        <div className="mb-6 text-center">
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400/25 to-indigo-500/25 border border-white/10 flex items-center justify-center mb-4">
+            {mode === "forgot" && forgotSent ? <CheckCircle2 className="size-5 text-emerald-300" /> : <KeyRound className="size-5 text-cyan-300" />}
+          </div>
+          <h1 className="text-[22px] font-semibold tracking-tight">{title}</h1>
+          <p className="text-white/50 text-[13px] mt-1">{subtitle}</p>
+        </div>
+
+        {/* ========== PASSWORD MODE ========== */}
+        {mode === "password" && (
+          <form onSubmit={handleSignIn} className="space-y-3.5">
+            <div>
+              <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Email</label>
+              <div className="relative">
+                <Mail className="size-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); if (error) setError(null); }}
-                  autoComplete="email"
-                  placeholder="username@gmail.com"
-                  style={{ fontSize: "16px" }}
-                  className="w-full px-4 py-3 bg-white rounded-lg text-slate-900 placeholder:text-slate-400 outline-none border border-transparent focus:border-white focus:ring-2 focus:ring-white/60 transition"
+                  type="email" required disabled={isSubmitting} value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com" autoComplete="email"
+                  style={{ fontSize: "16px" }} className={inputCls + " pl-10"}
                 />
               </div>
-
-              <div>
-                <label className="block text-white text-[13px] font-medium mb-1.5">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPw ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); if (error) setError(null); }}
-                    autoComplete="current-password"
-                    placeholder="Password"
-                    style={{ fontSize: "16px" }}
-                    className="w-full px-4 py-3 pr-11 bg-white rounded-lg text-slate-900 placeholder:text-slate-400 outline-none border border-transparent focus:border-white focus:ring-2 focus:ring-white/60 transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw((v) => !v)}
-                    aria-label="Toggle password"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 cursor-pointer"
-                  >
-                    {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2 px-1">
+                <label className="text-[12.5px] font-medium text-white/70">Password</label>
+                <button type="button" onClick={() => setMode("forgot")} className={linkBtn}>Forgot password?</button>
               </div>
-
-              <div className="flex items-center justify-between -mt-1">
-                <button
-                  type="button"
-                  onClick={() => { setView("forgot"); setError(null); }}
-                  className="text-white/95 text-[13px] hover:underline cursor-pointer"
-                >
-                  Forgot Password?
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setError(null); if (emailOk) sendOtp(false); else { setError("Enter your email first"); } }}
-                  className="inline-flex items-center gap-1 text-white/95 text-[13px] hover:underline cursor-pointer"
-                >
-                  <KeyRound className="size-3.5" /> Use code instead
+              <div className="relative">
+                <Lock className="size-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showPw ? "text" : "password"} required disabled={isSubmitting} value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••" autoComplete="current-password"
+                  style={{ fontSize: "16px" }} className={inputCls + " pl-10 pr-11"}
+                />
+                <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white cursor-pointer" aria-label="Toggle password">
+                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
-
-              {error && (
-                <div role="alert" className="rounded-lg border border-red-300/50 bg-red-500/20 px-3.5 py-2.5 text-[12.5px] text-white">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={!emailOk || password.length < 6 || busy}
-                className="w-full py-3.5 rounded-lg font-semibold text-[15px] text-white bg-[#0b1e3f] hover:bg-[#0a1a36] active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer inline-flex items-center justify-center gap-2 shadow-lg"
-              >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : "Sign in"}
-              </button>
-
-              <p className="text-center text-white/95 text-[13px] pt-1">or continue with</p>
-
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => oauth("google")}
-                  disabled={!!oauthBusy}
-                  className="flex items-center justify-center py-2.5 rounded-lg bg-white hover:bg-slate-50 shadow-md transition disabled:opacity-60 cursor-pointer"
-                  aria-label="Continue with Google"
-                >
-                  {oauthBusy === "google" ? <Loader2 className="size-5 animate-spin text-slate-600" /> : <FcGoogle className="size-5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => unsupportedProvider("GitHub")}
-                  className="flex items-center justify-center py-2.5 rounded-lg bg-white hover:bg-slate-50 shadow-md transition cursor-pointer"
-                  aria-label="Continue with GitHub"
-                >
-                  <FaGithub className="size-5 text-slate-900" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => unsupportedProvider("Facebook")}
-                  className="flex items-center justify-center py-2.5 rounded-lg bg-white hover:bg-slate-50 shadow-md transition cursor-pointer"
-                  aria-label="Continue with Facebook"
-                >
-                  <FaFacebookF className="size-5 text-[#1877F2]" />
-                </button>
-              </div>
-
-              <p className="text-center text-white/95 text-[13px] pt-2">
-                Don't have an account?{" "}
-                <Link to="/login" search={{ form: "1" }} className="font-semibold text-white hover:underline">
-                  Register for free
-                </Link>
-              </p>
-            </form>
-          </>
-        )}
-
-        {view === "forgot" && (
-          <form onSubmit={(e) => { e.preventDefault(); sendReset(); }}>
-            <button
-              type="button"
-              onClick={() => { setView("login"); setError(null); }}
-              className="inline-flex items-center gap-1.5 text-white/90 text-[12px] hover:text-white cursor-pointer mb-4"
-            >
-              <ArrowLeft className="size-3.5" /> Back
+            </div>
+            <button type="submit" disabled={isSubmitting} className={primaryBtn}>
+              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <>Sign in <ArrowRight className="size-4" /></>}
             </button>
-            <h2 className="text-white text-[26px] font-bold">Reset password</h2>
-            <p className="text-white/85 text-[13px] mt-1 mb-5">Enter your email and we'll send you a secure reset link.</p>
-            <label className="block text-white text-[13px] font-medium mb-1.5">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); if (error) setError(null); }}
-              autoComplete="email"
-              placeholder="username@gmail.com"
-              style={{ fontSize: "16px" }}
-              className="w-full px-4 py-3 bg-white rounded-lg text-slate-900 placeholder:text-slate-400 outline-none border border-transparent focus:border-white focus:ring-2 focus:ring-white/60 transition"
-            />
-            {error && (
-              <div role="alert" className="mt-3 rounded-lg border border-red-300/50 bg-red-500/20 px-3.5 py-2.5 text-[12.5px] text-white">
-                {error}
-              </div>
-            )}
-            <button
-              type="submit"
-              disabled={!emailOk || busy}
-              className="mt-4 w-full py-3.5 rounded-lg font-semibold text-[15px] text-white bg-[#0b1e3f] hover:bg-[#0a1a36] transition disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-2 shadow-lg"
-            >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : "Send reset link"}
+            <button type="button" onClick={() => { setMode("otp"); setOtpStage("request"); }} className="w-full py-2 text-[12.5px] text-white/60 hover:text-cyan-300 transition cursor-pointer inline-flex items-center justify-center gap-1.5">
+              <KeyRound className="size-3.5" /> Use code instead
             </button>
           </form>
         )}
 
-        {view === "forgot_sent" && (
-          <div className="text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-white/25 border border-white/40 flex items-center justify-center mb-4">
-              <CheckCircle2 className="size-5 text-white" />
-            </div>
-            <h2 className="text-white text-[22px] font-bold">Check your inbox</h2>
-            <p className="text-white/85 text-[13px] mt-2">
-              We sent reset instructions to <span className="font-semibold text-white">{email}</span>.
-            </p>
-            <button
-              type="button"
-              onClick={() => setView("login")}
-              className="mt-5 w-full py-3 rounded-lg bg-white/20 hover:bg-white/30 border border-white/40 text-white text-[13.5px] font-medium transition cursor-pointer"
-            >
-              Back to sign in
-            </button>
-          </div>
-        )}
-        {view === "otp_verify" && (
-          <div>
-            <button
-              type="button"
-              onClick={() => { setView("login"); setError(null); }}
-              className="inline-flex items-center gap-1.5 text-white/90 text-[12px] hover:text-white cursor-pointer mb-4"
-            >
-              <ArrowLeft className="size-3.5" /> Back
-            </button>
-            <h2 className="text-white text-[26px] font-bold">Enter code</h2>
-            <p className="text-white/85 text-[13px] mt-1 mb-5">
-              We sent a 6-digit code to <span className="font-semibold text-white break-all">{email}</span>.
-            </p>
-
-            <div className="flex items-center justify-between gap-2 sm:gap-2.5" onPaste={(e) => {
-              const txt = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-              if (txt.length) { e.preventDefault(); onOtpChange(0, txt); }
-            }}>
-              {otp.map((d, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { otpRefs.current[i] = el; }}
-                  value={d}
-                  onChange={(e) => onOtpChange(i, e.target.value)}
-                  onKeyDown={(e) => onOtpKey(i, e)}
-                  onFocus={(e) => e.currentTarget.select()}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  aria-label={`Digit ${i + 1}`}
-                  style={{ fontSize: "20px" }}
-                  className="w-11 h-14 sm:w-12 sm:h-14 text-center font-semibold bg-white rounded-lg text-slate-900 outline-none border border-transparent focus:border-white focus:ring-2 focus:ring-white/60 transition"
-                />
-              ))}
-            </div>
-
-            {error && (
-              <div role="alert" className="mt-4 rounded-lg border border-red-300/50 bg-red-500/20 px-3.5 py-2.5 text-[12.5px] text-white">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => verifyOtp()}
-              disabled={otp.join("").length !== 6 || busy}
-              className="mt-5 w-full py-3.5 rounded-lg font-semibold text-[15px] text-white bg-[#0b1e3f] hover:bg-[#0a1a36] transition disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-2 shadow-lg"
-            >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : "Verify & sign in"}
-            </button>
-
-            <div className="mt-4 text-center text-white/90 text-[13px] min-h-[20px]">
-              {resendState === "sending" ? (
-                <span className="inline-flex items-center gap-1.5 text-white/95">
-                  <Loader2 className="size-3.5 animate-spin" /> Sending a new code…
-                </span>
-              ) : resendState === "sent" ? (
-                <span className="inline-flex items-center gap-1.5 text-emerald-100">
-                  <CheckCircle2 className="size-3.5" /> New code sent — check your inbox
-                </span>
-              ) : (
-                <>
-                  Didn't get the code?{" "}
+        {/* ========== OTP MODE ========== */}
+        {mode === "otp" && (
+          <div className="space-y-3.5">
+            {otpStage === "request" ? (
+              <>
+                <div>
+                  <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Email</label>
+                  <div className="relative">
+                    <Mail className="size-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email" disabled={isSubmitting} value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com" autoComplete="email"
+                      style={{ fontSize: "16px" }} className={inputCls + " pl-10"}
+                    />
+                  </div>
+                </div>
+                <button onClick={sendOtp} disabled={isSubmitting} className={primaryBtn}>
+                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <>Send code <ArrowRight className="size-4" /></>}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                  {otp.map((v, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => { otpRefs.current[i] = el; }}
+                      type="text" inputMode="numeric" maxLength={1} value={v}
+                      disabled={isSubmitting}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKey(i, e)}
+                      style={{ fontSize: "18px" }}
+                      className="w-11 h-13 aspect-square text-center font-semibold bg-white/[0.04] border border-white/10 rounded-xl text-white outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition"
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={() => verifyOtp(otp.join(""))}
+                  disabled={isSubmitting || otp.join("").length !== 6}
+                  className={primaryBtn}
+                >
+                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <>Verify code <ArrowRight className="size-4" /></>}
+                </button>
+                <div className="flex items-center justify-between text-[12.5px] text-white/50 px-1">
                   <button
-                    type="button"
-                    onClick={() => sendOtp(true)}
-                    disabled={resendIn > 0 || busy}
-                    className="font-semibold text-white hover:underline disabled:opacity-60 disabled:no-underline disabled:cursor-not-allowed inline-flex items-center gap-1"
+                    onClick={sendOtp}
+                    disabled={isSubmitting || resendIn > 0}
+                    className="hover:text-cyan-300 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {resendIn > 0 ? (
-                      <>Resend in <span className="tabular-nums">{resendIn}s</span></>
-                    ) : (
-                      <><RefreshCw className="size-3.5" /> Resend code</>
-                    )}
+                    {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
                   </button>
-                </>
-              )}
-            </div>
+                  <button onClick={() => setOtpStage("request")} className={linkBtn}>Change email</button>
+                </div>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => { setMode("password"); setOtpStage("request"); }}
+              className="w-full py-2 text-[12.5px] text-white/60 hover:text-cyan-300 transition cursor-pointer"
+            >
+              Use password instead
+            </button>
           </div>
         )}
-      </div>
 
-      {/* Success overlay */}
-      {success && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="flex flex-col items-center gap-4 px-8 py-10 rounded-3xl bg-white/95 shadow-2xl animate-in zoom-in-50 duration-500">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-emerald-400/40 animate-ping" />
-              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg">
-                <Check className="size-10 text-white stroke-[3]" />
+        {/* ========== FORGOT MODE ========== */}
+        {mode === "forgot" && (
+          <div className="space-y-3.5">
+            {forgotSent ? (
+              <div className="text-center rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-4 text-[13px] text-emerald-200">
+                A password-reset link is on its way to <span className="font-semibold">{email}</span>.
+              </div>
+            ) : (
+              <form onSubmit={handleForgot} className="space-y-3.5">
+                <div>
+                  <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Email</label>
+                  <div className="relative">
+                    <Mail className="size-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email" required disabled={isSubmitting} value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com" autoComplete="email"
+                      style={{ fontSize: "16px" }} className={inputCls + " pl-10"}
+                    />
+                  </div>
+                </div>
+                <button type="submit" disabled={isSubmitting} className={primaryBtn}>
+                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <>Send reset link <ArrowRight className="size-4" /></>}
+                </button>
+              </form>
+            )}
+            <button
+              type="button"
+              onClick={() => { setMode("password"); setForgotSent(false); }}
+              className="w-full py-2 text-[12.5px] text-white/60 hover:text-cyan-300 transition cursor-pointer inline-flex items-center justify-center gap-1.5"
+            >
+              <ArrowLeft className="size-3.5" /> Back to sign in
+            </button>
+          </div>
+        )}
+
+        {/* ========== SIGNUP MODE ========== */}
+        {mode === "signup" && (
+          <form onSubmit={handleSignUp} className="space-y-3.5">
+            <div>
+              <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Email</label>
+              <div className="relative">
+                <Mail className="size-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email" required disabled={isSubmitting} value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com" autoComplete="email"
+                  style={{ fontSize: "16px" }} className={inputCls + " pl-10"}
+                />
               </div>
             </div>
-            <div className="text-center">
-              <h3 className="text-slate-900 text-xl font-bold">Welcome back!</h3>
-              <p className="text-slate-600 text-sm mt-1">Redirecting to your dashboard…</p>
+            <div>
+              <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Password</label>
+              <div className="relative">
+                <Lock className="size-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showPw ? "text" : "password"} required disabled={isSubmitting} value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 6 characters" autoComplete="new-password"
+                  style={{ fontSize: "16px" }} className={inputCls + " pl-10 pr-11"}
+                />
+                <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white cursor-pointer" aria-label="Toggle password">
+                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
             </div>
-          </div>
+            <div>
+              <label className="block text-[12.5px] font-medium text-white/70 mb-2 px-1">Confirm password</label>
+              <input
+                type={showPw ? "text" : "password"} required disabled={isSubmitting} value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder="Re-enter password" autoComplete="new-password"
+                style={{ fontSize: "16px" }} className={inputCls}
+              />
+            </div>
+            <button type="submit" disabled={isSubmitting} className={primaryBtn}>
+              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <>Create account <ArrowRight className="size-4" /></>}
+            </button>
+          </form>
+        )}
+
+        {/* Divider + Social */}
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-[11px] uppercase tracking-widest text-white/40">or continue with</span>
+          <div className="h-px flex-1 bg-white/10" />
         </div>
-      )}
 
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { id: "google" as const, icon: <FcGoogle className="size-5" />, label: "Google" },
+            { id: "apple" as const, icon: <FaApple className="size-5 text-white" />, label: "Apple" },
+            { id: "github" as const, icon: <FaGithub className="size-5 text-white" />, label: "GitHub" },
+            { id: "facebook" as const, icon: <FaFacebookF className="size-5 text-[#1877F2]" />, label: "Facebook" },
+          ].map((p) => (
+            <button
+              key={p.id}
+              onClick={() => handleOAuth(p.id)}
+              disabled={!!oauthBusy}
+              aria-label={`Continue with ${p.label}`}
+              className="h-11 rounded-xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.08] hover:border-white/20 transition disabled:opacity-50 cursor-pointer inline-flex items-center justify-center"
+            >
+              {oauthBusy === p.id ? <Loader2 className="size-4 animate-spin text-white/70" /> : p.icon}
+            </button>
+          ))}
+        </div>
 
-
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-        <Link to="/admin-login" className="text-white/70 text-[12px] hover:text-white transition-colors">
-          Admin Console
-        </Link>
+        {/* Footer swap */}
+        <p className="mt-6 text-center text-[12.5px] text-white/50">
+          {mode === "signup" ? (
+            <>Already have an account?{" "}
+              <button onClick={() => setMode("password")} className="text-cyan-300 hover:text-cyan-200 font-medium cursor-pointer">Sign in</button>
+            </>
+          ) : (
+            <>New to CareerPilot?{" "}
+              <button onClick={() => setMode("signup")} className="text-cyan-300 hover:text-cyan-200 font-medium cursor-pointer">Register for free</button>
+            </>
+          )}
+        </p>
       </div>
     </div>
   );
