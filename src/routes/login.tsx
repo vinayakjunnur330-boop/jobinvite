@@ -425,10 +425,10 @@ function LoginPage() {
 }
 
 const inputCls =
-  "w-full h-13 px-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 border border-white/40 outline-none focus:ring-2 focus:ring-white/80 transition disabled:opacity-60 shadow-[0_4px_14px_rgba(30,60,130,0.10)]";
+  "w-full h-12 px-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 border border-white/40 outline-none focus:ring-2 focus:ring-white/80 transition disabled:opacity-60 shadow-[0_4px_14px_rgba(30,60,130,0.10)]";
 
 const primaryCls =
-  "w-full h-13 rounded-2xl font-semibold text-white text-[15px] bg-[#2b4a8f] hover:bg-[#25417e] active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-[0_10px_25px_rgba(20,40,90,0.35)]";
+  "w-full h-12 rounded-2xl font-semibold text-white text-[15px] bg-[#2b4a8f] hover:bg-[#25417e] active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 shadow-[0_10px_25px_rgba(20,40,90,0.35)]";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
