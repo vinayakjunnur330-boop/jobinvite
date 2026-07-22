@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, ArrowLeft, KeyRound, ArrowRight, CheckCircle2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { FaApple, FaGithub, FaFacebook } from "react-icons/fa";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { persistCareerPilotSession } from "@/lib/auth-persistence";
