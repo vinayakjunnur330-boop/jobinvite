@@ -14,7 +14,7 @@ import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirm your email',
   invite: "You've been invited",
-  magiclink: 'Your CareerPilot verification code',
+  magiclink: 'Your CareerPilot AI verification code',
   recovery: 'Reset your password',
   email_change: 'Confirm your new email',
   reauthentication: 'Your verification code',
@@ -31,7 +31,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "jobinvite"
+const SITE_NAME = "CareerPilot AI"
 const SENDER_DOMAIN = "notify.rolehub.com"
 const ROOT_DOMAIN = "rolehub.com"
 const FROM_DOMAIN = "rolehub.com"
@@ -137,7 +137,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           siteUrl: `https://${ROOT_DOMAIN}`,
           recipient: payload.data.email,
           confirmationUrl: payload.data.url,
-          token: payload.data.token,
+          token: payload.data.token || payload.data.new_token,
           email: payload.data.email,
           oldEmail: payload.data.old_email,
           newEmail: payload.data.new_email,
