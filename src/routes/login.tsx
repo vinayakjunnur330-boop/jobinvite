@@ -389,21 +389,37 @@ function LoginPage() {
         {/* Divider */}
         <p className="text-center text-white/85 text-[13px] mt-6 mb-3">or continue with</p>
 
-        {/* Google (only supported managed OAuth provider) */}
-        <button
-          onClick={() => handleOAuth("google")}
-          disabled={!!oauthBusy}
-          aria-label="Continue with Google"
-          className="w-full h-12 rounded-2xl bg-white hover:bg-white/95 active:scale-[0.99] transition disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2.5 text-slate-800 font-medium text-[14px] shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
-        >
-          {oauthBusy === "google" ? (
-            <Loader2 className="size-5 animate-spin text-slate-600" />
-          ) : (
-            <>
-              <FcGoogle className="size-5" /> Continue with Google
-            </>
-          )}
-        </button>
+        {/* Social grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <SocialButton
+            provider="google"
+            label="Google"
+            icon={<FcGoogle className="size-5" />}
+            busy={oauthBusy === "google"}
+            onClick={() => handleOAuth("google")}
+          />
+          <SocialButton
+            provider="apple"
+            label="Apple"
+            icon={<FaApple className="size-5 text-slate-800" />}
+            busy={oauthBusy === "apple"}
+            onClick={() => handleOAuth("apple")}
+          />
+          <SocialButton
+            provider="github"
+            label="GitHub"
+            icon={<FaGithub className="size-5 text-white" />}
+            disabled
+            comingSoon
+          />
+          <SocialButton
+            provider="facebook"
+            label="Facebook"
+            icon={<FaFacebook className="size-5 text-white" />}
+            disabled
+            comingSoon
+          />
+        </div>
 
         {/* Footer */}
         <p className="mt-6 text-center text-white/90 text-[13.5px]">
