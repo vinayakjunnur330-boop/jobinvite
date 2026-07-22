@@ -307,6 +307,7 @@ function LoginPage() {
                     />
                   ))}
                 </div>
+                <StayCheckbox stay={stay} setStay={setStay} />
                 <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || otp.join("").length !== 6} className={primaryCls}>
                   {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <>Verify code <ArrowRight className="size-4" /></>}
                 </button>
