@@ -49,6 +49,10 @@ function LoginPage() {
   const [resendIn, setResendIn] = useState(0);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [forgotSent, setForgotSent] = useState(false);
+  const [stay, setStay] = useState<boolean>(true);
+  useEffect(() => {
+    try { setStay(window.localStorage.getItem("cp_stay") !== "0"); } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     if (resendIn <= 0) return;
