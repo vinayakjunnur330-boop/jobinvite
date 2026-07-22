@@ -67,6 +67,32 @@ function LoginPage() {
     return () => clearInterval(id);
   }, [resendIn]);
 
+  // Lockout countdown (ms epoch when the address unlocks).
+  const [lockUntil, setLockUntil] = useState<number | null>(null);
+  const [lockRemaining, setLockRemaining] = useState(0);
+  useEffect(() => {
+    if (!lockUntil) { setLockRemaining(0); return; }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((lockUntil - Date.now()) / 1000));
+      setLockRemaining(remaining);
+      if (remaining <= 0) setLockUntil(null);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lockUntil]);
+  const isLocked = lockRemaining > 0;
+  const fmtLock = (s: number) => {
+    const mm = Math.floor(s / 60).toString().padStart(2, "0");
+    const ss = (s % 60).toString().padStart(2, "0");
+    return `${mm}:${ss}`;
+  };
+  const applyLockFromResult = (r: { reason?: string; retryAfterSeconds?: number }) => {
+    if (r.reason === "locked" && r.retryAfterSeconds && r.retryAfterSeconds > 0) {
+      setLockUntil(Date.now() + r.retryAfterSeconds * 1000);
+    }
+  };
+
   const humanize = (raw: string) => {
     const m = raw.toLowerCase();
     if (m.includes("invalid login")) return "Wrong email or password.";
