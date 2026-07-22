@@ -267,6 +267,8 @@ function LoginPage() {
               </button>
             </div>
 
+            <StayCheckbox stay={stay} setStay={setStay} />
+
             <PrimaryBtn busy={isSubmitting} label="Sign in" />
           </form>
         )}
