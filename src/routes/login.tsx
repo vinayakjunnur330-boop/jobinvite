@@ -181,6 +181,7 @@ function LoginPage() {
   const handleOAuth = async (provider: "google") => {
     if (oauthBusy) return;
     setOauthBusy(provider);
+    try { window.localStorage.setItem("cp_stay", stay ? "1" : "0"); } catch { /* ignore */ }
     try {
       const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth/callback" });
       if (res.error) throw res.error instanceof Error ? res.error : new Error(String(res.error));
