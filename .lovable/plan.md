@@ -1,13 +1,25 @@
-I found the main blocker: the app code is already trying to render an OTP-only email, but the sender domain is still pending DNS verification. Until that completes, auth emails can continue falling back to the default link-style email.
+## Root cause
 
-Plan:
-1. Keep the current restored blue login page design unchanged.
-2. Make the OTP send request explicitly request an email OTP flow and remove redirect-link options from that OTP-only call, so the auth provider sends/uses a code instead of a magic-link redirect.
-3. Re-check the custom OTP email template and webhook path so the “magiclink” auth email body renders only the 6-digit code and no clickable link.
-4. Keep password reset/signup confirmation links working, because those flows legitimately need links.
-5. After the code fix, you will still need to finish the email DNS setup for `notify.rolehub.com`; otherwise default link emails may keep appearing before the custom OTP email activates.
+Buttons across the app use `bg-foreground text-background`. In the current dark "Deep Glass" theme, `--foreground` is white and `--background` is `transparent` (see `src/styles.css` L43, L66). So the button renders as a solid white pill with transparent text — the label is there but invisible (matches the screenshot of the Mentor cards' "Book" button).
 
-Required DNS records still pending:
-- TXT `_lovable-email.rolehub.com`
-- NS `notify.rolehub.com` to `ns3.lovable.cloud`
-- NS `notify.rolehub.com` to `ns4.lovable.cloud`
+## Fix
+
+Replace `text-background` with an explicit dark text color (`text-neutral-900`) everywhere it is paired with `bg-foreground`. CSS-class-only edits, no component rewrites, no new elements.
+
+### Files to edit (only the affected className strings)
+
+- `src/components/Navbar.tsx` — Sign out / primary CTA buttons using `bg-foreground text-background`
+- `src/routes/mentors.tsx` L52 — "Book" button on mentor cards (the reported one)
+- `src/routes/about.tsx` L60
+- `src/routes/contact.tsx` L200
+- `src/routes/dashboard.tsx` L299
+- `src/routes/jobs.tsx` L153
+- `src/routes/resources.tsx` L95
+- `src/routes/scholarships.tsx` L58
+- `src/routes/internships.tsx` L55
+- Any other match surfaced by `rg "bg-foreground[^\"]*text-background"` at build time
+
+Change pattern:
+`bg-foreground text-background` → `bg-foreground text-neutral-900`
+
+No other classes, tokens, or components change. No `bg-white` + `text-white` pairings were found in the scan, so nothing else needs adjusting.
