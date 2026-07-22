@@ -138,13 +138,13 @@ function RootAppContent() {
     <>
         <AuthSync />
         <SplashHider />
-        <AmbientBackground />
+        {!onAuthRoute && <AmbientBackground />}
         <div className="relative min-h-screen flex flex-col text-foreground">
-          <Navbar />
+          {!onAuthRoute && <Navbar />}
           <main className="flex-1">
             <Outlet />
           </main>
-          <Footer />
+          {!onAuthRoute && <Footer />}
           <ChatWidget />
           {!onAuthRoute && <GuestConcierge />}
           <ChatOpenGate />
