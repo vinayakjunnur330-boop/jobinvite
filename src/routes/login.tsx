@@ -379,24 +379,21 @@ function LoginPage() {
         {/* Divider */}
         <p className="text-center text-white/85 text-[13px] mt-6 mb-3">or continue with</p>
 
-        {/* Social */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { id: "google" as const, icon: <FcGoogle className="size-6" /> },
-            { id: "github" as const, icon: <FaGithub className="size-6 text-slate-900" /> },
-            { id: "facebook" as const, icon: <FaFacebookF className="size-6 text-[#1877F2]" /> },
-          ].map((p) => (
-            <button
-              key={p.id}
-              onClick={() => handleOAuth(p.id)}
-              disabled={!!oauthBusy}
-              aria-label={`Continue with ${p.id}`}
-              className="h-12 rounded-2xl bg-white hover:bg-white/95 active:scale-[0.98] transition disabled:opacity-60 cursor-pointer inline-flex items-center justify-center shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
-            >
-              {oauthBusy === p.id ? <Loader2 className="size-5 animate-spin text-slate-600" /> : p.icon}
-            </button>
-          ))}
-        </div>
+        {/* Google (only supported managed OAuth provider) */}
+        <button
+          onClick={() => handleOAuth("google")}
+          disabled={!!oauthBusy}
+          aria-label="Continue with Google"
+          className="w-full h-12 rounded-2xl bg-white hover:bg-white/95 active:scale-[0.99] transition disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2.5 text-slate-800 font-medium text-[14px] shadow-[0_6px_18px_rgba(30,60,130,0.18)]"
+        >
+          {oauthBusy === "google" ? (
+            <Loader2 className="size-5 animate-spin text-slate-600" />
+          ) : (
+            <>
+              <FcGoogle className="size-5" /> Continue with Google
+            </>
+          )}
+        </button>
 
         {/* Footer */}
         <p className="mt-6 text-center text-white/90 text-[13.5px]">
