@@ -26,6 +26,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as InternshipsRouteImport } from './routes/internships'
+import { Route as EmailPreviewRouteImport } from './routes/email-preview'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -131,6 +132,11 @@ const JobsRoute = JobsRouteImport.update({
 const InternshipsRoute = InternshipsRouteImport.update({
   id: '/internships',
   path: '/internships',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailPreviewRoute = EmailPreviewRouteImport.update({
+  id: '/email-preview',
+  path: '/email-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/email-preview': typeof EmailPreviewRoute
   '/internships': typeof InternshipsRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
@@ -294,6 +301,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/email-preview': typeof EmailPreviewRoute
   '/internships': typeof InternshipsRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/email-preview': typeof EmailPreviewRoute
   '/internships': typeof InternshipsRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
@@ -377,6 +386,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/dashboard'
+    | '/email-preview'
     | '/internships'
     | '/jobs'
     | '/login'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/dashboard'
+    | '/email-preview'
     | '/internships'
     | '/jobs'
     | '/login'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/dashboard'
+    | '/email-preview'
     | '/internships'
     | '/jobs'
     | '/login'
@@ -498,6 +510,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
+  EmailPreviewRoute: typeof EmailPreviewRoute
   InternshipsRoute: typeof InternshipsRoute
   JobsRoute: typeof JobsRoute
   LoginRoute: typeof LoginRoute
@@ -647,6 +660,13 @@ declare module '@tanstack/react-router' {
       path: '/internships'
       fullPath: '/internships'
       preLoaderRoute: typeof InternshipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email-preview': {
+      id: '/email-preview'
+      path: '/email-preview'
+      fullPath: '/email-preview'
+      preLoaderRoute: typeof EmailPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -810,6 +830,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
+  EmailPreviewRoute: EmailPreviewRoute,
   InternshipsRoute: InternshipsRoute,
   JobsRoute: JobsRoute,
   LoginRoute: LoginRoute,
