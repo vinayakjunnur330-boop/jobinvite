@@ -67,6 +67,25 @@ function LoginPage() {
     return () => clearInterval(id);
   }, [resendIn]);
 
+  // Auto-redirect if a session appears (e.g. user clicked magic link in another tab).
+  useEffect(() => {
+    let cancelled = false;
+    const go = () => {
+      if (cancelled) return;
+      try { navigate({ to: dest, replace: true }); }
+      catch { window.location.replace(dest); }
+    };
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && data.session) go();
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
+        go();
+      }
+    });
+    return () => { cancelled = true; subscription.unsubscribe(); };
+  }, [dest, navigate]);
+
   // Lockout countdown (ms epoch when the address unlocks).
   const [lockUntil, setLockUntil] = useState<number | null>(null);
   const [lockRemaining, setLockRemaining] = useState(0);
@@ -415,6 +434,9 @@ function LoginPage() {
                     />
                   ))}
                 </div>
+                <p className="text-[12px] text-white/70 text-center leading-relaxed -mt-1">
+                  If you received a magic link in your email instead of a code, simply click the link to log in instantly.
+                </p>
                 <StayCheckbox stay={stay} setStay={setStay} />
                 <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || isLocked || otp.join("").length !== 6} className={primaryCls}>
                   {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : isLocked ? <><Lock className="size-4" /> Locked · {fmtLock(lockRemaining)}</> : <>Verify code <ArrowRight className="size-4" /></>}
