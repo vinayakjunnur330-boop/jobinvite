@@ -1,36 +1,35 @@
-## Goal
-Kill the homepage flash when clicking "Sign In" and cover the transition with a minimalist geometric loader (Apple/Linear style).
+## Plan: Restore social login buttons on `/login`
 
-## Root cause
-The Navbar's "Sign In" uses TanStack `<Link to="/login">`. Client-side navigation is fast but the login route lazy-loads; during that gap the home page remains painted → the "flash". No transition mask exists.
+### Goal
+Bring back Google, Apple, GitHub, and Facebook social-login buttons on the existing blue glassmorphic `/login` page. Only Google and Apple will be functional; GitHub and Facebook will be visually present but disabled with a clear "Coming soon" state so the page never breaks on mobile or desktop.
 
-## Changes
+### Why this approach
+- Lovable Cloud natively supports **Google** and **Apple** OAuth.
+- **GitHub and Facebook** are not natively supported in Lovable Cloud. The previous removal was to prevent runtime errors. Showing them as disabled satisfies the UI request without breaking the auth flow.
 
-### 1. New `src/components/PageLoader.tsx`
-Framer Motion loader exactly as specified: full-screen `#050505` overlay, `z-[9999]`, tumbling white block + floating orb + "Connecting..." caption. Accepts optional `label` prop (default "Connecting...") so it can be reused for other transitions.
+### Changes
 
-### 2. New `src/lib/nav-loader.ts`
-Tiny event-bus store (subscribe/emit pattern, no deps) exposing:
-- `showPageLoader(label?)` — mounts loader immediately
-- `hidePageLoader()` — unmounts
-- `usePageLoader()` hook returning `{ visible, label }`
+1. **Update `src/routes/login.tsx`**
+   - Replace the single Google button with a 2×2 grid of social buttons: Google, Apple, GitHub, Facebook.
+   - Keep the existing blue glassmorphic styling and mobile-safe `h-12` heights.
+   - Wire Google and Apple to `lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/auth/callback" })`.
+   - Render GitHub and Facebook as disabled buttons with a tooltip or inline "Coming soon" label.
+   - Preserve loading states (`oauthBusy`) for active providers.
 
-This lets any button trigger the mask synchronously on click (before navigation resolves).
+2. **Enable Apple provider in backend**
+   - Call `supabase--configure_social_auth` with `providers: ["google", "apple"]` so Apple Sign In is active in Supabase Auth.
 
-### 3. New `src/components/PageLoaderHost.tsx`
-Subscribes to the store and renders `<PageLoader />` when visible. Auto-hides on route change completion by listening to `useRouterState({ select: s => s.status })` — hides once status returns to `"idle"` on a new pathname. Safety timeout (max 4s) to avoid a stuck loader.
+3. **Verify mobile layout**
+   - Ensure the 2×2 grid collapses cleanly on narrow screens (use responsive grid columns and gap).
+   - Confirm button text/icon remains tappable and no overlay (e.g., `GuestConcierge`) blocks the buttons on `/login`.
 
-Mounted once inside `RootAppContent` in `src/routes/__root.tsx` (above `<Toaster />`).
+### Out of scope
+- No functional GitHub/Facebook OAuth implementation (not supported by Lovable Cloud managed auth).
+- No changes to email/password or OTP flows.
+- No redesign of the blue glassmorphism aesthetic.
 
-### 4. Wire "Sign In" (and Sign Up) in `src/components/Navbar.tsx`
-Replace the `<Link to="/login">` sign-in trigger(s) with a button/Link whose `onClick` calls `showPageLoader()` immediately, then navigates via `useNavigate()`. Same for mobile menu variant. This paints the black loader on the same frame as the click, so the home page never shows through.
-
-### 5. Also cover `<Link to="/login">` in `FuturisticHero` CTA area if it links to auth (verify during build; only patch auth-bound links, nothing else).
-
-## Out of scope
-- No changes to auth logic, login page content, or business logic.
-- No global route-transition mask on every navigation — only auth-entry buttons, per the reported flash.
-
-## Verification
-- Click Sign In on desktop + mobile viewports via Playwright; capture frames to confirm no white/home paint between click and login route.
-- Confirm loader unmounts once `/login` renders.
+### Acceptance criteria
+- `/login` shows four social buttons: Google, Apple, GitHub, Facebook.
+- Google and Apple log the user in end-to-end on mobile and desktop.
+- GitHub and Facebook are disabled and show a "Coming soon" indicator.
+- No auth errors or broken redirects on mobile.
