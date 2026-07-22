@@ -434,6 +434,9 @@ function LoginPage() {
                     />
                   ))}
                 </div>
+                <p className="text-[12px] text-white/70 text-center leading-relaxed -mt-1">
+                  If you received a magic link in your email instead of a code, simply click the link to log in instantly.
+                </p>
                 <StayCheckbox stay={stay} setStay={setStay} />
                 <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || isLocked || otp.join("").length !== 6} className={primaryCls}>
                   {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : isLocked ? <><Lock className="size-4" /> Locked · {fmtLock(lockRemaining)}</> : <>Verify code <ArrowRight className="size-4" /></>}
