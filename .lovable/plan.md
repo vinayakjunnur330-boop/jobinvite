@@ -1,22 +1,31 @@
-Plan to fix the login flow without changing the blue design:
+## Problem
 
-1. **Make “Send code” send a real OTP experience**
-   - Update the email OTP request so it stays in the 6-digit code flow and does not rely on the magic-link callback.
-   - Configure the backend auth email template/settings so the email clearly shows the 6-digit code instead of presenting the link as the primary action.
-   - Keep the current mobile-safe OTP screen: 6 boxes, numeric keyboard, paste support, auto-submit after 6 digits, resend timer.
+On the home page, the animated aurora orbs, particle field, cursor spotlight, and grid overlay (the "bubbles / dynamic effects") disappear for **guest users on mobile**, and the entire main content (Navbar, Hero, Footer, ChatWidget) is also being suppressed on mobile in that state.
 
-2. **Keep magic links out of the normal login page**
-   - Password reset can still send a reset link, because that is correct.
-   - “Use code instead” will show only the OTP path: send code → enter 6 digits → verify → signed in.
+## Root cause
 
-3. **Show the same restored blue login page after Zoiee’s 3 free questions**
-   - Remove/avoid the separate dark Zoiee auth modal as the main gate.
-   - When the user finishes 3 guest questions, send them to the existing blue `/login` page with a safe return path, so mobile and desktop use one shared working login flow.
-   - Preserve the loading mask while navigating so the homepage/chat does not flash behind it.
+In `src/routes/__root.tsx`, `RootAppContent` computes:
 
-4. **Social buttons stay as requested**
-   - Keep Google and Apple enabled.
-   - Keep GitHub and Facebook visible but disabled with “Soon”, so they do not break mobile login.
+```ts
+const suspendMobileUnderlay = isMobile && !loading && !isAuthenticated && !onAuthRoute;
+```
 
-5. **Verify on mobile and desktop**
-   - Test the OTP send state, OTP verify form behavior, password login UI, and Zoiee 3-question gate on a phone-sized viewport and desktop viewport.
+and then uses it to gate BOTH `<AmbientBackground />` and the entire `<Navbar/> <Outlet/> <Footer/> <ChatWidget/>` block. This was originally added to reduce mobile paint cost behind the Zoiee overlay, but it now removes the ambient visuals (and the hero itself) for every unauthenticated mobile visitor.
+
+`AmbientBackground.tsx` already has its own, correct pause mechanism (`usePauseForMobileZoieeOverlay`) that only disables the backdrop while the Zoiee chat overlay is actively open on mobile — so the root-level guard is redundant and destructive.
+
+## Fix
+
+Edit `src/routes/__root.tsx` only:
+
+1. Delete the `useIsMobileViewport` hook and its usage.
+2. Remove `suspendMobileUnderlay` and always render `<AmbientBackground />` plus the `<Navbar/> <main><Outlet/></main> <Footer/> <ChatWidget/>` block.
+3. Keep the existing `!onAuthRoute` guard on `<GuestConcierge />`.
+4. Leave `AmbientBackground.tsx`, `FuturisticHero.tsx`, `NeuralCanvas.tsx`, and `ParticleField.tsx` untouched — they already handle mobile (NeuralCanvas is desktop-only by design; orbs + particle field remain on mobile) and reduced-motion correctly.
+
+## Verification
+
+- Load `/` on mobile viewport (392×788) as a guest: aurora orbs, particle field, cursor spotlight, and grid overlay are visible behind the hero; Navbar, Hero, Footer, ChatWidget all render.
+- Load `/` on desktop: unchanged — NeuralCanvas + orbs both present.
+- Open Zoiee chat on mobile: `AmbientBackground` still pauses via its internal `zoiee-overlay-active` check (no regression).
+- `/login` on mobile: unchanged (auth route path already excluded).

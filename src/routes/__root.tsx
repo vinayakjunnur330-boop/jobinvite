@@ -126,47 +126,26 @@ function RootComponent() {
   );
 }
 
-function useIsMobileViewport() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const sync = () => setIsMobile(query.matches);
-    sync();
-    query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
-  }, []);
-
-  return isMobile;
-}
-
 function RootAppContent() {
-  const { loading, isAuthenticated } = useAuth();
-  const isMobile = useIsMobileViewport();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const onAuthRoute =
     pathname === "/login" ||
     pathname === "/admin-login" ||
     pathname === "/reset-password" ||
     pathname.startsWith("/auth");
-  const suspendMobileUnderlay = isMobile && !loading && !isAuthenticated && !onAuthRoute;
 
   return (
     <>
         <AuthSync />
         <SplashHider />
-        {!suspendMobileUnderlay && <AmbientBackground />}
+        <AmbientBackground />
         <div className="relative min-h-screen flex flex-col text-foreground">
-          {!suspendMobileUnderlay && (
-            <>
-              <Navbar />
-              <main className="flex-1">
-                <Outlet />
-              </main>
-              <Footer />
-              <ChatWidget />
-            </>
-          )}
+          <Navbar />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <Footer />
+          <ChatWidget />
           {!onAuthRoute && <GuestConcierge />}
           <ChatOpenGate />
           <SessionManager />
@@ -176,6 +155,7 @@ function RootAppContent() {
     </>
   );
 }
+
 
 function SplashHider() {
   const { loading } = useAuth();
