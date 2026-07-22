@@ -179,14 +179,19 @@ function RootAppContent() {
 
 function SplashHider() {
   const { loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => {
-    if (loading) return;
+    const isAuthRoute = pathname === "/login" || pathname === "/admin-login" || pathname === "/reset-password" || pathname.startsWith("/auth");
+    if (loading && !isAuthRoute) return;
     const el = document.getElementById("cp-splash");
     if (!el) return;
-    el.classList.add("cp-hide");
-    const t = window.setTimeout(() => el.remove(), 400);
+    const hide = () => {
+      el.classList.add("cp-hide");
+      window.setTimeout(() => el.remove(), 400);
+    };
+    const t = window.setTimeout(hide, isAuthRoute ? 250 : 0);
     return () => window.clearTimeout(t);
-  }, [loading]);
+  }, [loading, pathname]);
   return null;
 }
 
