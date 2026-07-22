@@ -74,6 +74,7 @@ function TopRightControls() {
 
 export function GuestConcierge() {
   const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const formParam = useRouterState({ select: (s) => (s.location.search as Record<string, unknown>)?.form ?? null });
@@ -94,6 +95,11 @@ export function GuestConcierge() {
     () => `${greeting()}! Hey! I'm Zoiee, your friendly learning buddy. Ready to discover your perfect career today? 🤩`,
     [],
   );
+
+  const openLoginPage = useCallback(() => {
+    import("@/lib/nav-loader").then((m) => m.showPageLoader("Opening secure login..."));
+    navigate({ to: "/login", search: { next: "/dashboard" } });
+  }, [navigate]);
 
   // ✅ Corrected mobile viewport effect: no React state updates here.
   // It freezes the overlay to a stable height on phones, so iOS/Android URL-bar
@@ -223,7 +229,7 @@ export function GuestConcierge() {
 
     if (count >= GUEST_LIMIT) {
       toast.info("You've used your 3 free guest questions! Sign in now to unlock your full career dashboard.");
-      setShowAuthModal(true);
+      openLoginPage();
       return;
     }
 
@@ -245,7 +251,7 @@ export function GuestConcierge() {
         setMsgs(history);
         setStreaming(false);
         toast.info("Sign in to chat with Zoiee — it keeps our AI free of abuse.");
-        setShowAuthModal(true);
+        if (nextCount >= GUEST_LIMIT) openLoginPage();
         return;
       }
       const res = await fetch("/api/chat", {
@@ -296,7 +302,7 @@ export function GuestConcierge() {
     } finally {
       setStreaming(false);
     }
-  }, [count, input, msgs, streaming]);
+  }, [count, input, msgs, openLoginPage, streaming]);
 
   const resetChat = useCallback(() => {
     setMsgs([]);
@@ -440,8 +446,6 @@ export function GuestConcierge() {
                 </form>
               </div>
             </div>
-
-          <AuthGateModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
         </motion.div>
         )}
       </AnimatePresence>
