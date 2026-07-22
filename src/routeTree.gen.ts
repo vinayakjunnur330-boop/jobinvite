@@ -37,8 +37,44 @@ import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ScholarshipsNeedRouteImport } from './routes/scholarships.need'
+import { Route as ScholarshipsMeritRouteImport } from './routes/scholarships.merit'
+import { Route as ScholarshipsDiversityRouteImport } from './routes/scholarships.diversity'
+import { Route as ScholarshipsBrowseRouteImport } from './routes/scholarships.browse'
+import { Route as ScholarshipsAbroadRouteImport } from './routes/scholarships.abroad'
+import { Route as RoadmapTechRouteImport } from './routes/roadmap.tech'
+import { Route as RoadmapResourcesRouteImport } from './routes/roadmap.resources'
+import { Route as RoadmapMilestonesRouteImport } from './routes/roadmap.milestones'
+import { Route as RoadmapCreativeRouteImport } from './routes/roadmap.creative'
+import { Route as RoadmapBusinessRouteImport } from './routes/roadmap.business'
+import { Route as RoadmapAiRouteImport } from './routes/roadmap.ai'
+import { Route as MentorsTopRouteImport } from './routes/mentors.top'
+import { Route as MentorsSessionsRouteImport } from './routes/mentors.sessions'
+import { Route as MentorsFindRouteImport } from './routes/mentors.find'
+import { Route as MentorsBookRouteImport } from './routes/mentors.book'
+import { Route as MentorsBecomeRouteImport } from './routes/mentors.become'
+import { Route as InternshipsSummerRouteImport } from './routes/internships.summer'
+import { Route as InternshipsStartupRouteImport } from './routes/internships.startup'
+import { Route as InternshipsRemoteRouteImport } from './routes/internships.remote'
+import { Route as InternshipsPrepRouteImport } from './routes/internships.prep'
+import { Route as InternshipsCorporateRouteImport } from './routes/internships.corporate'
 import { Route as DomainSlugRouteImport } from './routes/domain.$slug'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardSavedRouteImport } from './routes/dashboard.saved'
+import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardBadgesRouteImport } from './routes/dashboard.badges'
+import { Route as DashboardApplicationsRouteImport } from './routes/dashboard.applications'
+import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as BlogStoriesRouteImport } from './routes/blog.stories'
+import { Route as BlogNewsRouteImport } from './routes/blog.news'
+import { Route as BlogAdviceRouteImport } from './routes/blog.advice'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AssessmentTechnicalRouteImport } from './routes/assessment.technical'
+import { Route as AssessmentResumeRouteImport } from './routes/assessment.resume'
+import { Route as AssessmentPersonalityRouteImport } from './routes/assessment.personality'
+import { Route as AssessmentInterviewRouteImport } from './routes/assessment.interview'
+import { Route as AssessmentCareerFitRouteImport } from './routes/assessment.career-fit'
+import { Route as AssessmentAptitudeRouteImport } from './routes/assessment.aptitude'
 import { Route as ApplyJobIdRouteImport } from './routes/apply.$jobId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -189,15 +225,195 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScholarshipsNeedRoute = ScholarshipsNeedRouteImport.update({
+  id: '/need',
+  path: '/need',
+  getParentRoute: () => ScholarshipsRoute,
+} as any)
+const ScholarshipsMeritRoute = ScholarshipsMeritRouteImport.update({
+  id: '/merit',
+  path: '/merit',
+  getParentRoute: () => ScholarshipsRoute,
+} as any)
+const ScholarshipsDiversityRoute = ScholarshipsDiversityRouteImport.update({
+  id: '/diversity',
+  path: '/diversity',
+  getParentRoute: () => ScholarshipsRoute,
+} as any)
+const ScholarshipsBrowseRoute = ScholarshipsBrowseRouteImport.update({
+  id: '/browse',
+  path: '/browse',
+  getParentRoute: () => ScholarshipsRoute,
+} as any)
+const ScholarshipsAbroadRoute = ScholarshipsAbroadRouteImport.update({
+  id: '/abroad',
+  path: '/abroad',
+  getParentRoute: () => ScholarshipsRoute,
+} as any)
+const RoadmapTechRoute = RoadmapTechRouteImport.update({
+  id: '/tech',
+  path: '/tech',
+  getParentRoute: () => RoadmapRoute,
+} as any)
+const RoadmapResourcesRoute = RoadmapResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => RoadmapRoute,
+} as any)
+const RoadmapMilestonesRoute = RoadmapMilestonesRouteImport.update({
+  id: '/milestones',
+  path: '/milestones',
+  getParentRoute: () => RoadmapRoute,
+} as any)
+const RoadmapCreativeRoute = RoadmapCreativeRouteImport.update({
+  id: '/creative',
+  path: '/creative',
+  getParentRoute: () => RoadmapRoute,
+} as any)
+const RoadmapBusinessRoute = RoadmapBusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => RoadmapRoute,
+} as any)
+const RoadmapAiRoute = RoadmapAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => RoadmapRoute,
+} as any)
+const MentorsTopRoute = MentorsTopRouteImport.update({
+  id: '/top',
+  path: '/top',
+  getParentRoute: () => MentorsRoute,
+} as any)
+const MentorsSessionsRoute = MentorsSessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => MentorsRoute,
+} as any)
+const MentorsFindRoute = MentorsFindRouteImport.update({
+  id: '/find',
+  path: '/find',
+  getParentRoute: () => MentorsRoute,
+} as any)
+const MentorsBookRoute = MentorsBookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => MentorsRoute,
+} as any)
+const MentorsBecomeRoute = MentorsBecomeRouteImport.update({
+  id: '/become',
+  path: '/become',
+  getParentRoute: () => MentorsRoute,
+} as any)
+const InternshipsSummerRoute = InternshipsSummerRouteImport.update({
+  id: '/summer',
+  path: '/summer',
+  getParentRoute: () => InternshipsRoute,
+} as any)
+const InternshipsStartupRoute = InternshipsStartupRouteImport.update({
+  id: '/startup',
+  path: '/startup',
+  getParentRoute: () => InternshipsRoute,
+} as any)
+const InternshipsRemoteRoute = InternshipsRemoteRouteImport.update({
+  id: '/remote',
+  path: '/remote',
+  getParentRoute: () => InternshipsRoute,
+} as any)
+const InternshipsPrepRoute = InternshipsPrepRouteImport.update({
+  id: '/prep',
+  path: '/prep',
+  getParentRoute: () => InternshipsRoute,
+} as any)
+const InternshipsCorporateRoute = InternshipsCorporateRouteImport.update({
+  id: '/corporate',
+  path: '/corporate',
+  getParentRoute: () => InternshipsRoute,
+} as any)
 const DomainSlugRoute = DomainSlugRouteImport.update({
   id: '/domain/$slug',
   path: '/domain/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSavedRoute = DashboardSavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBadgesRoute = DashboardBadgesRouteImport.update({
+  id: '/badges',
+  path: '/badges',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardApplicationsRoute = DashboardApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const BlogStoriesRoute = BlogStoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => BlogRoute,
+} as any)
+const BlogNewsRoute = BlogNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => BlogRoute,
+} as any)
+const BlogAdviceRoute = BlogAdviceRouteImport.update({
+  id: '/advice',
+  path: '/advice',
+  getParentRoute: () => BlogRoute,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AssessmentTechnicalRoute = AssessmentTechnicalRouteImport.update({
+  id: '/technical',
+  path: '/technical',
+  getParentRoute: () => AssessmentRoute,
+} as any)
+const AssessmentResumeRoute = AssessmentResumeRouteImport.update({
+  id: '/resume',
+  path: '/resume',
+  getParentRoute: () => AssessmentRoute,
+} as any)
+const AssessmentPersonalityRoute = AssessmentPersonalityRouteImport.update({
+  id: '/personality',
+  path: '/personality',
+  getParentRoute: () => AssessmentRoute,
+} as any)
+const AssessmentInterviewRoute = AssessmentInterviewRouteImport.update({
+  id: '/interview',
+  path: '/interview',
+  getParentRoute: () => AssessmentRoute,
+} as any)
+const AssessmentCareerFitRoute = AssessmentCareerFitRouteImport.update({
+  id: '/career-fit',
+  path: '/career-fit',
+  getParentRoute: () => AssessmentRoute,
+} as any)
+const AssessmentAptitudeRoute = AssessmentAptitudeRouteImport.update({
+  id: '/aptitude',
+  path: '/aptitude',
+  getParentRoute: () => AssessmentRoute,
 } as any)
 const ApplyJobIdRoute = ApplyJobIdRouteImport.update({
   id: '/apply/$jobId',
@@ -254,26 +470,26 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
-  '/assessment': typeof AssessmentRoute
-  '/blog': typeof BlogRoute
+  '/assessment': typeof AssessmentRouteWithChildren
+  '/blog': typeof BlogRouteWithChildren
   '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/email-preview': typeof EmailPreviewRoute
-  '/internships': typeof InternshipsRoute
+  '/internships': typeof InternshipsRouteWithChildren
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/mentors': typeof MentorsRoute
+  '/mentors': typeof MentorsRouteWithChildren
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
-  '/roadmap': typeof RoadmapRoute
+  '/roadmap': typeof RoadmapRouteWithChildren
   '/salary': typeof SalaryRoute
-  '/scholarships': typeof ScholarshipsRoute
+  '/scholarships': typeof ScholarshipsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
@@ -282,8 +498,44 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$jobId': typeof ApplyJobIdRoute
+  '/assessment/aptitude': typeof AssessmentAptitudeRoute
+  '/assessment/career-fit': typeof AssessmentCareerFitRoute
+  '/assessment/interview': typeof AssessmentInterviewRoute
+  '/assessment/personality': typeof AssessmentPersonalityRoute
+  '/assessment/resume': typeof AssessmentResumeRoute
+  '/assessment/technical': typeof AssessmentTechnicalRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/advice': typeof BlogAdviceRoute
+  '/blog/news': typeof BlogNewsRoute
+  '/blog/stories': typeof BlogStoriesRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/applications': typeof DashboardApplicationsRoute
+  '/dashboard/badges': typeof DashboardBadgesRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/saved': typeof DashboardSavedRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/domain/$slug': typeof DomainSlugRoute
+  '/internships/corporate': typeof InternshipsCorporateRoute
+  '/internships/prep': typeof InternshipsPrepRoute
+  '/internships/remote': typeof InternshipsRemoteRoute
+  '/internships/startup': typeof InternshipsStartupRoute
+  '/internships/summer': typeof InternshipsSummerRoute
+  '/mentors/become': typeof MentorsBecomeRoute
+  '/mentors/book': typeof MentorsBookRoute
+  '/mentors/find': typeof MentorsFindRoute
+  '/mentors/sessions': typeof MentorsSessionsRoute
+  '/mentors/top': typeof MentorsTopRoute
+  '/roadmap/ai': typeof RoadmapAiRoute
+  '/roadmap/business': typeof RoadmapBusinessRoute
+  '/roadmap/creative': typeof RoadmapCreativeRoute
+  '/roadmap/milestones': typeof RoadmapMilestonesRoute
+  '/roadmap/resources': typeof RoadmapResourcesRoute
+  '/roadmap/tech': typeof RoadmapTechRoute
+  '/scholarships/abroad': typeof ScholarshipsAbroadRoute
+  '/scholarships/browse': typeof ScholarshipsBrowseRoute
+  '/scholarships/diversity': typeof ScholarshipsDiversityRoute
+  '/scholarships/merit': typeof ScholarshipsMeritRoute
+  '/scholarships/need': typeof ScholarshipsNeedRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -295,26 +547,26 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
-  '/assessment': typeof AssessmentRoute
-  '/blog': typeof BlogRoute
+  '/assessment': typeof AssessmentRouteWithChildren
+  '/blog': typeof BlogRouteWithChildren
   '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/email-preview': typeof EmailPreviewRoute
-  '/internships': typeof InternshipsRoute
+  '/internships': typeof InternshipsRouteWithChildren
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/mentors': typeof MentorsRoute
+  '/mentors': typeof MentorsRouteWithChildren
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
-  '/roadmap': typeof RoadmapRoute
+  '/roadmap': typeof RoadmapRouteWithChildren
   '/salary': typeof SalaryRoute
-  '/scholarships': typeof ScholarshipsRoute
+  '/scholarships': typeof ScholarshipsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
@@ -323,8 +575,44 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$jobId': typeof ApplyJobIdRoute
+  '/assessment/aptitude': typeof AssessmentAptitudeRoute
+  '/assessment/career-fit': typeof AssessmentCareerFitRoute
+  '/assessment/interview': typeof AssessmentInterviewRoute
+  '/assessment/personality': typeof AssessmentPersonalityRoute
+  '/assessment/resume': typeof AssessmentResumeRoute
+  '/assessment/technical': typeof AssessmentTechnicalRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/advice': typeof BlogAdviceRoute
+  '/blog/news': typeof BlogNewsRoute
+  '/blog/stories': typeof BlogStoriesRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/applications': typeof DashboardApplicationsRoute
+  '/dashboard/badges': typeof DashboardBadgesRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/saved': typeof DashboardSavedRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/domain/$slug': typeof DomainSlugRoute
+  '/internships/corporate': typeof InternshipsCorporateRoute
+  '/internships/prep': typeof InternshipsPrepRoute
+  '/internships/remote': typeof InternshipsRemoteRoute
+  '/internships/startup': typeof InternshipsStartupRoute
+  '/internships/summer': typeof InternshipsSummerRoute
+  '/mentors/become': typeof MentorsBecomeRoute
+  '/mentors/book': typeof MentorsBookRoute
+  '/mentors/find': typeof MentorsFindRoute
+  '/mentors/sessions': typeof MentorsSessionsRoute
+  '/mentors/top': typeof MentorsTopRoute
+  '/roadmap/ai': typeof RoadmapAiRoute
+  '/roadmap/business': typeof RoadmapBusinessRoute
+  '/roadmap/creative': typeof RoadmapCreativeRoute
+  '/roadmap/milestones': typeof RoadmapMilestonesRoute
+  '/roadmap/resources': typeof RoadmapResourcesRoute
+  '/roadmap/tech': typeof RoadmapTechRoute
+  '/scholarships/abroad': typeof ScholarshipsAbroadRoute
+  '/scholarships/browse': typeof ScholarshipsBrowseRoute
+  '/scholarships/diversity': typeof ScholarshipsDiversityRoute
+  '/scholarships/merit': typeof ScholarshipsMeritRoute
+  '/scholarships/need': typeof ScholarshipsNeedRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -337,26 +625,26 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
-  '/assessment': typeof AssessmentRoute
-  '/blog': typeof BlogRoute
+  '/assessment': typeof AssessmentRouteWithChildren
+  '/blog': typeof BlogRouteWithChildren
   '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/email-preview': typeof EmailPreviewRoute
-  '/internships': typeof InternshipsRoute
+  '/internships': typeof InternshipsRouteWithChildren
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/mentors': typeof MentorsRoute
+  '/mentors': typeof MentorsRouteWithChildren
   '/personality': typeof PersonalityRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/resume': typeof ResumeRoute
-  '/roadmap': typeof RoadmapRoute
+  '/roadmap': typeof RoadmapRouteWithChildren
   '/salary': typeof SalaryRoute
-  '/scholarships': typeof ScholarshipsRoute
+  '/scholarships': typeof ScholarshipsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skills': typeof SkillsRoute
   '/success-stories': typeof SuccessStoriesRoute
@@ -365,8 +653,44 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$jobId': typeof ApplyJobIdRoute
+  '/assessment/aptitude': typeof AssessmentAptitudeRoute
+  '/assessment/career-fit': typeof AssessmentCareerFitRoute
+  '/assessment/interview': typeof AssessmentInterviewRoute
+  '/assessment/personality': typeof AssessmentPersonalityRoute
+  '/assessment/resume': typeof AssessmentResumeRoute
+  '/assessment/technical': typeof AssessmentTechnicalRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/advice': typeof BlogAdviceRoute
+  '/blog/news': typeof BlogNewsRoute
+  '/blog/stories': typeof BlogStoriesRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/applications': typeof DashboardApplicationsRoute
+  '/dashboard/badges': typeof DashboardBadgesRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/saved': typeof DashboardSavedRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/domain/$slug': typeof DomainSlugRoute
+  '/internships/corporate': typeof InternshipsCorporateRoute
+  '/internships/prep': typeof InternshipsPrepRoute
+  '/internships/remote': typeof InternshipsRemoteRoute
+  '/internships/startup': typeof InternshipsStartupRoute
+  '/internships/summer': typeof InternshipsSummerRoute
+  '/mentors/become': typeof MentorsBecomeRoute
+  '/mentors/book': typeof MentorsBookRoute
+  '/mentors/find': typeof MentorsFindRoute
+  '/mentors/sessions': typeof MentorsSessionsRoute
+  '/mentors/top': typeof MentorsTopRoute
+  '/roadmap/ai': typeof RoadmapAiRoute
+  '/roadmap/business': typeof RoadmapBusinessRoute
+  '/roadmap/creative': typeof RoadmapCreativeRoute
+  '/roadmap/milestones': typeof RoadmapMilestonesRoute
+  '/roadmap/resources': typeof RoadmapResourcesRoute
+  '/roadmap/tech': typeof RoadmapTechRoute
+  '/scholarships/abroad': typeof ScholarshipsAbroadRoute
+  '/scholarships/browse': typeof ScholarshipsBrowseRoute
+  '/scholarships/diversity': typeof ScholarshipsDiversityRoute
+  '/scholarships/merit': typeof ScholarshipsMeritRoute
+  '/scholarships/need': typeof ScholarshipsNeedRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -408,8 +732,44 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
     | '/apply/$jobId'
+    | '/assessment/aptitude'
+    | '/assessment/career-fit'
+    | '/assessment/interview'
+    | '/assessment/personality'
+    | '/assessment/resume'
+    | '/assessment/technical'
     | '/auth/callback'
+    | '/blog/advice'
+    | '/blog/news'
+    | '/blog/stories'
+    | '/dashboard/analytics'
+    | '/dashboard/applications'
+    | '/dashboard/badges'
+    | '/dashboard/profile'
+    | '/dashboard/saved'
+    | '/dashboard/settings'
     | '/domain/$slug'
+    | '/internships/corporate'
+    | '/internships/prep'
+    | '/internships/remote'
+    | '/internships/startup'
+    | '/internships/summer'
+    | '/mentors/become'
+    | '/mentors/book'
+    | '/mentors/find'
+    | '/mentors/sessions'
+    | '/mentors/top'
+    | '/roadmap/ai'
+    | '/roadmap/business'
+    | '/roadmap/creative'
+    | '/roadmap/milestones'
+    | '/roadmap/resources'
+    | '/roadmap/tech'
+    | '/scholarships/abroad'
+    | '/scholarships/browse'
+    | '/scholarships/diversity'
+    | '/scholarships/merit'
+    | '/scholarships/need'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/lovable/email/auth/preview'
@@ -449,8 +809,44 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
     | '/apply/$jobId'
+    | '/assessment/aptitude'
+    | '/assessment/career-fit'
+    | '/assessment/interview'
+    | '/assessment/personality'
+    | '/assessment/resume'
+    | '/assessment/technical'
     | '/auth/callback'
+    | '/blog/advice'
+    | '/blog/news'
+    | '/blog/stories'
+    | '/dashboard/analytics'
+    | '/dashboard/applications'
+    | '/dashboard/badges'
+    | '/dashboard/profile'
+    | '/dashboard/saved'
+    | '/dashboard/settings'
     | '/domain/$slug'
+    | '/internships/corporate'
+    | '/internships/prep'
+    | '/internships/remote'
+    | '/internships/startup'
+    | '/internships/summer'
+    | '/mentors/become'
+    | '/mentors/book'
+    | '/mentors/find'
+    | '/mentors/sessions'
+    | '/mentors/top'
+    | '/roadmap/ai'
+    | '/roadmap/business'
+    | '/roadmap/creative'
+    | '/roadmap/milestones'
+    | '/roadmap/resources'
+    | '/roadmap/tech'
+    | '/scholarships/abroad'
+    | '/scholarships/browse'
+    | '/scholarships/diversity'
+    | '/scholarships/merit'
+    | '/scholarships/need'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/lovable/email/auth/preview'
@@ -490,8 +886,44 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
     | '/apply/$jobId'
+    | '/assessment/aptitude'
+    | '/assessment/career-fit'
+    | '/assessment/interview'
+    | '/assessment/personality'
+    | '/assessment/resume'
+    | '/assessment/technical'
     | '/auth/callback'
+    | '/blog/advice'
+    | '/blog/news'
+    | '/blog/stories'
+    | '/dashboard/analytics'
+    | '/dashboard/applications'
+    | '/dashboard/badges'
+    | '/dashboard/profile'
+    | '/dashboard/saved'
+    | '/dashboard/settings'
     | '/domain/$slug'
+    | '/internships/corporate'
+    | '/internships/prep'
+    | '/internships/remote'
+    | '/internships/startup'
+    | '/internships/summer'
+    | '/mentors/become'
+    | '/mentors/book'
+    | '/mentors/find'
+    | '/mentors/sessions'
+    | '/mentors/top'
+    | '/roadmap/ai'
+    | '/roadmap/business'
+    | '/roadmap/creative'
+    | '/roadmap/milestones'
+    | '/roadmap/resources'
+    | '/roadmap/tech'
+    | '/scholarships/abroad'
+    | '/scholarships/browse'
+    | '/scholarships/diversity'
+    | '/scholarships/merit'
+    | '/scholarships/need'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/lovable/email/auth/preview'
@@ -504,26 +936,26 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   AdminLoginRoute: typeof AdminLoginRoute
-  AssessmentRoute: typeof AssessmentRoute
-  BlogRoute: typeof BlogRoute
+  AssessmentRoute: typeof AssessmentRouteWithChildren
+  BlogRoute: typeof BlogRouteWithChildren
   CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   EmailPreviewRoute: typeof EmailPreviewRoute
-  InternshipsRoute: typeof InternshipsRoute
+  InternshipsRoute: typeof InternshipsRouteWithChildren
   JobsRoute: typeof JobsRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
-  MentorsRoute: typeof MentorsRoute
+  MentorsRoute: typeof MentorsRouteWithChildren
   PersonalityRoute: typeof PersonalityRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   ResumeRoute: typeof ResumeRoute
-  RoadmapRoute: typeof RoadmapRoute
+  RoadmapRoute: typeof RoadmapRouteWithChildren
   SalaryRoute: typeof SalaryRoute
-  ScholarshipsRoute: typeof ScholarshipsRoute
+  ScholarshipsRoute: typeof ScholarshipsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SkillsRoute: typeof SkillsRoute
   SuccessStoriesRoute: typeof SuccessStoriesRoute
@@ -739,6 +1171,153 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scholarships/need': {
+      id: '/scholarships/need'
+      path: '/need'
+      fullPath: '/scholarships/need'
+      preLoaderRoute: typeof ScholarshipsNeedRouteImport
+      parentRoute: typeof ScholarshipsRoute
+    }
+    '/scholarships/merit': {
+      id: '/scholarships/merit'
+      path: '/merit'
+      fullPath: '/scholarships/merit'
+      preLoaderRoute: typeof ScholarshipsMeritRouteImport
+      parentRoute: typeof ScholarshipsRoute
+    }
+    '/scholarships/diversity': {
+      id: '/scholarships/diversity'
+      path: '/diversity'
+      fullPath: '/scholarships/diversity'
+      preLoaderRoute: typeof ScholarshipsDiversityRouteImport
+      parentRoute: typeof ScholarshipsRoute
+    }
+    '/scholarships/browse': {
+      id: '/scholarships/browse'
+      path: '/browse'
+      fullPath: '/scholarships/browse'
+      preLoaderRoute: typeof ScholarshipsBrowseRouteImport
+      parentRoute: typeof ScholarshipsRoute
+    }
+    '/scholarships/abroad': {
+      id: '/scholarships/abroad'
+      path: '/abroad'
+      fullPath: '/scholarships/abroad'
+      preLoaderRoute: typeof ScholarshipsAbroadRouteImport
+      parentRoute: typeof ScholarshipsRoute
+    }
+    '/roadmap/tech': {
+      id: '/roadmap/tech'
+      path: '/tech'
+      fullPath: '/roadmap/tech'
+      preLoaderRoute: typeof RoadmapTechRouteImport
+      parentRoute: typeof RoadmapRoute
+    }
+    '/roadmap/resources': {
+      id: '/roadmap/resources'
+      path: '/resources'
+      fullPath: '/roadmap/resources'
+      preLoaderRoute: typeof RoadmapResourcesRouteImport
+      parentRoute: typeof RoadmapRoute
+    }
+    '/roadmap/milestones': {
+      id: '/roadmap/milestones'
+      path: '/milestones'
+      fullPath: '/roadmap/milestones'
+      preLoaderRoute: typeof RoadmapMilestonesRouteImport
+      parentRoute: typeof RoadmapRoute
+    }
+    '/roadmap/creative': {
+      id: '/roadmap/creative'
+      path: '/creative'
+      fullPath: '/roadmap/creative'
+      preLoaderRoute: typeof RoadmapCreativeRouteImport
+      parentRoute: typeof RoadmapRoute
+    }
+    '/roadmap/business': {
+      id: '/roadmap/business'
+      path: '/business'
+      fullPath: '/roadmap/business'
+      preLoaderRoute: typeof RoadmapBusinessRouteImport
+      parentRoute: typeof RoadmapRoute
+    }
+    '/roadmap/ai': {
+      id: '/roadmap/ai'
+      path: '/ai'
+      fullPath: '/roadmap/ai'
+      preLoaderRoute: typeof RoadmapAiRouteImport
+      parentRoute: typeof RoadmapRoute
+    }
+    '/mentors/top': {
+      id: '/mentors/top'
+      path: '/top'
+      fullPath: '/mentors/top'
+      preLoaderRoute: typeof MentorsTopRouteImport
+      parentRoute: typeof MentorsRoute
+    }
+    '/mentors/sessions': {
+      id: '/mentors/sessions'
+      path: '/sessions'
+      fullPath: '/mentors/sessions'
+      preLoaderRoute: typeof MentorsSessionsRouteImport
+      parentRoute: typeof MentorsRoute
+    }
+    '/mentors/find': {
+      id: '/mentors/find'
+      path: '/find'
+      fullPath: '/mentors/find'
+      preLoaderRoute: typeof MentorsFindRouteImport
+      parentRoute: typeof MentorsRoute
+    }
+    '/mentors/book': {
+      id: '/mentors/book'
+      path: '/book'
+      fullPath: '/mentors/book'
+      preLoaderRoute: typeof MentorsBookRouteImport
+      parentRoute: typeof MentorsRoute
+    }
+    '/mentors/become': {
+      id: '/mentors/become'
+      path: '/become'
+      fullPath: '/mentors/become'
+      preLoaderRoute: typeof MentorsBecomeRouteImport
+      parentRoute: typeof MentorsRoute
+    }
+    '/internships/summer': {
+      id: '/internships/summer'
+      path: '/summer'
+      fullPath: '/internships/summer'
+      preLoaderRoute: typeof InternshipsSummerRouteImport
+      parentRoute: typeof InternshipsRoute
+    }
+    '/internships/startup': {
+      id: '/internships/startup'
+      path: '/startup'
+      fullPath: '/internships/startup'
+      preLoaderRoute: typeof InternshipsStartupRouteImport
+      parentRoute: typeof InternshipsRoute
+    }
+    '/internships/remote': {
+      id: '/internships/remote'
+      path: '/remote'
+      fullPath: '/internships/remote'
+      preLoaderRoute: typeof InternshipsRemoteRouteImport
+      parentRoute: typeof InternshipsRoute
+    }
+    '/internships/prep': {
+      id: '/internships/prep'
+      path: '/prep'
+      fullPath: '/internships/prep'
+      preLoaderRoute: typeof InternshipsPrepRouteImport
+      parentRoute: typeof InternshipsRoute
+    }
+    '/internships/corporate': {
+      id: '/internships/corporate'
+      path: '/corporate'
+      fullPath: '/internships/corporate'
+      preLoaderRoute: typeof InternshipsCorporateRouteImport
+      parentRoute: typeof InternshipsRoute
+    }
     '/domain/$slug': {
       id: '/domain/$slug'
       path: '/domain/$slug'
@@ -746,12 +1325,117 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DomainSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/saved': {
+      id: '/dashboard/saved'
+      path: '/saved'
+      fullPath: '/dashboard/saved'
+      preLoaderRoute: typeof DashboardSavedRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/profile': {
+      id: '/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/badges': {
+      id: '/dashboard/badges'
+      path: '/badges'
+      fullPath: '/dashboard/badges'
+      preLoaderRoute: typeof DashboardBadgesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/applications': {
+      id: '/dashboard/applications'
+      path: '/applications'
+      fullPath: '/dashboard/applications'
+      preLoaderRoute: typeof DashboardApplicationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/analytics': {
+      id: '/dashboard/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof DashboardAnalyticsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/blog/stories': {
+      id: '/blog/stories'
+      path: '/stories'
+      fullPath: '/blog/stories'
+      preLoaderRoute: typeof BlogStoriesRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    '/blog/news': {
+      id: '/blog/news'
+      path: '/news'
+      fullPath: '/blog/news'
+      preLoaderRoute: typeof BlogNewsRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    '/blog/advice': {
+      id: '/blog/advice'
+      path: '/advice'
+      fullPath: '/blog/advice'
+      preLoaderRoute: typeof BlogAdviceRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/assessment/technical': {
+      id: '/assessment/technical'
+      path: '/technical'
+      fullPath: '/assessment/technical'
+      preLoaderRoute: typeof AssessmentTechnicalRouteImport
+      parentRoute: typeof AssessmentRoute
+    }
+    '/assessment/resume': {
+      id: '/assessment/resume'
+      path: '/resume'
+      fullPath: '/assessment/resume'
+      preLoaderRoute: typeof AssessmentResumeRouteImport
+      parentRoute: typeof AssessmentRoute
+    }
+    '/assessment/personality': {
+      id: '/assessment/personality'
+      path: '/personality'
+      fullPath: '/assessment/personality'
+      preLoaderRoute: typeof AssessmentPersonalityRouteImport
+      parentRoute: typeof AssessmentRoute
+    }
+    '/assessment/interview': {
+      id: '/assessment/interview'
+      path: '/interview'
+      fullPath: '/assessment/interview'
+      preLoaderRoute: typeof AssessmentInterviewRouteImport
+      parentRoute: typeof AssessmentRoute
+    }
+    '/assessment/career-fit': {
+      id: '/assessment/career-fit'
+      path: '/career-fit'
+      fullPath: '/assessment/career-fit'
+      preLoaderRoute: typeof AssessmentCareerFitRouteImport
+      parentRoute: typeof AssessmentRoute
+    }
+    '/assessment/aptitude': {
+      id: '/assessment/aptitude'
+      path: '/aptitude'
+      fullPath: '/assessment/aptitude'
+      preLoaderRoute: typeof AssessmentAptitudeRouteImport
+      parentRoute: typeof AssessmentRoute
     }
     '/apply/$jobId': {
       id: '/apply/$jobId'
@@ -819,31 +1503,169 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AssessmentRouteChildren {
+  AssessmentAptitudeRoute: typeof AssessmentAptitudeRoute
+  AssessmentCareerFitRoute: typeof AssessmentCareerFitRoute
+  AssessmentInterviewRoute: typeof AssessmentInterviewRoute
+  AssessmentPersonalityRoute: typeof AssessmentPersonalityRoute
+  AssessmentResumeRoute: typeof AssessmentResumeRoute
+  AssessmentTechnicalRoute: typeof AssessmentTechnicalRoute
+}
+
+const AssessmentRouteChildren: AssessmentRouteChildren = {
+  AssessmentAptitudeRoute: AssessmentAptitudeRoute,
+  AssessmentCareerFitRoute: AssessmentCareerFitRoute,
+  AssessmentInterviewRoute: AssessmentInterviewRoute,
+  AssessmentPersonalityRoute: AssessmentPersonalityRoute,
+  AssessmentResumeRoute: AssessmentResumeRoute,
+  AssessmentTechnicalRoute: AssessmentTechnicalRoute,
+}
+
+const AssessmentRouteWithChildren = AssessmentRoute._addFileChildren(
+  AssessmentRouteChildren,
+)
+
+interface BlogRouteChildren {
+  BlogAdviceRoute: typeof BlogAdviceRoute
+  BlogNewsRoute: typeof BlogNewsRoute
+  BlogStoriesRoute: typeof BlogStoriesRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogAdviceRoute: BlogAdviceRoute,
+  BlogNewsRoute: BlogNewsRoute,
+  BlogStoriesRoute: BlogStoriesRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
+interface DashboardRouteChildren {
+  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardApplicationsRoute: typeof DashboardApplicationsRoute
+  DashboardBadgesRoute: typeof DashboardBadgesRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardSavedRoute: typeof DashboardSavedRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardApplicationsRoute: DashboardApplicationsRoute,
+  DashboardBadgesRoute: DashboardBadgesRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
+  DashboardSavedRoute: DashboardSavedRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
+interface InternshipsRouteChildren {
+  InternshipsCorporateRoute: typeof InternshipsCorporateRoute
+  InternshipsPrepRoute: typeof InternshipsPrepRoute
+  InternshipsRemoteRoute: typeof InternshipsRemoteRoute
+  InternshipsStartupRoute: typeof InternshipsStartupRoute
+  InternshipsSummerRoute: typeof InternshipsSummerRoute
+}
+
+const InternshipsRouteChildren: InternshipsRouteChildren = {
+  InternshipsCorporateRoute: InternshipsCorporateRoute,
+  InternshipsPrepRoute: InternshipsPrepRoute,
+  InternshipsRemoteRoute: InternshipsRemoteRoute,
+  InternshipsStartupRoute: InternshipsStartupRoute,
+  InternshipsSummerRoute: InternshipsSummerRoute,
+}
+
+const InternshipsRouteWithChildren = InternshipsRoute._addFileChildren(
+  InternshipsRouteChildren,
+)
+
+interface MentorsRouteChildren {
+  MentorsBecomeRoute: typeof MentorsBecomeRoute
+  MentorsBookRoute: typeof MentorsBookRoute
+  MentorsFindRoute: typeof MentorsFindRoute
+  MentorsSessionsRoute: typeof MentorsSessionsRoute
+  MentorsTopRoute: typeof MentorsTopRoute
+}
+
+const MentorsRouteChildren: MentorsRouteChildren = {
+  MentorsBecomeRoute: MentorsBecomeRoute,
+  MentorsBookRoute: MentorsBookRoute,
+  MentorsFindRoute: MentorsFindRoute,
+  MentorsSessionsRoute: MentorsSessionsRoute,
+  MentorsTopRoute: MentorsTopRoute,
+}
+
+const MentorsRouteWithChildren =
+  MentorsRoute._addFileChildren(MentorsRouteChildren)
+
+interface RoadmapRouteChildren {
+  RoadmapAiRoute: typeof RoadmapAiRoute
+  RoadmapBusinessRoute: typeof RoadmapBusinessRoute
+  RoadmapCreativeRoute: typeof RoadmapCreativeRoute
+  RoadmapMilestonesRoute: typeof RoadmapMilestonesRoute
+  RoadmapResourcesRoute: typeof RoadmapResourcesRoute
+  RoadmapTechRoute: typeof RoadmapTechRoute
+}
+
+const RoadmapRouteChildren: RoadmapRouteChildren = {
+  RoadmapAiRoute: RoadmapAiRoute,
+  RoadmapBusinessRoute: RoadmapBusinessRoute,
+  RoadmapCreativeRoute: RoadmapCreativeRoute,
+  RoadmapMilestonesRoute: RoadmapMilestonesRoute,
+  RoadmapResourcesRoute: RoadmapResourcesRoute,
+  RoadmapTechRoute: RoadmapTechRoute,
+}
+
+const RoadmapRouteWithChildren =
+  RoadmapRoute._addFileChildren(RoadmapRouteChildren)
+
+interface ScholarshipsRouteChildren {
+  ScholarshipsAbroadRoute: typeof ScholarshipsAbroadRoute
+  ScholarshipsBrowseRoute: typeof ScholarshipsBrowseRoute
+  ScholarshipsDiversityRoute: typeof ScholarshipsDiversityRoute
+  ScholarshipsMeritRoute: typeof ScholarshipsMeritRoute
+  ScholarshipsNeedRoute: typeof ScholarshipsNeedRoute
+}
+
+const ScholarshipsRouteChildren: ScholarshipsRouteChildren = {
+  ScholarshipsAbroadRoute: ScholarshipsAbroadRoute,
+  ScholarshipsBrowseRoute: ScholarshipsBrowseRoute,
+  ScholarshipsDiversityRoute: ScholarshipsDiversityRoute,
+  ScholarshipsMeritRoute: ScholarshipsMeritRoute,
+  ScholarshipsNeedRoute: ScholarshipsNeedRoute,
+}
+
+const ScholarshipsRouteWithChildren = ScholarshipsRoute._addFileChildren(
+  ScholarshipsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   AdminLoginRoute: AdminLoginRoute,
-  AssessmentRoute: AssessmentRoute,
-  BlogRoute: BlogRoute,
+  AssessmentRoute: AssessmentRouteWithChildren,
+  BlogRoute: BlogRouteWithChildren,
   CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   EmailPreviewRoute: EmailPreviewRoute,
-  InternshipsRoute: InternshipsRoute,
+  InternshipsRoute: InternshipsRouteWithChildren,
   JobsRoute: JobsRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
-  MentorsRoute: MentorsRoute,
+  MentorsRoute: MentorsRouteWithChildren,
   PersonalityRoute: PersonalityRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   ResumeRoute: ResumeRoute,
-  RoadmapRoute: RoadmapRoute,
+  RoadmapRoute: RoadmapRouteWithChildren,
   SalaryRoute: SalaryRoute,
-  ScholarshipsRoute: ScholarshipsRoute,
+  ScholarshipsRoute: ScholarshipsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SkillsRoute: SkillsRoute,
   SuccessStoriesRoute: SuccessStoriesRoute,
