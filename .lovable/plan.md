@@ -1,35 +1,22 @@
-## Plan: Restore social login buttons on `/login`
+Plan to fix the login flow without changing the blue design:
 
-### Goal
-Bring back Google, Apple, GitHub, and Facebook social-login buttons on the existing blue glassmorphic `/login` page. Only Google and Apple will be functional; GitHub and Facebook will be visually present but disabled with a clear "Coming soon" state so the page never breaks on mobile or desktop.
+1. **Make “Send code” send a real OTP experience**
+   - Update the email OTP request so it stays in the 6-digit code flow and does not rely on the magic-link callback.
+   - Configure the backend auth email template/settings so the email clearly shows the 6-digit code instead of presenting the link as the primary action.
+   - Keep the current mobile-safe OTP screen: 6 boxes, numeric keyboard, paste support, auto-submit after 6 digits, resend timer.
 
-### Why this approach
-- Lovable Cloud natively supports **Google** and **Apple** OAuth.
-- **GitHub and Facebook** are not natively supported in Lovable Cloud. The previous removal was to prevent runtime errors. Showing them as disabled satisfies the UI request without breaking the auth flow.
+2. **Keep magic links out of the normal login page**
+   - Password reset can still send a reset link, because that is correct.
+   - “Use code instead” will show only the OTP path: send code → enter 6 digits → verify → signed in.
 
-### Changes
+3. **Show the same restored blue login page after Zoiee’s 3 free questions**
+   - Remove/avoid the separate dark Zoiee auth modal as the main gate.
+   - When the user finishes 3 guest questions, send them to the existing blue `/login` page with a safe return path, so mobile and desktop use one shared working login flow.
+   - Preserve the loading mask while navigating so the homepage/chat does not flash behind it.
 
-1. **Update `src/routes/login.tsx`**
-   - Replace the single Google button with a 2×2 grid of social buttons: Google, Apple, GitHub, Facebook.
-   - Keep the existing blue glassmorphic styling and mobile-safe `h-12` heights.
-   - Wire Google and Apple to `lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/auth/callback" })`.
-   - Render GitHub and Facebook as disabled buttons with a tooltip or inline "Coming soon" label.
-   - Preserve loading states (`oauthBusy`) for active providers.
+4. **Social buttons stay as requested**
+   - Keep Google and Apple enabled.
+   - Keep GitHub and Facebook visible but disabled with “Soon”, so they do not break mobile login.
 
-2. **Enable Apple provider in backend**
-   - Call `supabase--configure_social_auth` with `providers: ["google", "apple"]` so Apple Sign In is active in Supabase Auth.
-
-3. **Verify mobile layout**
-   - Ensure the 2×2 grid collapses cleanly on narrow screens (use responsive grid columns and gap).
-   - Confirm button text/icon remains tappable and no overlay (e.g., `GuestConcierge`) blocks the buttons on `/login`.
-
-### Out of scope
-- No functional GitHub/Facebook OAuth implementation (not supported by Lovable Cloud managed auth).
-- No changes to email/password or OTP flows.
-- No redesign of the blue glassmorphism aesthetic.
-
-### Acceptance criteria
-- `/login` shows four social buttons: Google, Apple, GitHub, Facebook.
-- Google and Apple log the user in end-to-end on mobile and desktop.
-- GitHub and Facebook are disabled and show a "Coming soon" indicator.
-- No auth errors or broken redirects on mobile.
+5. **Verify on mobile and desktop**
+   - Test the OTP send state, OTP verify form behavior, password login UI, and Zoiee 3-question gate on a phone-sized viewport and desktop viewport.
