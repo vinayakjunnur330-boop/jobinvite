@@ -57,50 +57,31 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-7 text-sm">
-          {primaryLinks.map((l) => {
-            const active = l.to === "/" ? path === "/" : path.startsWith(l.to);
-            return (
-              <Link
-                key={l.to}
-                to={l.to}
-                className={`relative story-link transition-colors ${active ? "text-white font-medium" : "text-white/60 hover:text-white"}`}
-              >
-                {l.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
           <ThemeToggle />
           {user ? (
             <>
-              <Link to="/dashboard" className="size-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm" title={user.email ?? ""}>
+              <Link to="/dashboard" className="hidden sm:flex size-9 rounded-full bg-primary text-primary-foreground items-center justify-center font-semibold text-sm" title={user.email ?? ""}>
                 {initial}
               </Link>
-              <button onClick={handleSignOut} className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors" aria-label="Sign out">
+              <button onClick={handleSignOut} className="hidden sm:inline-flex text-sm text-muted-foreground hover:text-foreground items-center gap-1.5 transition-colors" aria-label="Sign out">
                 <LogOut className="size-4" /> Sign out
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" search={{ form: "1" }} onClick={() => showPageLoader()} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/login" search={{ form: "1" }} onClick={() => showPageLoader()} className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Sign in
               </Link>
               <Link
                 to="/assessment"
-                className="btn-glass text-sm"
+                className="hidden sm:inline-flex btn-glass text-sm"
               >
                 Get started
               </Link>
             </>
           )}
-        </div>
-
-        <div className="flex md:hidden items-center gap-2">
-          <ThemeToggle />
-          <button className="text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
+          <button className="text-foreground size-9 inline-flex items-center justify-center rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.1] transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle menu" aria-expanded={open}>
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
