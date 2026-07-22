@@ -164,9 +164,21 @@ function LoginPage() {
 
   const sendOtp = async () => {
     if (isSubmitting) return;
+    if (isLocked) return toast.error(`Locked — try again in ${fmtLock(lockRemaining)}.`);
     if (!email.trim()) return toast.error("Enter your email first.");
     setIsSubmitting(true);
     try {
+      // Pre-check: if this email is currently locked, block send and show countdown.
+      try {
+        const pre = await checkOtpChallenge({ data: { email: email.trim() } });
+        if (!pre.ok && pre.reason === "locked") {
+          applyLockFromResult(pre);
+          toast.error(pre.message);
+          setOtpStage("verify");
+          return;
+        }
+      } catch { /* non-fatal */ }
+
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: { shouldCreateUser: true, emailRedirectTo: window.location.origin + "/auth/callback" },
@@ -179,6 +191,49 @@ function LoginPage() {
       setTimeout(() => otpRefs.current[0]?.focus(), 80);
     } catch (err) {
       toast.error(humanize(err instanceof Error ? err.message : "Couldn't send code"));
+    } finally { setIsSubmitting(false); }
+  };
+
+  const verifyOtp = async (token: string) => {
+    if (isSubmitting) return;
+    if (isLocked) return toast.error(`Locked — try again in ${fmtLock(lockRemaining)}.`);
+    const cleanEmail = email.trim();
+    setIsSubmitting(true);
+    try {
+      // Server-side pre-check: expiry + lockout, independent of Supabase.
+      const pre = await checkOtpChallenge({ data: { email: cleanEmail } });
+      if (!pre.ok) {
+        applyLockFromResult(pre);
+        toast.error(pre.message);
+        if (pre.reason === "expired" || pre.reason === "not_started") {
+          setOtp(Array(6).fill(""));
+        }
+        return;
+      }
+
+      const { error } = await supabase.auth.verifyOtp({ email: cleanEmail, token, type: "email" });
+      if (error) {
+        // Record the failure server-side so attempts survive page reloads.
+        try {
+          const after = await recordOtpFailure({ data: { email: cleanEmail } });
+          if (!after.ok) {
+            applyLockFromResult(after);
+            toast.error(after.message);
+            setOtp(Array(6).fill(""));
+            if (after.reason !== "locked") otpRefs.current[0]?.focus();
+            return;
+          }
+        } catch { /* fall through to generic error */ }
+        toast.error(humanize(error.message));
+        setOtp(Array(6).fill(""));
+        otpRefs.current[0]?.focus();
+        return;
+      }
+
+      try { await clearOtpChallenge({ data: { email: cleanEmail } }); } catch { /* ignore */ }
+      await afterAuth();
+    } catch (err) {
+      toast.error(humanize(err instanceof Error ? err.message : "Invalid code"));
     } finally { setIsSubmitting(false); }
   };
 
