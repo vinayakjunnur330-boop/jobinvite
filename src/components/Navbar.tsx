@@ -23,11 +23,12 @@ function ThemeToggle({ className = "" }: { className?: string }) {
 const primaryLinks = [
   { to: "/", label: "Home" },
   { to: "/assessment", label: "Assessment" },
-  { to: "/jobs", label: "Jobs" },
-  { to: "/resources", label: "Career Hub" },
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/roadmap", label: "Roadmap" },
   { to: "/mentors", label: "Mentors" },
-  { to: "/blog", label: "Insights" },
-  { to: "/about", label: "About" },
+  { to: "/scholarships", label: "Scholarships" },
+  { to: "/internships", label: "Internships" },
+  { to: "/blog", label: "Blog" },
 ] as const;
 
 export function Navbar() {
