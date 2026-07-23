@@ -131,12 +131,16 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           )
         }
 
-        // Build template props from payload.data (HookData structure)
+        const isCodeOnlyAuthEmail = emailType === 'signup' || emailType === 'magiclink'
+
+        // Build template props from payload.data (HookData structure).
+        // Signup and login-code emails are intentionally code-only: do not pass
+        // the confirmation URL into those templates, so they cannot render login links.
         const templateProps = {
           siteName: SITE_NAME,
           siteUrl: `https://${ROOT_DOMAIN}`,
           recipient: payload.data.email,
-          confirmationUrl: payload.data.url,
+          confirmationUrl: isCodeOnlyAuthEmail ? undefined : payload.data.url,
           token: payload.data.token || payload.data.new_token,
           email: payload.data.email,
           oldEmail: payload.data.old_email,
