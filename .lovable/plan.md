@@ -1,29 +1,25 @@
-## Plan: send only a 6-digit verification code
+## Problem
+In `src/components/ChatWidget.tsx`, chat bubbles use hardcoded dark-mode classes:
+- Assistant: `bg-white/5 text-white/90 border-white/10` — near-invisible on white bg in light mode.
+- Suggested-question buttons: `bg-white/5 text-white/80` — same issue.
+- Header uses `text-white`, `text-white/60` — invisible on light glass panel.
+- Input: `text-white placeholder:text-white/40` — invisible when typing in light mode.
+- Inline `<code>` in `renderMd` uses `bg-white/10` — invisible.
 
-1. **Lock login OTP to code flow**
-   - Keep the login button using the email OTP flow.
-   - Keep the OTP screen copy code-only, with no magic-link instructions.
+The chat window container itself (`bg-white/[0.03]`) is also fine only in dark mode.
 
-2. **Make auth emails code-only**
-   - Ensure both login OTP and new-user signup verification emails render only the 6-digit code.
-   - Do not pass confirmation/login URLs into these OTP templates.
-   - Keep password reset emails as links, because password reset requires the reset page.
+## Fix
+Add `dark:` prefixes to the current white-on-dark classes and add light-mode counterparts using neutral tokens so contrast is legible in both themes. Scope changes strictly to `ChatWidget.tsx` (and the `renderMd` inline code class within it).
 
-3. **Tighten email wording**
-   - Change the signup email subject from “Confirm your email” to a code-focused subject like “Your CareerPilot AI verification code”.
-   - Keep fallback text telling users to request a new code if no token is available, not to click a link.
+Specifically:
+- Window shell: `bg-white/80 dark:bg-white/[0.03]`, border `border-neutral-200 dark:border-white/10`.
+- Header text: `text-neutral-900 dark:text-white`; muted `text-neutral-500 dark:text-white/60`.
+- Assistant bubble: `bg-neutral-100 text-neutral-900 border-neutral-200 dark:bg-white/5 dark:text-white/90 dark:border-white/10`.
+- User bubble: keep `bg-primary text-primary-foreground` (already themed).
+- Suggested chips: light neutrals + existing dark classes.
+- Input: `text-neutral-900 placeholder:text-neutral-500 bg-white dark:bg-white/[0.03] dark:text-white dark:placeholder:text-white/40`, border similarly.
+- Voice/close buttons: `text-neutral-600 hover:text-neutral-900 dark:text-white/70 dark:hover:text-white`.
+- `renderMd` `<code>`: `bg-neutral-200 text-neutral-900 dark:bg-white/10 dark:text-white/90`.
+- Streaming caret `▍`: relies on bubble text color, so inherits fix.
 
-4. **Verify with preview**
-   - Use the existing email preview page to confirm both Login OTP and Signup OTP contain a 6-digit code and no `https://` link in the plain-text body.
-
-5. **Required DNS step**
-   - The sender domain `notify.rolehub.com` is currently still pending DNS verification. Until that is completed, the platform can continue sending the default `email.auth.lovable.cloud` link email instead of the custom code-only template.
-   - The exact pending records are:
-
-```text
-TXT  _lovable-email.rolehub.com  lovable_email_verify=cfd7fb4984c658fdf125e714d56cba9db67931764cfe132eab1ab1ff6292bb76
-NS   notify.rolehub.com          ns3.lovable.cloud
-NS   notify.rolehub.com          ns4.lovable.cloud
-```
-
-After you approve, I’ll apply the remaining code hardening and re-check the preview output.
+No logic changes; presentation only.
