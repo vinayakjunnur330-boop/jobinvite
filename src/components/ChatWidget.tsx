@@ -318,21 +318,21 @@ export function ChatWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={{ transformOrigin: "bottom right" }}
-            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.05),0_20px_60px_0_rgba(0,0,0,0.6)] flex flex-col overflow-hidden gpu"
+            className="fixed z-[9999] inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-3rem)] sm:h-[min(600px,calc(100dvh-8rem))] sm:rounded-2xl bg-white/95 dark:bg-white/[0.03] backdrop-blur-3xl border border-neutral-200 dark:border-white/10 shadow-[0_20px_60px_0_rgba(0,0,0,0.15)] dark:shadow-[0_8px_32px_0_rgba(255,255,255,0.05),0_20px_60px_0_rgba(0,0,0,0.6)] flex flex-col overflow-hidden gpu"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.03]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.03]">
 
               <div className="flex items-center gap-2">
-                <div className="relative size-7 rounded-lg overflow-hidden border border-white/20 bg-white/5 flex items-center justify-center">
+                <div className="relative size-7 rounded-lg overflow-hidden border border-neutral-200 dark:border-white/20 bg-neutral-100 dark:bg-white/5 flex items-center justify-center">
                   <img src={chatbotLogo} alt="" width={512} height={512} className="size-full object-contain" />
-                  <Sparkles className="absolute -top-1 -right-1 size-2.5 text-emerald-300" />
+                  <Sparkles className="absolute -top-1 -right-1 size-2.5 text-emerald-500 dark:text-emerald-300" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white">Zoiee Assistant</div>
-                  <div className="text-[10px] font-mono text-emerald-400">● {streaming ? "TYPING" : "ONLINE"}</div>
+                  <div className="text-sm font-bold text-neutral-900 dark:text-white">Zoiee Assistant</div>
+                  <div className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">● {streaming ? "TYPING" : "ONLINE"}</div>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white transition-colors" aria-label="Close">
+              <button onClick={() => setOpen(false)} className="text-neutral-500 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white transition-colors" aria-label="Close">
                 <X className="size-4" />
               </button>
             </div>
