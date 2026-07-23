@@ -25,7 +25,7 @@ function renderMd(text: string) {
   const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return escape(text)
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-white/10 text-[11px] font-mono">$1</code>')
+    .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-neutral-200 text-neutral-900 dark:bg-white/10 dark:text-white/90 text-[11px] font-mono">$1</code>')
     .replace(/\n/g, "<br/>");
 }
 
