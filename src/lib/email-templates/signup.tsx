@@ -2,54 +2,36 @@ import * as React from 'react'
 
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
   Html,
-  Link,
   Preview,
   Text,
 } from '@react-email/components'
 
 interface SignupEmailProps {
   siteName: string
-  siteUrl: string
-  recipient: string
-  confirmationUrl: string
+  siteUrl?: string
+  recipient?: string
+  confirmationUrl?: string
+  token?: string | null
 }
 
-export const SignupEmail = ({
-  siteName,
-  siteUrl,
-  recipient,
-  confirmationUrl,
-}: SignupEmailProps) => (
+export const SignupEmail = ({ siteName, token }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Your {siteName} verification code</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Heading style={h1}>Your verification code</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
+          Enter this 6-digit code on the {siteName} sign-in screen to finish
+          creating your account. It expires shortly.
         </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
+        <Text style={codeStyle}>{token || '123456'}</Text>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          If you didn't request this code, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -70,15 +52,19 @@ const text = {
   fontSize: '14px',
   color: '#55575d',
   lineHeight: '1.5',
-  margin: '0 0 25px',
+  margin: '0 0 18px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
+const codeStyle = {
+  fontFamily: 'Courier, monospace',
+  fontSize: '34px',
+  fontWeight: 'bold' as const,
+  letterSpacing: '8px',
+  color: '#0f172a',
+  backgroundColor: '#eff6ff',
+  border: '1px solid #bfdbfe',
+  borderRadius: '14px',
+  padding: '18px 20px',
+  textAlign: 'center' as const,
+  margin: '0 0 22px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
