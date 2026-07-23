@@ -3,6 +3,7 @@ import { render } from '@react-email/render'
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { MagicLinkEmail } from '@/lib/email-templates/magic-link'
+import { SignupEmail } from '@/lib/email-templates/signup'
 
 export const Route = createFileRoute('/email-preview')({
   head: () => ({
@@ -19,12 +20,13 @@ export const Route = createFileRoute('/email-preview')({
 
 function EmailPreviewPage() {
   const [token, setToken] = useState('123456')
+  const [type, setType] = useState<'magiclink' | 'signup'>('magiclink')
   const [html, setHtml] = useState('')
   const [plain, setPlain] = useState('')
 
   const element = useMemo(
-    () => React.createElement(MagicLinkEmail, { siteName: 'CareerPilot AI', token }),
-    [token]
+    () => React.createElement(type === 'signup' ? SignupEmail : MagicLinkEmail, { siteName: 'CareerPilot AI', token }),
+    [token, type]
   )
 
   useEffect(() => {
@@ -55,6 +57,23 @@ function EmailPreviewPage() {
         </p>
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
+          <label style={{ fontSize: 13 }}>
+            Template:&nbsp;
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as 'magiclink' | 'signup')}
+              style={{
+                background: '#111827',
+                color: '#fff',
+                border: '1px solid #374151',
+                borderRadius: 6,
+                padding: '6px 10px',
+              }}
+            >
+              <option value="magiclink">Login OTP</option>
+              <option value="signup">Signup OTP</option>
+            </select>
+          </label>
           <label style={{ fontSize: 13 }}>
             Sample code:&nbsp;
             <input

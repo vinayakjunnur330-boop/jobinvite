@@ -67,7 +67,7 @@ function LoginPage() {
     return () => clearInterval(id);
   }, [resendIn]);
 
-  // Auto-redirect if a session appears (e.g. user clicked magic link in another tab).
+  // Auto-redirect if a session appears from an auth callback in another tab.
   useEffect(() => {
     let cancelled = false;
     const go = () => {
@@ -435,7 +435,7 @@ function LoginPage() {
                   ))}
                 </div>
                 <p className="text-[12px] text-white/70 text-center leading-relaxed -mt-1">
-                  If you received a magic link in your email instead of a code, simply click the link to log in instantly.
+                  Use only the 6-digit verification code from your email. Never share this code with anyone.
                 </p>
                 <StayCheckbox stay={stay} setStay={setStay} />
                 <button onClick={() => verifyOtp(otp.join(""))} disabled={isSubmitting || isLocked || otp.join("").length !== 6} className={primaryCls}>
