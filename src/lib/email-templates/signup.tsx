@@ -18,25 +18,35 @@ interface SignupEmailProps {
   token?: string | null
 }
 
-export const SignupEmail = ({ siteName, token }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>Your {siteName} verification code</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Your verification code</Heading>
-        <Text style={text}>
-          Enter this 6-digit code on the {siteName} sign-in screen to finish
-          creating your account. It expires shortly.
-        </Text>
-        <Text style={codeStyle}>{token || '123456'}</Text>
-        <Text style={footer}>
-          If you didn't request this code, you can safely ignore this email.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+export const SignupEmail = ({ siteName, token }: SignupEmailProps) => {
+  const code = token?.trim()
+
+  return (
+    <Html lang="en" dir="ltr">
+      <Head />
+      <Preview>Your {siteName} verification code</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Heading style={h1}>Your verification code</Heading>
+          <Text style={text}>
+            Enter this 6-digit code on the {siteName} sign-in screen to finish
+            creating your account. It expires shortly.
+          </Text>
+          {code ? (
+            <Text style={codeStyle}>{code}</Text>
+          ) : (
+            <Text style={fallbackStyle}>
+              We couldn't generate a verification code for this request. Please return to {siteName} and request a new code.
+            </Text>
+          )}
+          <Text style={footer}>
+            If you didn't request this code, you can safely ignore this email.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default SignupEmail
 
@@ -65,6 +75,16 @@ const codeStyle = {
   borderRadius: '14px',
   padding: '18px 20px',
   textAlign: 'center' as const,
+  margin: '0 0 22px',
+}
+const fallbackStyle = {
+  fontSize: '14px',
+  color: '#7f1d1d',
+  lineHeight: '1.5',
+  backgroundColor: '#fef2f2',
+  border: '1px solid #fecaca',
+  borderRadius: '12px',
+  padding: '14px 16px',
   margin: '0 0 22px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
