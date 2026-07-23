@@ -1,20 +1,29 @@
-## Plan: make OTP emails code-only
+## Plan: send only a 6-digit verification code
 
-1. **Force OTP-only auth email content**
-   - Update the auth email webhook so `signup` and `magiclink` emails render only the 6-digit token when a token exists.
-   - Add a safe fallback message if the backend sends no token, instead of rendering any confirmation link.
+1. **Lock login OTP to code flow**
+   - Keep the login button using the email OTP flow.
+   - Keep the OTP screen copy code-only, with no magic-link instructions.
 
-2. **Remove link language from login OTP flow**
-   - Remove the helper text that tells users to click a magic link.
-   - Make the OTP screen copy say only: enter the 6-digit code sent to your email.
+2. **Make auth emails code-only**
+   - Ensure both login OTP and new-user signup verification emails render only the 6-digit code.
+   - Do not pass confirmation/login URLs into these OTP templates.
+   - Keep password reset emails as links, because password reset requires the reset page.
 
-3. **Keep password reset links separate**
-   - Password reset must still use a link because that flow needs `/reset-password`.
-   - Only sign-in/sign-up OTP emails will be code-only.
+3. **Tighten email wording**
+   - Change the signup email subject from “Confirm your email” to a code-focused subject like “Your CareerPilot AI verification code”.
+   - Keep fallback text telling users to request a new code if no token is available, not to click a link.
 
-4. **Important domain requirement**
-   - Your email domain `notify.rolehub.com` is still pending DNS verification. Until DNS is completed, the platform may continue sending default link emails instead of your custom OTP template.
-   - The required DNS records are visible in Project Settings → Email.
+4. **Verify with preview**
+   - Use the existing email preview page to confirm both Login OTP and Signup OTP contain a 6-digit code and no `https://` link in the plain-text body.
 
-5. **Verify**
-   - Re-check the preview/test email page after changes to confirm the signup and magic-link templates contain the 6-digit code and no clickable auth link.
+5. **Required DNS step**
+   - The sender domain `notify.rolehub.com` is currently still pending DNS verification. Until that is completed, the platform can continue sending the default `email.auth.lovable.cloud` link email instead of the custom code-only template.
+   - The exact pending records are:
+
+```text
+TXT  _lovable-email.rolehub.com  lovable_email_verify=cfd7fb4984c658fdf125e714d56cba9db67931764cfe132eab1ab1ff6292bb76
+NS   notify.rolehub.com          ns3.lovable.cloud
+NS   notify.rolehub.com          ns4.lovable.cloud
+```
+
+After you approve, I’ll apply the remaining code hardening and re-check the preview output.
