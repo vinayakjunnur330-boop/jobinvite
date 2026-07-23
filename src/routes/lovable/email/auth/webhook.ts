@@ -12,7 +12,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
+  signup: 'Your CareerPilot AI verification code',
   invite: "You've been invited",
   magiclink: 'Your CareerPilot AI verification code',
   recovery: 'Reset your password',
@@ -132,6 +132,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         }
 
         const isCodeOnlyAuthEmail = emailType === 'signup' || emailType === 'magiclink'
+        const verificationCode = payload.data.token || payload.data.new_token || null
 
         // Build template props from payload.data (HookData structure).
         // Signup and login-code emails are intentionally code-only: do not pass
@@ -141,7 +142,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           siteUrl: `https://${ROOT_DOMAIN}`,
           recipient: payload.data.email,
           confirmationUrl: isCodeOnlyAuthEmail ? undefined : payload.data.url,
-          token: payload.data.token || payload.data.new_token,
+          token: verificationCode,
           email: payload.data.email,
           oldEmail: payload.data.old_email,
           newEmail: payload.data.new_email,
