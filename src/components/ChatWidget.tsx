@@ -347,14 +347,14 @@ export function ChatWidget() {
                   <div className={`max-w-[88%] text-xs leading-relaxed px-3 py-2 rounded-2xl ${
                     m.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-white/5 text-white/90 rounded-bl-sm border border-white/10"
+                      : "bg-neutral-100 text-neutral-900 border border-neutral-200 dark:bg-white/5 dark:text-white/90 dark:border-white/10 rounded-bl-sm"
                   }`}>
                     <div dangerouslySetInnerHTML={{ __html: renderMd(m.content || (streaming && i === msgs.length - 1 ? "▍" : "")) }} />
                     {m.role === "assistant" && m.content && !streaming && (
                       <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => speak(m.content)} className="text-[10px] text-white/50 hover:text-primary inline-flex items-center gap-1"><Volume2 className="size-3"/> Speak</button>
+                        <button onClick={() => speak(m.content)} className="text-[10px] text-neutral-500 hover:text-primary dark:text-white/50 inline-flex items-center gap-1"><Volume2 className="size-3"/> Speak</button>
                         {i === msgs.length - 1 && (
-                          <button onClick={retry} className="text-[10px] text-white/50 hover:text-primary inline-flex items-center gap-1"><RotateCcw className="size-3"/> Retry</button>
+                          <button onClick={retry} className="text-[10px] text-neutral-500 hover:text-primary dark:text-white/50 inline-flex items-center gap-1"><RotateCcw className="size-3"/> Retry</button>
                         )}
                       </div>
                     )}
@@ -364,10 +364,10 @@ export function ChatWidget() {
 
               {msgs.length <= 1 && (
                 <div className="pt-2">
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-white/40 mb-2">Try asking</div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 dark:text-white/40 mb-2">Try asking</div>
                   <div className="flex flex-col gap-1.5">
                     {SUGGESTED.map((s) => (
-                      <button key={s} onClick={() => send(s)} className="text-left text-[11px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-primary/60 hover:bg-white/10 transition-colors text-white/80">
+                      <button key={s} onClick={() => send(s)} className="text-left text-[11px] px-3 py-2 rounded-lg bg-neutral-100 border border-neutral-200 hover:border-primary/60 hover:bg-neutral-200 text-neutral-800 dark:bg-white/5 dark:border-white/10 dark:hover:border-primary/60 dark:hover:bg-white/10 dark:text-white/80 transition-colors">
                         {s}
                       </button>
                     ))}
@@ -376,8 +376,8 @@ export function ChatWidget() {
               )}
             </div>
 
-            <div className="p-3 border-t border-white/10 bg-white/[0.03] flex gap-2">
-              <button onClick={startVoice} className="size-9 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/30 flex items-center justify-center text-white/70 transition-colors" aria-label="Voice input">
+            <div className="p-3 border-t border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.03] flex gap-2">
+              <button onClick={startVoice} className="size-9 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-700 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.08] dark:hover:border-white/30 dark:text-white/70 flex items-center justify-center transition-colors" aria-label="Voice input">
                 <Mic className="size-4" />
               </button>
               <input
@@ -385,7 +385,7 @@ export function ChatWidget() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
                 placeholder="Ask about your future..."
-                className="flex-1 bg-white/[0.03] border border-white/10 text-white placeholder:text-white/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+                className="flex-1 bg-white border border-neutral-200 text-neutral-900 placeholder:text-neutral-500 dark:bg-white/[0.03] dark:border-white/10 dark:text-white dark:placeholder:text-white/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
 
                 disabled={streaming}
               />
